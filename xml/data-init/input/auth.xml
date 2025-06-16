@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<auth>
+
+
+  <permission name="perm.Provincia.read" object="com.eduflow.common.geo.db.Provincia">
+    <can create="false" read="true" write="false" remove="false" export="true"/>
+  </permission>
+
+  <permission name="perm.Provincia.write" object="com.eduflow.common.geo.db.Provincia">
+    <can create="true" read="false" write="true" remove="true" export="false"/>
+  </permission>
+
+
+  <role name="geo.all" description="Geo Super">
+    <permission name="perm.Provincia.read"/>
+    <permission name="perm.Provincia.write"/>
+  </role>
+
+  <role name="geo.read" description="Geo Super">
+    <permission name="perm.Provincia.read"/>
+  </role>
+  <role name="geo.write" description="Geo Super">
+    <permission name="perm.Provincia.write"/>
+  </role>
+
+  <group code="users">
+    <role name="geo.read" />
+    <role name="geo.write" />
+  </group>
+
+</auth>

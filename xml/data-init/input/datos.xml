@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<datos>
+  <provincias>
+    <provincia idProvincia="3" estado="A" comentario="aaa">Valencia</provincia>
+    <provincia idProvincia="4" estado="B" comentario="bbb">Castellón</provincia>
+  </provincias>
+</datos>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://raw.githubusercontent.com/educaflow/axelor-open-platform/refs/heads/master/xml/ns/object-views/object-views_7.4.xsd">
+
+
+  <menuitem name="menu-mantenimientos" title="Provincias" groups="admins,users"/>
+
+  <menuitem name="menu-provincias" parent="menu-mantenimientos" title="Provincias" action="accion-mantenimiento-provincias" groups="admins,users"/>
+  <menuitem name="menu-provincia" parent="menu-mantenimientos" title="Provincia" action="accion-mantenimiento-provincia" groups="admins,users"/>
+  <menuitem name="menu-provincia-single" parent="menu-mantenimientos" title="Solo Grid" action="accion-listado-provincias" groups="admins,users"/>
+
+
+  <action-view name="accion-mantenimiento-provincias" title="Provincias" model="com.eduflow.common.geo.db.Provincia" >
+    <view type="grid" name="grid-provincias"  />
+    <view type="form" name="form-provincia"/>
+  </action-view>
+
+  <action-view name="accion-mantenimiento-provincia" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  >
+    <view type="form" name="form-provincia" />
+    <context name="_showRecord" expr="1" />
+  </action-view>
+
+  <action-view name="accion-listado-provincias" title="Provincias" model="com.eduflow.common.geo.db.Provincia" >
+    <view type="grid" name="grid-provincias-extendido"  />
+  </action-view>
+
+  <action-method name="accion-condicional">
+    <call class="com.eduflow.modules.geo.FlowAction" method="abrirFormularioDinamico"/>
+  </action-method>
+
+  <action-method name="A">
+    <call class="com.eduflow.modules.geo.FlowAction" method="printA"/>
+  </action-method>
+  <action-method name="B">
+    <call class="com.eduflow.modules.geo.FlowAction" method="printB"/>
+  </action-method>
+  <action-method name="C">
+    <call class="com.eduflow.modules.geo.FlowAction" method="printC"/>
+  </action-method>
+  <action-method name="D">
+    <call class="com.eduflow.modules.geo.FlowAction" method="printD"/>
+  </action-method>
+
+</object-views>
