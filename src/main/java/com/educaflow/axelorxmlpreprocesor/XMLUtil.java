@@ -239,7 +239,6 @@ public class XMLUtil {
         return matchingElements;
     }
 
-    
     public static Document cloneDocument(Document originalDocument) {
         if (originalDocument == null) {
             return null; // Handle null input gracefully
@@ -258,9 +257,9 @@ public class XMLUtil {
             // but it's good for robustness.
             throw new IllegalStateException("Failed to clone Document. Cloned node is not a Document type.");
         }
-    }    
-    
-public static Element replaceElementWithClone(Document doc, Element clonedSourceElement, Element targetElement) {
+    }
+
+    public static Element replaceElementWithClone(Document doc, Element clonedSourceElement, Element targetElement) {
         if (doc == null || clonedSourceElement == null || targetElement == null) {
             return null; // Handle null inputs gracefully
         }
@@ -274,8 +273,6 @@ public static Element replaceElementWithClone(Document doc, Element clonedSource
         if (targetParent == null) {
             throw new IllegalStateException("Target element has no parent and cannot be replaced.");
         }
-
-
 
         // 2. Replace targetElement with the cloned source element
         // replaceChild returns the old child (targetElement in this case).
@@ -291,39 +288,9 @@ public static Element replaceElementWithClone(Document doc, Element clonedSource
             throw new IllegalStateException("The replaced node was not an Element as expected.");
         }
     }
-    
 
 
-  public static void displayElement(Element element) {
-       if (element == null) {
-            System.out.println("Cannot display a null Element.");
-            return;
-        }
-
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-
-            // Set output properties for pretty printing
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-
-            // Crucially, omit the XML declaration
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-
-            // Use the Element directly as the source
-            DOMSource source = new DOMSource(element);
-            StreamResult result = new StreamResult(System.out);
-
-            transformer.transform(source, result);
-            System.out.println(); // Add a newline for better visual separation
-        } catch (Exception e) {
-            System.err.println("Error displaying Element: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-        public static void copyAttributesIgnoreNamespaces(Element sourceElement, Element targetElement) {
+    public static void copyAttributesIgnoreNamespaces(Element sourceElement, Element targetElement) {
         if (sourceElement == null) {
             throw new IllegalArgumentException("Source element cannot be null.");
         }

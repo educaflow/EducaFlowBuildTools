@@ -42,10 +42,9 @@ public class XMLPreprocesor {
             }
             Element clonedBaseElement = (Element) clonedBaseNode;
             clonedBaseElement.setAttribute("name", name);
-            
-            XMLUtil.copyAttributesIgnoreNamespaces(elementNuevoQueHereda,clonedBaseElement);
+
+            XMLUtil.copyAttributesIgnoreNamespaces(elementNuevoQueHereda, clonedBaseElement);
             clonedBaseElement.removeAttribute("inherit");
-            
 
             elementNuevoQueHereda = XMLUtil.replaceElementWithClone(document, clonedBaseElement, elementNuevoQueHereda);
 
@@ -66,12 +65,11 @@ public class XMLPreprocesor {
                 if (tareaMove != null) {
                     doTareaMove(xpathTarget, tareaMove, clonedBaseElement);
                 }
-                
-                
+
                 List<Element> tareaAttributes = XMLUtil.getChildrenElementsByTagName(extendElement, "attribute");
                 if ((tareaAttributes != null) && (!tareaAttributes.isEmpty())) {
                     doTareaAttributes(xpathTarget, tareaAttributes, clonedBaseElement);
-                }                
+                }
             }
 
         }
@@ -242,7 +240,7 @@ public class XMLPreprocesor {
     }
 
     private static void doTareaMove(String xpathTarget, Element tareaMove, Element clonedBaseElement) {
-          if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
+        if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
         if (tareaMove == null || clonedBaseElement == null) {
@@ -294,9 +292,6 @@ public class XMLPreprocesor {
         if (sourceNodeToMove == null) {
             throw new IllegalArgumentException("Source XPath '" + sourceXPath + "' did not find a node to move. It must identify exactly one node.");
         }
-        
-
-
 
         // Ensure the node has a parent before attempting to remove it
         Node originalParent = sourceNodeToMove.getParentNode();
@@ -332,8 +327,6 @@ public class XMLPreprocesor {
         }
     }
 
-    
-    
     private static void doTareaAttributes(String xpathTarget, List<Element> tareaAttributes, Element clonedBaseElement) {
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
@@ -385,16 +378,12 @@ public class XMLPreprocesor {
                 // If you were dealing with true namespaced attributes (e.g., xml:lang), you'd need
                 // to know their URI to remove them correctly using removeAttributeNS.
                 targetElement.removeAttribute(attrName);
-                System.out.println("Removed attribute '" + attrName + "' from target element.");
             } else {
                 // Set the attribute with the given value
                 // This implicitly overwrites if it already exists
                 targetElement.setAttribute(attrName, attrValue);
-                System.out.println("Set attribute '" + attrName + "' to '" + attrValue + "' on target element.");
             }
         }
     }
-    
-    
 
 }
