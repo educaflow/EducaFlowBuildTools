@@ -12,6 +12,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter; // To capture output as a string if needed
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.NamedNodeMap;
 
@@ -377,7 +381,9 @@ public class XMLUtil {
         }
     }
 
-    public static void replaceElementWithCopy(Element targetElement, NodeList sourceElements) {
+    public static Node replaceElementWithCopy(Element targetElement, NodeList sourceElements) {
+        Node returnNode=null;
+        
         if (targetElement == null || sourceElements == null) {
             throw new IllegalArgumentException("El elemento de destino y la lista de origen no pueden ser nulos.");
         }
@@ -388,13 +394,66 @@ public class XMLUtil {
         // Insertar cada nodo clonado antes del elemento objetivo
         for (int i = 0; i < sourceElements.getLength(); i++) {
             Node imported = doc.importNode(sourceElements.item(i), true);
+            
+            if (returnNode==null) {
+                returnNode=imported;
+            }
+            
             parent.insertBefore(imported, targetElement);
         }
 
         // Eliminar el nodo objetivo original
         parent.removeChild(targetElement);
+        
+        return returnNode;
     }
 
+    
+    public static NodeList getNodeListFromEvaluateXPath(String expression,Element element) {
+        try {
+            if (expression == null || expression.trim().isEmpty()) {
+                throw new IllegalArgumentException("expression no puede ser null o vacio.");
+            }
+            if (element == null) {
+                throw new IllegalArgumentException("element no puede ser null.");
+            }
+            if (expression.startsWith("//")) {
+                throw new IllegalArgumentException("expression no puede empezar por //:"+expression);
+            }
+            
+            
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            NodeList result = (NodeList) xpath.evaluate(expression, element, XPathConstants.NODESET);
+            
+            return result;
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("Error evaluating XPath expression: " + expression, e);
+        }        
+    }
+    
+    public static Node getNodeFromEvaluateXPath(String expression,Element element) {
+        try {
+            if (expression == null || expression.trim().isEmpty()) {
+                throw new IllegalArgumentException("expression no puede ser null o vacio.");
+            }
+            if (element == null) {
+                throw new IllegalArgumentException("element no puede ser null.");
+            }
+            if (expression.startsWith("//")) {
+                throw new IllegalArgumentException("expression no puede empezar por //:"+expression);
+            }
+            
+            
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            Node result = (Node) xpath.evaluate(expression, element, XPathConstants.NODE);
+            
+            return result;
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("Error evaluating XPath expression: " + expression, e);
+        }        
+    }    
+    
+    
     public static void printDocument(Document doc) {
         if (doc == null) {
             System.out.println("El documento es nulo y no puede ser impreso.");

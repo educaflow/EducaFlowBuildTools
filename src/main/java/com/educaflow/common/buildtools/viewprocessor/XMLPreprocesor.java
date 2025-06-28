@@ -400,7 +400,6 @@ public class XMLPreprocesor {
 
             Element targetElement = (Element) targetNode;
 
-            // 2. Process each attribute task
             for (Element attrTask : tareaAttributes) {
                 String attrName = attrTask.getAttribute("name");
                 String attrValue = attrTask.getAttribute("value"); // Can be empty or null
@@ -409,23 +408,13 @@ public class XMLPreprocesor {
                     throw new RuntimeException("Hay un atributo con el name vacio");
                 }
 
-                // Normalize attrValue for empty check
                 if (attrValue == null) {
                     attrValue = "";
                 }
 
-                // Remove the attribute if value is empty/blank
                 if (attrValue.trim().isEmpty()) {
-                    // IMPORTANT: We use removeAttributeNS if the original attribute might have had a namespace
-                    // However, without knowing the original namespace, we can only remove by local name
-                    // or qualified name. For simplicity here, we assume non-namespaced attributes
-                    // or that getAttribute's behavior is sufficient for removal.
-                    // If you were dealing with true namespaced attributes (e.g., xml:lang), you'd need
-                    // to know their URI to remove them correctly using removeAttributeNS.
                     targetElement.removeAttribute(attrName);
                 } else {
-                    // Set the attribute with the given value
-                    // This implicitly overwrites if it already exists
                     targetElement.setAttribute(attrName, attrValue);
                 }
             }
@@ -433,29 +422,35 @@ public class XMLPreprocesor {
     }
 
     private static void doTareaInclude(Element tareaInclude, Element baseElement, String xpathTarget, boolean readOnly) {
-        if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
-            throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
-        }
-        if (tareaInclude == null || baseElement == null) {
-            throw new IllegalArgumentException("tareaReplace and element parameters cannot be null.");
+        if (tareaInclude == null) {
+            throw new IllegalArgumentException("tareaReplace  parameters cannot be null.");
         }
 
-        // 1. Prepare XPath and Find Target Node
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList targetElementsToInclude = null;
-        try {
-            // Evaluate XPath relative to the 'element' parameter
-            targetElementsToInclude = (NodeList) xpath.evaluate(xpathTarget, baseElement, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            throw new RuntimeException("Error evaluating XPath expression: " + xpathTarget, e);
-        }
+        NodeList targetElementsToInclude = XMLUtil.getNodeListFromEvaluateXPath(xpathTarget, baseElement);
 
         if (targetElementsToInclude == null) {
             throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + baseElement.getTagName() + "'.");
         }
 
-        XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
+        Element newElementIncluded = (Element) XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
 
+        doExtends(newElementIncluded);
+
+        if (readOnly == true) {
+            String fieldsExpresionXPath=".//field";
+            NodeList fields = XMLUtil.getNodeListFromEvaluateXPath(fieldsExpresionXPath, newElementIncluded);
+            for (int i = 0; i < fields.getLength(); i++) {
+                Node fieldNode = fields.item(i);
+                if (fieldNode.getNodeType() != Node.ELEMENT_NODE) {
+                    throw new RuntimeException("Target node found by xpathTarget '" + fieldsExpresionXPath + "' is not an Element. Cannot modify attributes on it.");
+                }
+
+                Element fieldElement = (Element) fieldNode;
+                fieldElement.setAttribute("readonly","true");
+                System.out.println(fieldElement.getAttribute("name"));
+                
+            }
+        }
     }
 
 }

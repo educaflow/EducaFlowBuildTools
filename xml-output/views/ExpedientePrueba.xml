@@ -24,6 +24,10 @@
   <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" title="hola">
     <toolbar name="pepe">
       <button icon="fa-print" name="printBtn" onClick="A" title="Print invoices"/>
+      <field icon="fa-print" name="printBtn" onClick="A" readonly="true" title="Print invoices"/>
+      <panel name="botones">
+        <button icon="fa-print" name="printBtn2" onClick="A" title="Print invoices2"/>
+      </panel>
     </toolbar>
     <panel colSpan="12" name="head">
       <panel colSpan="8">
