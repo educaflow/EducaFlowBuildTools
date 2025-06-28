@@ -78,8 +78,9 @@ public class XMLPreprocesor {
                     includeElement.getAttribute("sourceFileName");
                     doTareaInclude(includeElement, realBaseElement, xpathTarget, readOnly);
                 }
-
-                doExtends(mainElementForIncludesAndExtends);
+                
+                List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
+                applyExtends(extendsElements,mainElementForIncludesAndExtends);
 
                 doMergeAttributes(mainElementForIncludesAndExtends, baseElement);
 
@@ -93,8 +94,7 @@ public class XMLPreprocesor {
         }
     }
 
-    private static void doExtends(Element mainElementForIncludesAndExtends) {
-        List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
+    private static void applyExtends(List<Element> extendsElements,Element mainElementForIncludesAndExtends) {
         for (Element extendElement : extendsElements) {
             String xpathTarget = extendElement.getAttribute("target");
             if (xpathTarget.startsWith("//")) {
@@ -434,8 +434,9 @@ public class XMLPreprocesor {
 
         Element newElementIncluded = (Element) XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
 
-        doExtends(newElementIncluded);
-
+        List<Element> extendsElements = XMLUtil.getExtends(tareaInclude);
+        applyExtends(extendsElements,newElementIncluded);
+        
         if (readOnly == true) {
             String fieldsExpresionXPath=".//field";
             NodeList fields = XMLUtil.getNodeListFromEvaluateXPath(fieldsExpresionXPath, newElementIncluded);

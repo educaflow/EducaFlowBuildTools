@@ -26,6 +26,8 @@
       <button icon="fa-print" name="printBtn" onClick="A" title="Print invoices"/>
       <field icon="fa-print" name="printBtn" onClick="A" readonly="true" title="Print invoices"/>
       <panel name="botones">
+        <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+        <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
         <button icon="fa-print" name="printBtn2" onClick="A" title="Print invoices2"/>
       </panel>
     </toolbar>

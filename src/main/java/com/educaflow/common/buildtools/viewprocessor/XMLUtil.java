@@ -163,7 +163,6 @@ public class XMLUtil {
 
                 Element currentElement = (Element) currentNode;
                 if ("extend".equals(currentElement.getTagName())) {
-                    // Check if it has ONLY the "target" attribute
                     if (currentElement.hasAttribute("target") && currentElement.getAttributes().getLength() == 1) {
                         extendElements.add(currentElement);
                     } else {
@@ -174,7 +173,6 @@ public class XMLUtil {
                 try {
                     extendElements.addAll(getExtends(currentElement));
                 } catch (IllegalArgumentException e) {
-                    // Propagar la excepción hacia arriba si un descendiente falla la validación
                     throw e;
                 }
 
