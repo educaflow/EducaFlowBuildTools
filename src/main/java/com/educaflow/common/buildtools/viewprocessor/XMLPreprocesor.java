@@ -165,18 +165,6 @@ public class XMLPreprocesor {
                     }
                 }
                 break;
-            case "inside":
-                if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-                    throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
-                }
-                Element targetElement = (Element) targetNode;
-                for (int i = 0; i < nodesToInsert.getLength(); i++) {
-                    Node node = nodesToInsert.item(i);
-                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
-                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
-                    targetElement.appendChild(importedNode);
-                }
-                break;
             case "inside-before":
                 if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
                     throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
@@ -194,6 +182,19 @@ public class XMLPreprocesor {
                     }
                 }
                 break;                
+            case "inside":
+            case "inside-after":                
+                if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                    throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
+                }
+                Element targetElement = (Element) targetNode;
+                for (int i = 0; i < nodesToInsert.getLength(); i++) {
+                    Node node = nodesToInsert.item(i);
+                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
+                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
+                    targetElement.appendChild(importedNode);
+                }
+                break;
             default:
                 throw new IllegalArgumentException("Invalid 'position' attribute value: '" + position + "'. Must be 'before', 'after', or 'inside'.");
         }
