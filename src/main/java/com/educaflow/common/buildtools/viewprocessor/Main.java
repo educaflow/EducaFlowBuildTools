@@ -46,7 +46,7 @@ public class Main {
 
                 Document document = finder.parseAndValidateXml(filePath, targetRoot);
                 if (document != null) {
-                    Document newDocument = XMLPreprocesor.process(document);
+                    Document newDocument = XMLPreprocesor.process(filePath,document);
                     guardarXML(newDocument, newFilePathInTarget);
                 }
             } catch (Exception ex) {

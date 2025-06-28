@@ -108,13 +108,18 @@ public class XMLUtil {
                 if (currentElement.getNodeName().equals("include")) {
                     // Validar la combinación de atributos
                     boolean hasTarget = currentElement.hasAttribute("target");
-                    boolean hasFile = currentElement.hasAttribute("file");
+                    boolean hasSourceFileName = currentElement.hasAttribute("sourceFileName");
+                    boolean hasReadOnly = currentElement.hasAttribute("readOnly");
                     int numAttributes = currentElement.getAttributes().getLength();
 
-                    if (hasTarget && !hasFile && numAttributes == 1) {
+                    if (hasTarget && !hasSourceFileName && numAttributes == 1) {
                         includeElements.add(currentElement);
-                    } else if (hasTarget && hasFile && numAttributes == 2) {
+                    } else if (hasTarget && hasSourceFileName && numAttributes == 2) {
                         includeElements.add(currentElement);
+                    } else if (hasTarget && hasReadOnly && numAttributes == 2) {
+                        includeElements.add(currentElement);
+                    } else if (hasTarget && hasSourceFileName && hasReadOnly && numAttributes == 3) {
+                        includeElements.add(currentElement);                        
                     } else {
                         String errorMessage = "El elemento <include> tiene una combinación de atributos no permitida. ";
                         if (!hasTarget) {

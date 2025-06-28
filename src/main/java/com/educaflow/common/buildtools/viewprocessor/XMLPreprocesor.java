@@ -1,7 +1,10 @@
 package com.educaflow.common.buildtools.viewprocessor;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -19,90 +22,123 @@ public class XMLPreprocesor {
 
     private static final String ROOT_TAG_NAME = "object-views";
 
-    public static Document process(Document document) {
-        Document newDocument = XMLUtil.cloneDocument(document);
+    public static Document process(Path filePath, Document document) {
 
-        List<Element> elementsWithIncludeAttribute = XMLUtil.getElementsWithIncludeAttribute(newDocument, ROOT_TAG_NAME);
+        try {
 
-        for (Element mainElementForIncludesAndExtends : elementsWithIncludeAttribute) {
-            String name = mainElementForIncludesAndExtends.getAttribute("name");
-            String tagName = mainElementForIncludesAndExtends.getTagName();
-            String include = mainElementForIncludesAndExtends.getAttribute("include");
+            Document newDocument = XMLUtil.cloneDocument(document);
 
-            Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, include, tagName);
-            if (baseElement == null) {
-                throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + include + " y nombre " + name);
+            List<Element> elementsWithIncludeAttribute = XMLUtil.getElementsWithIncludeAttribute(newDocument, ROOT_TAG_NAME);
+
+            for (Element mainElementForIncludesAndExtends : elementsWithIncludeAttribute) {
+                String name = mainElementForIncludesAndExtends.getAttribute("name");
+                String tagName = mainElementForIncludesAndExtends.getTagName();
+                String include = mainElementForIncludesAndExtends.getAttribute("include");
+
+                Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, include, tagName);
+                if (baseElement == null) {
+                    throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + include + " y nombre " + name);
+                }
+
+                List<Element> includesElements = XMLUtil.getInclude(mainElementForIncludesAndExtends);
+                for (Element includeElement : includesElements) {
+                    String xpathTarget = includeElement.getAttribute("target");
+                    if (xpathTarget.startsWith("//")) {
+                        throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
+                    }
+
+                    boolean readOnly = false;
+                    if (includeElement.hasAttribute("readOnly")) {
+                        String readOnlyValue = includeElement.getAttribute("readOnly");
+                        if ("true".equalsIgnoreCase(readOnlyValue)) {
+                            readOnly = true;
+                        } else if ("false".equalsIgnoreCase(readOnlyValue)) {
+                            readOnly = false;
+                        } else {
+                            throw new RuntimeException("El valor del atributo 'readOnly' no es válido:" + readOnlyValue);
+                        }
+                    }
+
+                    Element realBaseElement;
+                    Path absolutePathSourceFileName = null;
+                    if (includeElement.hasAttribute("sourceFileName")) {
+                        Path baseDirectory = filePath.getParent();
+                        Path absolutePath = baseDirectory.resolve(includeElement.getAttribute("sourceFileName")).normalize();
+
+                        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                        documentBuilderFactory.setNamespaceAware(false);
+                        DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
+                        Document doc = dBuilder.parse(absolutePath.toFile());
+                        realBaseElement = doc.getDocumentElement();
+
+                    } else {
+                        realBaseElement = baseElement;
+                    }
+
+                    includeElement.getAttribute("sourceFileName");
+                    doTareaInclude(includeElement, realBaseElement, xpathTarget, readOnly);
+                }
+
+                doExtends(mainElementForIncludesAndExtends);
+
+                doMergeAttributes(mainElementForIncludesAndExtends, baseElement);
+
+                mainElementForIncludesAndExtends.removeAttribute("include");
             }
 
-            List<Element> includesElements = XMLUtil.getInclude(mainElementForIncludesAndExtends);
-            for (Element includeElement : includesElements) {
-                String xpathTarget = includeElement.getAttribute("target");
-                if (xpathTarget.startsWith("//")) {
-                    throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
-                }
-                String sourceFile = includeElement.getAttribute("file");
-                doTareaInclude(includeElement, baseElement, xpathTarget, sourceFile);
-            }
+            return newDocument;
 
-            List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
-            for (Element extendElement : extendsElements) {
-                String xpathTarget = extendElement.getAttribute("target");
-                if (xpathTarget.startsWith("//")) {
-                    throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
-                }
-                Element tareaInsert = XMLUtil.getChildElementUniqueByTagName(extendElement, "insert");
-                if (tareaInsert != null) {
-                    doTareaInsert(xpathTarget, tareaInsert, mainElementForIncludesAndExtends);
-                }
-
-                Element tareaReplace = XMLUtil.getChildElementUniqueByTagName(extendElement, "replace");
-                if (tareaReplace != null) {
-                    doTareaReplace(xpathTarget, tareaReplace, mainElementForIncludesAndExtends);
-                }
-                Element tareaMove = XMLUtil.getChildElementUniqueByTagName(extendElement, "move");
-                if (tareaMove != null) {
-                    doTareaMove(xpathTarget, tareaMove, mainElementForIncludesAndExtends);
-                }
-
-                List<Element> tareaAttributes = XMLUtil.getChildrenElementsByTagName(extendElement, "attribute");
-                if ((tareaAttributes != null) && (!tareaAttributes.isEmpty())) {
-                    doTareaAttributes(xpathTarget, tareaAttributes, mainElementForIncludesAndExtends);
-                }
-
-                //Los extends luego hay que eliminarlos
-                Node parentNode = extendElement.getParentNode();
-                parentNode.removeChild(extendElement);
-            }
-            
-            doMergeAttributes(mainElementForIncludesAndExtends,baseElement);
-            
-            mainElementForIncludesAndExtends.removeAttribute("include");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
-
-        
-        
-        
-        return newDocument;
     }
 
-    
-    private static void doMergeAttributes(Element mainElementForIncludesAndExtends,Element baseElement) {
+    private static void doExtends(Element mainElementForIncludesAndExtends) {
+        List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
+        for (Element extendElement : extendsElements) {
+            String xpathTarget = extendElement.getAttribute("target");
+            if (xpathTarget.startsWith("//")) {
+                throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
+            }
+            Element tareaInsert = XMLUtil.getChildElementUniqueByTagName(extendElement, "insert");
+            if (tareaInsert != null) {
+                doTareaInsert(xpathTarget, tareaInsert, mainElementForIncludesAndExtends);
+            }
+
+            Element tareaReplace = XMLUtil.getChildElementUniqueByTagName(extendElement, "replace");
+            if (tareaReplace != null) {
+                doTareaReplace(xpathTarget, tareaReplace, mainElementForIncludesAndExtends);
+            }
+            Element tareaMove = XMLUtil.getChildElementUniqueByTagName(extendElement, "move");
+            if (tareaMove != null) {
+                doTareaMove(xpathTarget, tareaMove, mainElementForIncludesAndExtends);
+            }
+
+            List<Element> tareaAttributes = XMLUtil.getChildrenElementsByTagName(extendElement, "attribute");
+            if ((tareaAttributes != null) && (!tareaAttributes.isEmpty())) {
+                doTareaAttributes(xpathTarget, tareaAttributes, mainElementForIncludesAndExtends);
+            }
+
+            //Los extends luego hay que eliminarlos
+            Node parentNode = extendElement.getParentNode();
+            parentNode.removeChild(extendElement);
+        }
+    }
+
+    private static void doMergeAttributes(Element mainElementForIncludesAndExtends, Element baseElement) {
         for (int i = 0; i < baseElement.getAttributes().getLength(); i++) {
             Node attribute = baseElement.getAttributes().item(i);
-            
-            if (mainElementForIncludesAndExtends.hasAttribute(attribute.getNodeName())==false) {
+
+            if (mainElementForIncludesAndExtends.hasAttribute(attribute.getNodeName()) == false) {
                 //Si no existe lo añadimos
-                mainElementForIncludesAndExtends.setAttribute(attribute.getNodeName(),attribute.getNodeValue());
+                mainElementForIncludesAndExtends.setAttribute(attribute.getNodeName(), attribute.getNodeValue());
             } else if (mainElementForIncludesAndExtends.getAttribute(attribute.getNodeName()).isBlank()) {
                 //Si existe en los dos pero es vacio en el destino, es que hay que borrarlo
                 mainElementForIncludesAndExtends.removeAttribute(attribute.getNodeName());
             }
-            
         }
-
     }
-        
-    
+
     private static void doTareaInsert(String xpathTarget, Element tareaInsert, Element elementGridOrFormWithIncludeAttribute) {
 
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
@@ -138,7 +174,6 @@ public class XMLPreprocesor {
         // Obtener el documento del nodo de destino (donde se realizará la inserción)
         Document targetDocument = targetNode.getOwnerDocument();
 
-
         switch (position) {
             case "before":
                 for (int i = 0; i < nodesToInsert.getLength(); i++) {
@@ -169,21 +204,21 @@ public class XMLPreprocesor {
                 if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
                     throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
                 }
-                
-                for (int i = nodesToInsert.getLength()-1; i>0 ; i--) {
+
+                for (int i = nodesToInsert.getLength() - 1; i > 0; i--) {
                     Node node = nodesToInsert.item(i);
                     // IMPORTANTE: Clonar e importar el nodo al documento de destino
                     Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
                     Node firstChild = ((Element) targetNode).getFirstChild();
-                    if (firstChild==null) {
+                    if (firstChild == null) {
                         targetNode.appendChild(importedNode);
                     } else {
                         targetNode.insertBefore(importedNode, firstChild);
                     }
                 }
-                break;                
+                break;
             case "inside":
-            case "inside-after":                
+            case "inside-after":
                 if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
                     throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
                 }
@@ -269,19 +304,16 @@ public class XMLPreprocesor {
             throw new IllegalArgumentException("clonedBaseElement cannot be null.");
         }
 
-
         String position = tareaMove.getAttribute("position");
         if (position == null || position.trim().isEmpty()) {
             throw new IllegalArgumentException("The 'tareaMove' element must have a 'position' attribute (before, after, or inside).");
-        }        
+        }
         position = position.trim().toLowerCase(); // Normalize position value
-        
-        
+
         String sourceXPath = tareaMove.getAttribute("source");
         if (sourceXPath == null || sourceXPath.trim().isEmpty()) {
             throw new IllegalArgumentException("The 'tareaMove' element must have a 'source' attribute (XPath expression).");
         }
-
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         Node targetNode = null;
@@ -294,7 +326,6 @@ public class XMLPreprocesor {
             throw new RuntimeException("xpathTarget '" + xpathTarget + "' did not find any node relative to clonedBaseElement.");
         }
 
-
         XPath xpath2 = XPathFactory.newInstance().newXPath();
         Node sourceNodeToMove = null;
         try {
@@ -305,8 +336,6 @@ public class XMLPreprocesor {
         if (sourceNodeToMove == null) {
             throw new IllegalArgumentException("Source XPath '" + sourceXPath + "' did not find a node to move. It must identify exactly one node.");
         }
-      
-        
 
         Node originalParent = sourceNodeToMove.getParentNode();
         if (originalParent == null) {
@@ -316,8 +345,7 @@ public class XMLPreprocesor {
         if (targetNodeParent == null) {
             throw new RuntimeException("The source node '" + targetNode.getNodeName() + "' has no parent and cannot be moved.");
         }
-        
-        
+
         originalParent.removeChild(sourceNodeToMove);
         switch (position) {
             case "before":
@@ -404,7 +432,7 @@ public class XMLPreprocesor {
         }
     }
 
-    private static void doTareaInclude(Element tareaInclude, Element baseElement, String xpathTarget, String sourceFile) {
+    private static void doTareaInclude(Element tareaInclude, Element baseElement, String xpathTarget, boolean readOnly) {
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
@@ -426,8 +454,6 @@ public class XMLPreprocesor {
             throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + baseElement.getTagName() + "'.");
         }
 
-        
-        
         XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
 
     }

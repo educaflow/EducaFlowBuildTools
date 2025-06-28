@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates>
+        <toolbar name="pepe">
+            <button name="printBtn" title="Print invoices"  onClick="A" icon="fa-print"/>
+            <field name="printBtn" title="Print invoices"  onClick="A" icon="fa-print"/>
+        </toolbar>
+</templates>
