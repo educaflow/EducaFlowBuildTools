@@ -37,20 +37,20 @@
 
     <form name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" include="exp-Prueba-Base" title="hola"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
 
-        <include target="//panel[@name='head']" />
+        <include target=".//panel[@name='head']" />
 
-        <include target="//panel[@name='datos-solicitante']" />
+        <include target=".//panel[@name='datos-solicitante']" />
 
-        <include target="//panel-related[@name='fcts-panel']" />
+        <include target=".//panel-related[@name='fcts-panel']" />
 
-        <extend target="//button[@name='mostrar-historial-estados']">
+        <extend target=".//button[@name='mostrar-historial-estados']">
             <insert position="before">
                 <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
                 <button name="Borrar" css="btn-danger" title="Borrar" onClick="action-event-borrar-expediente"  prompt="¿Está seguro que desea borrar el expediente?"/>
             </insert>
         </extend>
 
-        <extend target="//panel[@name='datos-solicitante']//field">
+        <extend target=".//panel[@name='datos-solicitante']//field">
             <attribute name="readonly" value="true"/>
         </extend>
 

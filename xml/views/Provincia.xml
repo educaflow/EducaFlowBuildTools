@@ -40,13 +40,16 @@
 
     </grid>
 
-    <grid name="grid-provincias-extendido" inherit="grid-provincias"  actionSignal="bbbb" >
-        <extend target="field[@name='estado']">
+    <grid name="grid-provincias-extendido" include="grid-provincias"  actionSignal="bbbb" >
+        
+        <include target="./*" />
+        
+        <extend target=".//field[@name='estado']">
             <insert position="after">
                 <field name="comentario" />
             </insert>
         </extend>
-        <extend target="toolbar">
+        <extend target=".//toolbar">
             <replace >
                 <toolbar>
                     <button name="printBtn2" title="Print invoices2" onClick="A2" icon="fa-print2"/>
@@ -54,11 +57,11 @@
             </replace>
         </extend>
 
-        <extend target="field[@name='idProvincia']">
-            <move position="before" source="field[@name='descripcion']" />
+        <extend target=".//field[@name='idProvincia']">
+            <move position="before" source=".//field[@name='descripcion']" />
         </extend> 
         
-        <extend target="menubar/menu/item[@name='validateSelectedInvoicesItem']">
+        <extend target=".//menubar/menu/item[@name='validateSelectedInvoicesItem']">
             <attribute name="title" value="Hola mundo"/>
             <attribute name="action" value="Pepe"/>
             <attribute name="prompt" value=""/>

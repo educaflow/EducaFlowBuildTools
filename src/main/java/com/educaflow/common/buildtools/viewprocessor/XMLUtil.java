@@ -61,7 +61,7 @@ public class XMLUtil {
      * have the "Inherit" attribute. Returns an empty list if "object-views" is
      * not found or no matching nodes are found.
      */
-    public static List<Element> getInheritElements(Document doc, String rootTagName) {
+    public static List<Element> getElementsWithIncludeAttribute(Document doc, String rootTagName) {
         List<Element> inheritNodes = new ArrayList<>();
 
         NodeList objectViewsList = doc.getElementsByTagName(rootTagName);
@@ -82,12 +82,65 @@ public class XMLUtil {
             if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element currentElement = (Element) currentNode;
 
-                if (currentElement.hasAttribute("inherit")) {
+                if (currentElement.hasAttribute("include")) {
                     inheritNodes.add((Element) currentNode);
                 }
             }
         }
         return inheritNodes;
+    }
+
+    public static List<Element> getInclude(Element parentElement) {
+        List<Element> includeElements = new ArrayList<>();
+
+        if (parentElement == null) {
+            throw new RuntimeException("El parametro parentelement es null");
+        }
+
+        NodeList children = parentElement.getChildNodes();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element currentElement = (Element) node;
+
+                if (currentElement.getNodeName().equals("include")) {
+                    // Validar la combinación de atributos
+                    boolean hasTarget = currentElement.hasAttribute("target");
+                    boolean hasFile = currentElement.hasAttribute("file");
+                    int numAttributes = currentElement.getAttributes().getLength();
+
+                    if (hasTarget && !hasFile && numAttributes == 1) {
+                        includeElements.add(currentElement);
+                    } else if (hasTarget && hasFile && numAttributes == 2) {
+                        includeElements.add(currentElement);
+                    } else {
+                        String errorMessage = "El elemento <include> tiene una combinación de atributos no permitida. ";
+                        if (!hasTarget) {
+                            errorMessage += "Falta el atributo obligatorio 'target'. ";
+                        }
+                        errorMessage += "Atributos encontrados: [";
+                        for (int k = 0; k < currentElement.getAttributes().getLength(); k++) {
+                            errorMessage += currentElement.getAttributes().item(k).getNodeName();
+                            if (k < currentElement.getAttributes().getLength() - 1) {
+                                errorMessage += ", ";
+                            }
+                        }
+                        errorMessage += "]. Solo se permiten 'target' o 'target' y 'file'.";
+                        throw new IllegalArgumentException(errorMessage);
+                    }
+                }
+
+                try {
+                    includeElements.addAll(getInclude(currentElement));
+                } catch (IllegalArgumentException e) {
+                    // Propagar la excepción hacia arriba si un descendiente falla la validación
+                    throw e;
+                }
+            }
+        }
+        return includeElements;
     }
 
     public static List<Element> getExtends(Element parentElement) {
@@ -97,30 +150,25 @@ public class XMLUtil {
         for (int i = 0; i < children.getLength(); i++) {
             Node currentNode = children.item(i);
 
-            switch (currentNode.getNodeType()) {
-                case Node.ELEMENT_NODE:
-                    Element currentElement = (Element) currentNode;
-                    if ("extend".equals(currentElement.getTagName())) {
-                        // Check if it has ONLY the "target" attribute
-                        if (currentElement.hasAttribute("target") && currentElement.getAttributes().getLength() == 1) {
-                            extendElements.add(currentElement);
-                        } else {
-                            throw new RuntimeException("Found 'extend' element with invalid attributes. Expected only 'target'. Element: " + currentElement.getTagName());
-                        }
+            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                Element currentElement = (Element) currentNode;
+                if ("extend".equals(currentElement.getTagName())) {
+                    // Check if it has ONLY the "target" attribute
+                    if (currentElement.hasAttribute("target") && currentElement.getAttributes().getLength() == 1) {
+                        extendElements.add(currentElement);
                     } else {
-                        throw new RuntimeException("Unexpected element type found under parent. Only 'extend' elements are allowed. Found: " + currentElement.getTagName());
+                        throw new RuntimeException("Found 'extend' element with invalid attributes. Expected only 'target'. Element: " + currentElement.getTagName());
                     }
-                    break;
-                case Node.COMMENT_NODE:
-                    break;
-                case Node.TEXT_NODE:
-                    if (!currentNode.getNodeValue().trim().isEmpty()) {
-                        throw new RuntimeException("Unexpected non-whitespace text node found under parent. Text: '" + currentNode.getNodeValue().trim() + "'");
-                    }
-                    break;
-                // Disallow other node types explicitly
-                default:
-                    throw new RuntimeException("Unexpected node type found under parent: " + currentNode.getNodeType());
+                }
+
+                try {
+                    extendElements.addAll(getExtends(currentElement));
+                } catch (IllegalArgumentException e) {
+                    // Propagar la excepción hacia arriba si un descendiente falla la validación
+                    throw e;
+                }
+
             }
         }
         return extendElements;
@@ -289,7 +337,6 @@ public class XMLUtil {
         }
     }
 
-
     public static void copyAttributesIgnoreNamespaces(Element sourceElement, Element targetElement) {
         if (sourceElement == null) {
             throw new IllegalArgumentException("Source element cannot be null.");
@@ -322,6 +369,57 @@ public class XMLUtil {
             // Always use setAttribute with the local name (or qualified name if local name is null)
             // This implicitly ignores namespaces for the attribute when setting.
             targetElement.setAttribute(attrLocalName, attrValue);
+        }
+    }
+
+    public static void replaceElementWithCopy(Element targetElement, NodeList sourceElements) {
+        if (targetElement == null || sourceElements == null) {
+            throw new IllegalArgumentException("El elemento de destino y la lista de origen no pueden ser nulos.");
+        }
+
+        Node parent = targetElement.getParentNode();
+        Document doc = parent.getOwnerDocument();
+
+        // Insertar cada nodo clonado antes del elemento objetivo
+        for (int i = 0; i < sourceElements.getLength(); i++) {
+            Node imported = doc.importNode(sourceElements.item(i), true);
+            parent.insertBefore(imported, targetElement);
+        }
+
+        // Eliminar el nodo objetivo original
+        parent.removeChild(targetElement);
+    }
+
+    public static void printDocument(Document doc) {
+        if (doc == null) {
+            System.out.println("El documento es nulo y no puede ser impreso.");
+            return;
+        }
+        try {
+            // Crea un TransformerFactory
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            // Crea un Transformer a partir del factory
+            Transformer transformer = transformerFactory.newTransformer();
+
+            // Configura las propiedades de salida para una impresión legible
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // Activa la indentación
+            // Propiedad específica de Apache Xalan para el número de espacios de indentación
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no"); // Incluye la declaración XML (<?xml version="1.0" ...?>)
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); // Asegura la codificación correcta
+
+            // Prepara la fuente del documento (el DOMSource)
+            DOMSource source = new DOMSource(doc);
+
+            // Prepara el resultado para la salida (la consola en este caso)
+            StreamResult result = new StreamResult(System.out);
+
+            // Realiza la transformación y escribe el XML a la consola
+            transformer.transform(source, result);
+            System.out.println(); // Añade una nueva línea al final para mejor formato
+        } catch (Exception e) {
+            System.err.println("Error al imprimir el documento XML: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -22,165 +22,189 @@ public class XMLPreprocesor {
     public static Document process(Document document) {
         Document newDocument = XMLUtil.cloneDocument(document);
 
-        List<Element> inheritElements = XMLUtil.getInheritElements(newDocument, ROOT_TAG_NAME);
+        List<Element> elementsWithIncludeAttribute = XMLUtil.getElementsWithIncludeAttribute(newDocument, ROOT_TAG_NAME);
 
-        for (Element elementNuevoQueHereda : inheritElements) {
-            String name = elementNuevoQueHereda.getAttribute("name");
-            String tagName = elementNuevoQueHereda.getTagName();
-            String inherit = elementNuevoQueHereda.getAttribute("inherit");
+        for (Element mainElementForIncludesAndExtends : elementsWithIncludeAttribute) {
+            String name = mainElementForIncludesAndExtends.getAttribute("name");
+            String tagName = mainElementForIncludesAndExtends.getTagName();
+            String include = mainElementForIncludesAndExtends.getAttribute("include");
 
-            Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, inherit, tagName);
+            Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, include, tagName);
             if (baseElement == null) {
-                throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + inherit + " y nombre " + name);
+                throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + include + " y nombre " + name);
             }
 
-            Node clonedBaseNode = baseElement.cloneNode(true);
-
-            // Ensure the cloned node is an Element
-            if (!(clonedBaseNode instanceof Element)) {
-                throw new ClassCastException("Cloned source node is not an Element.");
+            List<Element> includesElements = XMLUtil.getInclude(mainElementForIncludesAndExtends);
+            for (Element includeElement : includesElements) {
+                String xpathTarget = includeElement.getAttribute("target");
+                if (xpathTarget.startsWith("//")) {
+                    throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
+                }
+                String sourceFile = includeElement.getAttribute("file");
+                doTareaInclude(includeElement, baseElement, xpathTarget, sourceFile);
             }
-            Element clonedBaseElement = (Element) clonedBaseNode;
-            clonedBaseElement.setAttribute("name", name);
 
-            XMLUtil.copyAttributesIgnoreNamespaces(elementNuevoQueHereda, clonedBaseElement);
-            clonedBaseElement.removeAttribute("inherit");
-
-            elementNuevoQueHereda = XMLUtil.replaceElementWithClone(document, clonedBaseElement, elementNuevoQueHereda);
-
-            List<Element> extendsElements = XMLUtil.getExtends(elementNuevoQueHereda);
-
+            List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
             for (Element extendElement : extendsElements) {
                 String xpathTarget = extendElement.getAttribute("target");
+                if (xpathTarget.startsWith("//")) {
+                    throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
+                }
                 Element tareaInsert = XMLUtil.getChildElementUniqueByTagName(extendElement, "insert");
                 if (tareaInsert != null) {
-                    doTareaInsert(xpathTarget, tareaInsert, clonedBaseElement);
+                    doTareaInsert(xpathTarget, tareaInsert, mainElementForIncludesAndExtends);
                 }
 
                 Element tareaReplace = XMLUtil.getChildElementUniqueByTagName(extendElement, "replace");
                 if (tareaReplace != null) {
-                    doTareaReplace(xpathTarget, tareaReplace, clonedBaseElement);
+                    doTareaReplace(xpathTarget, tareaReplace, mainElementForIncludesAndExtends);
                 }
                 Element tareaMove = XMLUtil.getChildElementUniqueByTagName(extendElement, "move");
                 if (tareaMove != null) {
-                    doTareaMove(xpathTarget, tareaMove, clonedBaseElement);
+                    doTareaMove(xpathTarget, tareaMove, mainElementForIncludesAndExtends);
                 }
 
                 List<Element> tareaAttributes = XMLUtil.getChildrenElementsByTagName(extendElement, "attribute");
                 if ((tareaAttributes != null) && (!tareaAttributes.isEmpty())) {
-                    doTareaAttributes(xpathTarget, tareaAttributes, clonedBaseElement);
+                    doTareaAttributes(xpathTarget, tareaAttributes, mainElementForIncludesAndExtends);
                 }
-            }
 
+                //Los extends luego hay que eliminarlos
+                Node parentNode = extendElement.getParentNode();
+                parentNode.removeChild(extendElement);
+            }
+            
+            doMergeAttributes(mainElementForIncludesAndExtends,baseElement);
+            
+            mainElementForIncludesAndExtends.removeAttribute("include");
         }
 
+        
+        
+        
         return newDocument;
     }
 
-    private static void doTareaInsert(String xpathTarget, Element tareaInsert, Element element) {
+    
+    private static void doMergeAttributes(Element mainElementForIncludesAndExtends,Element baseElement) {
+        for (int i = 0; i < baseElement.getAttributes().getLength(); i++) {
+            Node attribute = baseElement.getAttributes().item(i);
+            
+            if (mainElementForIncludesAndExtends.hasAttribute(attribute.getNodeName())==false) {
+                //Si no existe lo añadimos
+                mainElementForIncludesAndExtends.setAttribute(attribute.getNodeName(),attribute.getNodeValue());
+            } else if (mainElementForIncludesAndExtends.getAttribute(attribute.getNodeName()).isBlank()) {
+                //Si existe en los dos pero es vacio en el destino, es que hay que borrarlo
+                mainElementForIncludesAndExtends.removeAttribute(attribute.getNodeName());
+            }
+            
+        }
+
+    }
+        
+    
+    private static void doTareaInsert(String xpathTarget, Element tareaInsert, Element elementGridOrFormWithIncludeAttribute) {
 
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
-        if (tareaInsert == null || element == null) {
-            // This is unlikely if called internally, but good practice
+        if (tareaInsert == null || elementGridOrFormWithIncludeAttribute == null) {
             throw new IllegalArgumentException("tareaInsert and element parameters cannot be null.");
         }
 
-        // Get the position from tareaInsert's attribute
         String position = tareaInsert.getAttribute("position");
         if (position == null || position.trim().isEmpty()) {
             throw new IllegalArgumentException("The 'tareaInsert' element must have a 'position' attribute (before, after, or inside).");
         }
         position = position.trim().toLowerCase();
 
-        // 1. Prepare XPath
         XPath xpath = XPathFactory.newInstance().newXPath();
         Node targetNode = null;
         try {
-            // Evaluate XPath relative to the 'element' parameter
-            targetNode = (Node) xpath.evaluate(xpathTarget, element, XPathConstants.NODE);
+            targetNode = (Node) xpath.evaluate(xpathTarget, elementGridOrFormWithIncludeAttribute, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating XPath expression: " + xpathTarget, e);
         }
 
         if (targetNode == null) {
-            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + element.getTagName() + "'.");
+            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + elementGridOrFormWithIncludeAttribute.getTagName() + "'.");
         }
 
         // Get the parent of the targetNode for 'before'/'after' operations
         Node targetNodeParent = targetNode.getParentNode();
-        if ((position.equals("before") || position.equals("after")) && targetNodeParent == null) {
-            throw new RuntimeException("Cannot insert 'before' or 'after' as the target node '" + targetNode.getNodeName() + "' has no parent.");
-        }
 
-        // Get the Document the targetNode belongs to
+        // Obtener los hijos del elemento tareaInsert que se van a copiar e insertar
+        NodeList nodesToInsert = tareaInsert.getChildNodes();
+        // Obtener el documento del nodo de destino (donde se realizará la inserción)
         Document targetDocument = targetNode.getOwnerDocument();
-        if (targetDocument == null) {
-            throw new RuntimeException("Target node does not belong to a document.");
-        }
 
-        // 2. Collect content to insert from tareaInsert
-        // We need to collect them first because moving them will change tareaInsert's child list
-        NodeList nodesToInsertList = tareaInsert.getChildNodes();
-        List<Node> nodesToInsert = new ArrayList<>();
-        for (int i = 0; i < nodesToInsertList.getLength(); i++) {
-            nodesToInsert.add(nodesToInsertList.item(i));
-        }
 
-        // 3. Perform insertion based on position
         switch (position) {
             case "before":
-                for (Node node : nodesToInsert) {
-                    // Import node if it's from a different document (tareaInsert's owner doc != target's owner doc)
-                    Node nodeToAppend = (node.getOwnerDocument() != targetDocument) ? targetDocument.importNode(node, true) : node;
-                    targetNodeParent.insertBefore(nodeToAppend, targetNode);
+                for (int i = 0; i < nodesToInsert.getLength(); i++) {
+                    Node node = nodesToInsert.item(i);
+                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
+                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
+                    targetNodeParent.insertBefore(importedNode, targetNode);
                 }
                 break;
             case "after":
-                // Insert after: equivalent to inserting before the next sibling (if it exists)
-                // or appending to parent (if no next sibling)
-                Node nextSibling = targetNode.getNextSibling();
-                for (Node node : nodesToInsert) {
-                    Node nodeToAppend = (node.getOwnerDocument() != targetDocument) ? targetDocument.importNode(node, true) : node;
-                    if (nextSibling != null) {
-                        targetNodeParent.insertBefore(nodeToAppend, nextSibling);
+                Node refNodeForAfter = targetNode.getNextSibling();
+                // Iterar en orden inverso para mantener el orden original después del targetNode.
+                // Si insertamos en orden normal, el primer nodo insertado se convertiría en el "más a la izquierda"
+                // después del targetNode, y los siguientes se insertarían antes de él, invirtiendo el orden.
+                for (int i = nodesToInsert.getLength() - 1; i >= 0; i--) {
+                    Node node = nodesToInsert.item(i);
+                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
+                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
+
+                    if (refNodeForAfter != null) {
+                        targetNodeParent.insertBefore(importedNode, refNodeForAfter);
                     } else {
-                        // If no next sibling, append to the end of the parent's children
-                        targetNodeParent.appendChild(nodeToAppend);
+                        targetNodeParent.appendChild(importedNode);
                     }
                 }
                 break;
             case "inside":
-                // Insert inside: append to the targetNode's children
                 if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-                    throw new RuntimeException("Cannot insert 'inside' a non-Element node. Target node: " + targetNode.getNodeName());
+                    throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
                 }
-                Element targetElementNode = (Element) targetNode;
-                for (Node node : nodesToInsert) {
-                    Node nodeToAppend = (node.getOwnerDocument() != targetDocument) ? targetDocument.importNode(node, true) : node;
-                    targetElementNode.appendChild(nodeToAppend);
+                Element targetElement = (Element) targetNode;
+                for (int i = 0; i < nodesToInsert.getLength(); i++) {
+                    Node node = nodesToInsert.item(i);
+                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
+                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
+                    targetElement.appendChild(importedNode);
                 }
                 break;
+            case "inside-before":
+                if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                    throw new IllegalArgumentException("Cannot insert 'inside' a non-element node. Target node type: " + targetNode.getNodeName());
+                }
+                
+                for (int i = nodesToInsert.getLength()-1; i>0 ; i--) {
+                    Node node = nodesToInsert.item(i);
+                    // IMPORTANTE: Clonar e importar el nodo al documento de destino
+                    Node importedNode = targetDocument.importNode(node, true); // 'true' para copia profunda
+                    Node firstChild = ((Element) targetNode).getFirstChild();
+                    if (firstChild==null) {
+                        targetNode.appendChild(importedNode);
+                    } else {
+                        targetNode.insertBefore(importedNode, firstChild);
+                    }
+                }
+                break;                
             default:
                 throw new IllegalArgumentException("Invalid 'position' attribute value: '" + position + "'. Must be 'before', 'after', or 'inside'.");
         }
 
-        // Remove the original nodes from tareaInsert as they have been moved
-        // This is important if you collect and then move.
-        // If you intended to COPY, you'd clone them before the loop and not remove them here.
-        for (Node node : nodesToInsert) {
-            if (node.getParentNode() == tareaInsert) { // Only remove if still its child (not already moved in case of copy intent)
-                tareaInsert.removeChild(node);
-            }
-        }
     }
 
-    private static void doTareaReplace(String xpathTarget, Element tareaReplace, Element element) {
+    private static void doTareaReplace(String xpathTarget, Element tareaReplace, Element elementGridOrFormWithIncludeAttribute) {
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
-        if (tareaReplace == null || element == null) {
+        if (tareaReplace == null || elementGridOrFormWithIncludeAttribute == null) {
             throw new IllegalArgumentException("tareaReplace and element parameters cannot be null.");
         }
 
@@ -189,13 +213,13 @@ public class XMLPreprocesor {
         Node targetNode = null;
         try {
             // Evaluate XPath relative to the 'element' parameter
-            targetNode = (Node) xpath.evaluate(xpathTarget, element, XPathConstants.NODE);
+            targetNode = (Node) xpath.evaluate(xpathTarget, elementGridOrFormWithIncludeAttribute, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating XPath expression: " + xpathTarget, e);
         }
 
         if (targetNode == null) {
-            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + element.getTagName() + "'.");
+            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + elementGridOrFormWithIncludeAttribute.getTagName() + "'.");
         }
 
         // Get the parent of the targetNode
@@ -231,79 +255,69 @@ public class XMLPreprocesor {
         // If nodesToInsert had content, they are now inserted, and targetNode is removed.
         targetNodeParent.removeChild(targetNode);
 
-        // 4. Clean up original nodes from tareaReplace (as they have been moved)
-        for (Node node : nodesToInsert) {
-            if (node.getParentNode() == tareaReplace) { // Only remove if still its child
-                tareaReplace.removeChild(node);
-            }
-        }
     }
 
-    private static void doTareaMove(String xpathTarget, Element tareaMove, Element clonedBaseElement) {
+    private static void doTareaMove(String xpathTarget, Element tareaMove, Element elementGridOrFormWithIncludeAttribute) {
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
-        if (tareaMove == null || clonedBaseElement == null) {
-            throw new IllegalArgumentException("tareaMove and clonedBaseElement parameters cannot be null.");
+        if (tareaMove == null) {
+            throw new IllegalArgumentException("tareaMove  cannot be null.");
+        }
+        if (elementGridOrFormWithIncludeAttribute == null) {
+            throw new IllegalArgumentException("clonedBaseElement cannot be null.");
         }
 
-        // Get position and source XPaths from tareaMove attributes
-        String position = tareaMove.getAttribute("position");
-        String sourceXPath = tareaMove.getAttribute("source");
 
+        String position = tareaMove.getAttribute("position");
         if (position == null || position.trim().isEmpty()) {
             throw new IllegalArgumentException("The 'tareaMove' element must have a 'position' attribute (before, after, or inside).");
-        }
+        }        
+        position = position.trim().toLowerCase(); // Normalize position value
+        
+        
+        String sourceXPath = tareaMove.getAttribute("source");
         if (sourceXPath == null || sourceXPath.trim().isEmpty()) {
             throw new IllegalArgumentException("The 'tareaMove' element must have a 'source' attribute (XPath expression).");
         }
 
-        position = position.trim().toLowerCase(); // Normalize position value
 
         XPath xpath = XPathFactory.newInstance().newXPath();
-
-        // 1. Find the target node
         Node targetNode = null;
         try {
-            targetNode = (Node) xpath.evaluate(xpathTarget, clonedBaseElement, XPathConstants.NODE);
+            targetNode = (Node) xpath.evaluate(xpathTarget, elementGridOrFormWithIncludeAttribute, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating xpathTarget expression: " + xpathTarget, e);
         }
-
         if (targetNode == null) {
             throw new RuntimeException("xpathTarget '" + xpathTarget + "' did not find any node relative to clonedBaseElement.");
         }
 
-        // Get the parent of the targetNode for 'before'/'after' operations
-        Node targetNodeParent = targetNode.getParentNode();
-        if ((position.equals("before") || position.equals("after")) && targetNodeParent == null) {
-            throw new RuntimeException("Cannot move 'before' or 'after' as the target node '" + targetNode.getNodeName() + "' has no parent.");
-        }
 
-        // 2. Find the SINGLE source node to move
+        XPath xpath2 = XPathFactory.newInstance().newXPath();
         Node sourceNodeToMove = null;
         try {
-            // *** KEY CHANGE: Use XPathConstants.NODE for a single node result ***
-            sourceNodeToMove = (Node) xpath.evaluate(sourceXPath, clonedBaseElement, XPathConstants.NODE);
+            sourceNodeToMove = (Node) xpath2.evaluate(sourceXPath, elementGridOrFormWithIncludeAttribute, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating source XPath expression: " + sourceXPath, e);
         }
-
         if (sourceNodeToMove == null) {
             throw new IllegalArgumentException("Source XPath '" + sourceXPath + "' did not find a node to move. It must identify exactly one node.");
         }
+      
+        
 
-        // Ensure the node has a parent before attempting to remove it
         Node originalParent = sourceNodeToMove.getParentNode();
         if (originalParent == null) {
             throw new RuntimeException("The source node '" + sourceNodeToMove.getNodeName() + "' has no parent and cannot be moved.");
         }
-
-        // 3. Perform the move operation
-        // Remove the node from its original position
+        Node targetNodeParent = targetNode.getParentNode();
+        if (targetNodeParent == null) {
+            throw new RuntimeException("The source node '" + targetNode.getNodeName() + "' has no parent and cannot be moved.");
+        }
+        
+        
         originalParent.removeChild(sourceNodeToMove);
-
-        // Insert the node at the new target position
         switch (position) {
             case "before":
                 targetNodeParent.insertBefore(sourceNodeToMove, targetNode);
@@ -327,63 +341,94 @@ public class XMLPreprocesor {
         }
     }
 
-    private static void doTareaAttributes(String xpathTarget, List<Element> tareaAttributes, Element clonedBaseElement) {
+    private static void doTareaAttributes(String xpathTarget, List<Element> tareaAttributes, Element elementGridOrFormWithIncludeAttribute) {
         if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
             throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
         }
-        if (tareaAttributes == null || clonedBaseElement == null) {
+        if (tareaAttributes == null || elementGridOrFormWithIncludeAttribute == null) {
             throw new IllegalArgumentException("tareaAttributes list and clonedBaseElement cannot be null.");
         }
 
         XPath xpath = XPathFactory.newInstance().newXPath();
 
         // 1. Find the target element
-        Node targetNode = null;
+        NodeList targetNodes = null;
         try {
-            targetNode = (Node) xpath.evaluate(xpathTarget, clonedBaseElement, XPathConstants.NODE);
+            targetNodes = (NodeList) xpath.evaluate(xpathTarget, elementGridOrFormWithIncludeAttribute, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating xpathTarget expression: " + xpathTarget, e);
         }
 
-        if (targetNode == null) {
-            throw new RuntimeException("Target element specified by xpathTarget '" + xpathTarget + "' not found.");
-        }
-        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-            throw new RuntimeException("Target node found by xpathTarget '" + xpathTarget + "' is not an Element. Cannot modify attributes on it.");
+        if (targetNodes == null) {
+            throw new RuntimeException("Target elements specified by xpathTarget '" + xpathTarget + "' not found.");
         }
 
-        Element targetElement = (Element) targetNode;
-
-        // 2. Process each attribute task
-        for (Element attrTask : tareaAttributes) {
-            String attrName = attrTask.getAttribute("name");
-            String attrValue = attrTask.getAttribute("value"); // Can be empty or null
-
-            if (attrName == null || attrName.trim().isEmpty()) {
-                System.err.println("Warning: 'tareaAttribute' element missing 'name' attribute. Skipping this task.");
-                continue; // Skip this attribute task if name is invalid
+        for (int i = 0; i < targetNodes.getLength(); i++) {
+            Node targetNode = targetNodes.item(i);
+            if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                throw new RuntimeException("Target node found by xpathTarget '" + xpathTarget + "' is not an Element. Cannot modify attributes on it.");
             }
 
-            // Normalize attrValue for empty check
-            if (attrValue == null) {
-                attrValue = "";
-            }
+            Element targetElement = (Element) targetNode;
 
-            // Remove the attribute if value is empty/blank
-            if (attrValue.trim().isEmpty()) {
-                // IMPORTANT: We use removeAttributeNS if the original attribute might have had a namespace
-                // However, without knowing the original namespace, we can only remove by local name
-                // or qualified name. For simplicity here, we assume non-namespaced attributes
-                // or that getAttribute's behavior is sufficient for removal.
-                // If you were dealing with true namespaced attributes (e.g., xml:lang), you'd need
-                // to know their URI to remove them correctly using removeAttributeNS.
-                targetElement.removeAttribute(attrName);
-            } else {
-                // Set the attribute with the given value
-                // This implicitly overwrites if it already exists
-                targetElement.setAttribute(attrName, attrValue);
+            // 2. Process each attribute task
+            for (Element attrTask : tareaAttributes) {
+                String attrName = attrTask.getAttribute("name");
+                String attrValue = attrTask.getAttribute("value"); // Can be empty or null
+
+                if (attrName == null || attrName.trim().isEmpty()) {
+                    throw new RuntimeException("Hay un atributo con el name vacio");
+                }
+
+                // Normalize attrValue for empty check
+                if (attrValue == null) {
+                    attrValue = "";
+                }
+
+                // Remove the attribute if value is empty/blank
+                if (attrValue.trim().isEmpty()) {
+                    // IMPORTANT: We use removeAttributeNS if the original attribute might have had a namespace
+                    // However, without knowing the original namespace, we can only remove by local name
+                    // or qualified name. For simplicity here, we assume non-namespaced attributes
+                    // or that getAttribute's behavior is sufficient for removal.
+                    // If you were dealing with true namespaced attributes (e.g., xml:lang), you'd need
+                    // to know their URI to remove them correctly using removeAttributeNS.
+                    targetElement.removeAttribute(attrName);
+                } else {
+                    // Set the attribute with the given value
+                    // This implicitly overwrites if it already exists
+                    targetElement.setAttribute(attrName, attrValue);
+                }
             }
         }
+    }
+
+    private static void doTareaInclude(Element tareaInclude, Element baseElement, String xpathTarget, String sourceFile) {
+        if (xpathTarget == null || xpathTarget.trim().isEmpty()) {
+            throw new IllegalArgumentException("xpathTarget cannot be null or empty.");
+        }
+        if (tareaInclude == null || baseElement == null) {
+            throw new IllegalArgumentException("tareaReplace and element parameters cannot be null.");
+        }
+
+        // 1. Prepare XPath and Find Target Node
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        NodeList targetElementsToInclude = null;
+        try {
+            // Evaluate XPath relative to the 'element' parameter
+            targetElementsToInclude = (NodeList) xpath.evaluate(xpathTarget, baseElement, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("Error evaluating XPath expression: " + xpathTarget, e);
+        }
+
+        if (targetElementsToInclude == null) {
+            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + baseElement.getTagName() + "'.");
+        }
+
+        
+        
+        XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
+
     }
 
 }

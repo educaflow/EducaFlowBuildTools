@@ -31,7 +31,6 @@ public class Main {
         Path pathToSearch = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]); // Renombrado para mayor claridad
 
-
         String targetRoot = "object-views";
 
         XMLFinder finder = new XMLFinder();
@@ -40,20 +39,22 @@ public class Main {
         Files.createDirectories(targetBaseDir);
 
         for (Path filePath : allXmlFiles) {
-            Path relativePath = pathToSearch.relativize(filePath);
-            Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
-            Files.createDirectories(newFilePathInTarget.getParent());
+            try {
+                Path relativePath = pathToSearch.relativize(filePath);
+                Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
+                Files.createDirectories(newFilePathInTarget.getParent());
 
-            Document document = finder.parseAndValidateXml(filePath, targetRoot);
-            if (document != null) {
-                Document newDocument = XMLPreprocesor.process(document);
-                guardarXML(newDocument, newFilePathInTarget);
+                Document document = finder.parseAndValidateXml(filePath, targetRoot);
+                if (document != null) {
+                    Document newDocument = XMLPreprocesor.process(document);
+                    guardarXML(newDocument, newFilePathInTarget);
+                }
+            } catch (Exception ex) {
+                throw new RuntimeException("Fallo al prerocesar el fichero: " + filePath,ex);
             }
         }
 
     }
-
-
 
     public static void guardarXML(Document doc, Path destino) throws Exception {
         // Crear los directorios padre si no existen
