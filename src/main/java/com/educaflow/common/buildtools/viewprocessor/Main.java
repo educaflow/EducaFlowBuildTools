@@ -1,7 +1,7 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
-package com.educaflow.axelorxmlpreprocesor;
+package com.educaflow.common.buildtools.viewprocessor;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -22,21 +22,32 @@ import org.w3c.dom.NodeList;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        // --- Ejemplo de uso ---
-        Path pathToSearch = Paths.get("./xml"); // Ajusta esta ruta
+
+        if (args.length != 2) {
+            System.out.println("Uso: java YourClass <ruta_origen> <ruta_destino>");
+            return;
+        }
+
+        Path pathToSearch = Paths.get(args[0]);
+        Path targetBaseDir = Paths.get(args[1]); // Renombrado para mayor claridad
+
 
         String targetRoot = "object-views";
 
         XMLFinder finder = new XMLFinder();
 
         List<Path> allXmlFiles = finder.findXmlFiles(pathToSearch);
+        Files.createDirectories(targetBaseDir);
 
         for (Path filePath : allXmlFiles) {
-            Path nuevo = Paths.get("xml-output").resolve(filePath.subpath(1, filePath.getNameCount()));
+            Path relativePath = pathToSearch.relativize(filePath);
+            Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
+            Files.createDirectories(newFilePathInTarget.getParent());
+
             Document document = finder.parseAndValidateXml(filePath, targetRoot);
             if (document != null) {
                 Document newDocument = XMLPreprocesor.process(document);
-                guardarXML(newDocument, nuevo);
+                guardarXML(newDocument, newFilePathInTarget);
             }
         }
 

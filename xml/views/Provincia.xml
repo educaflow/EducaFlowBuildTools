@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://raw.githubusercontent.com/educaflow/axelor-open-platform/refs/heads/master/axelor-core/src/main/resources/object-views.xsd">
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://raw.githubusercontent.com/educaflow/axelor-open-platform/refs/heads/master/axelor-core/src/main/resources/object-views.xsd">
 
-  <grid name="grid-provincias" title="Provincias" model="com.eduflow.common.geo.db.Provincia" groups="admins,users"
-        onNew="A"  onDelete="C"
-        editable="false" edit-icon="false" x-selector="none"
-        canNew="false"
-        canEdit="false"
-        canDelete="false"
-        canSave="false"
-        action="accion-condicional" actionSignal="aaaa"
-  >
-      <toolbar>
-          <button name="printBtn" title="Print invoices"
-                  onClick="A" icon="fa-print"/>
-      </toolbar>
-      <menubar>
-          <menu name="invoiceToolsMenu" title="Tools" icon="fa-wrench" showTitle="true">
-              <item name="validateSelectedInvoicesItem" title="Validate selected invoices"
-                    action="B"
-                    prompt="Are you sure you want to validate all selected invoices ?"/>
-              <item name="ventilateSelectedInvoicesItem" title="Ventilate selected invoices"
-                    action="C"
-                    prompt="Are you sure you want to ventilate all selected invoices ?"
-                    />
-              <item name="mergeCustInvoicesItem" title="Merge Cust. Invoices"
-                    action="D"/>
-              <item name="seeCustInvoicesLinesItem" title="See cust. invoices lines"
-                    action="A"/>
-          </menu>
-      </menubar>
+    <grid name="grid-provincias" title="Provincias" model="com.eduflow.common.geo.db.Provincia" groups="admins,users"
+          onNew="A"  onDelete="C"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false"
+          canEdit="false"
+          canDelete="false"
+          canSave="false"
+          action="accion-condicional" actionSignal="aaaa"
+    >
+        <toolbar>
+            <button name="printBtn" title="Print invoices"
+                    onClick="A" icon="fa-print"/>
+        </toolbar>
+        <menubar>
+            <menu name="invoiceToolsMenu" title="Tools" icon="fa-wrench" showTitle="true">
+                <item name="validateSelectedInvoicesItem" title="Validate selected invoices"
+                      action="B"
+                      prompt="Are you sure you want to validate all selected invoices ?"/>
+                <item name="ventilateSelectedInvoicesItem" title="Ventilate selected invoices"
+                      action="C"
+                      prompt="Are you sure you want to ventilate all selected invoices ?"
+                />
+                <item name="mergeCustInvoicesItem" title="Merge Cust. Invoices"
+                      action="D"/>
+                <item name="seeCustInvoicesLinesItem" title="See cust. invoices lines"
+                      action="A"/>
+            </menu>
+        </menubar>
 
-      <button name="sendByEmailBtn" title="Send Email" icon="fa-envelope"  showTitle="true" onClick="accion-condicional"/>
-      <button name="sendByEmailBtn2" title="Send Email" icon="fa-envelope"  showTitle="true" onClick="accion-condicional" prompt="hola" />
+        <button name="sendByEmailBtn" title="Send Email" icon="fa-envelope"  showTitle="true" onClick="accion-condicional"/>
+        <button name="sendByEmailBtn2" title="Send Email" icon="fa-envelope"  showTitle="true" onClick="accion-condicional" prompt="hola" />
 
-    <field name="idProvincia" />
-    <field name="descripcion" />
-    <field name="estado" />
+        <field name="idProvincia" />
+        <field name="descripcion" />
+        <field name="estado" />
 
-  </grid>
+    </grid>
 
     <grid name="grid-provincias-extendido" inherit="grid-provincias"  actionSignal="bbbb" >
         <extend target="field[@name='estado']">
@@ -48,10 +48,9 @@
         </extend>
         <extend target="toolbar">
             <replace >
-      <toolbar>
-          <button name="printBtn2" title="Print invoices2"
-                  onClick="A2" icon="fa-print2"/>
-      </toolbar>                
+                <toolbar>
+                    <button name="printBtn2" title="Print invoices2" onClick="A2" icon="fa-print2"/>
+                </toolbar>                
             </replace>
         </extend>
 
@@ -59,51 +58,51 @@
             <move position="before" source="field[@name='descripcion']" />
         </extend> 
         
-  <extend target="menubar/menu/item[@name='validateSelectedInvoicesItem']">
-    <attribute name="title" value="Hola mundo"/>
-    <attribute name="action" value="Pepe"/>
-    <attribute name="prompt" value=""/>
-  </extend> 
+        <extend target="menubar/menu/item[@name='validateSelectedInvoicesItem']">
+            <attribute name="title" value="Hola mundo"/>
+            <attribute name="action" value="Pepe"/>
+            <attribute name="prompt" value=""/>
+        </extend> 
 
     </grid>
 
 
     <form name="form-provincia" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  groups="admins,users" onSave="accion-listado-provincias">
-    <panel title="Overview" >
-      <field name="idProvincia" />
-      <field name="descripcion" />
-      <field name="estado" />
-      <field name="comentario" />
-    </panel>
-  </form>
+        <panel title="Overview" >
+            <field name="idProvincia" />
+            <field name="descripcion" />
+            <field name="estado" />
+            <field name="comentario" />
+        </panel>
+    </form>
 
 
 
 
 
-  <form canSave="false" canMore="false" canCancel="false" canBack="false" canNew="false" canDelete="false" canCopy="false" canArchive="false"  name="form-provincia-A" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  groups="admins,users" onSave="accion-listado-provincias">
-      <panel title="Overview" >
-      <field name="idProvincia"  />
-      <field name="descripcion" />
-          <button name="printBtn" title="Print invoices"
-                  onClick="A" icon="fa-print"/>
-          <button name="printBtn" title="Print invoices"
-                  onClick="A" icon="fa-print"/>
-      </panel>
+    <form canSave="false" canMore="false" canCancel="false" canBack="false" canNew="false" canDelete="false" canCopy="false" canArchive="false"  name="form-provincia-A" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  groups="admins,users" onSave="accion-listado-provincias">
+        <panel title="Overview" >
+            <field name="idProvincia"  />
+            <field name="descripcion" />
+            <button name="printBtn" title="Print invoices"
+                    onClick="A" icon="fa-print"/>
+            <button name="printBtn" title="Print invoices"
+                    onClick="A" icon="fa-print"/>
+        </panel>
 
-  </form>
+    </form>
 
-  <form canSave="false"  canBack="false" canCancel="false" canMore="false" canNew="false"  canDelete="false" canCopy="false" canArchive="false" canAttach="false" name="form-provincia-B" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  groups="admins,users" onSave="accion-listado-provincias">
-      <panel title="Overview" >
-      <field name="idProvincia" />
-      <field name="descripcion" />
-      <field name="estado" />
-          <button name="printBtn" title="Print invoices"
-                  onClick="A" icon="fa-print"/>
-          <button name="printBtn" title="Print invoices"
-                  onClick="A" icon="fa-print"/>
-      </panel>
-  </form>
+    <form canSave="false"  canBack="false" canCancel="false" canMore="false" canNew="false"  canDelete="false" canCopy="false" canArchive="false" canAttach="false" name="form-provincia-B" title="Provincia" model="com.eduflow.common.geo.db.Provincia"  groups="admins,users" onSave="accion-listado-provincias">
+        <panel title="Overview" >
+            <field name="idProvincia" />
+            <field name="descripcion" />
+            <field name="estado" />
+            <button name="printBtn" title="Print invoices"
+                    onClick="A" icon="fa-print"/>
+            <button name="printBtn" title="Print invoices"
+                    onClick="A" icon="fa-print"/>
+        </panel>
+    </form>
 
 
 

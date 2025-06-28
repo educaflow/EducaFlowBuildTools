@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
+
+
+    <form name="exp-Prueba-Base" title="hola"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
+
+        <panel name="head" colSpan="12">
+            <panel colSpan="8">
+                <field name="tipoExpediente.name" title="Nombre" readonly="true" colSpan="6"/>
+                <field name="createdBy.name" title="Creado por" readonly="true" colSpan="6"/>
+                <field name="nameState" readonly="true" colSpan="3"/>
+                <field name="fechaUltimoEstado" readonly="true" colSpan="3"/>
+
+            </panel>
+            <panel name="events" colSpan="4" itemSpan="12">
+                <button name="mostrar-historial-estados" icon="assignment" title="Historial Eventos.." css="btn-default" onClick="action-grid-expediente-historial-estados" colSpam="2"/>
+            </panel>
+        </panel>
+
+
+        <panel name="datos-solicitante" title="Datos Solicitante">
+            <field name="solicita" colSpan="9"/>
+            <field name="justificante"  widget="binary-link" colSpan="3" x-accept=".pdf"/>
+        </panel>
+        <panel-related name="fcts-panel" title="FCTs" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
+
+        <panel title="Datos Resolución">
+            <field name="motivo" colSpan="12"/>
+        </panel>
+
+
+
+    </form>
+
+
+    <form name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" include="exp-Prueba-Base" title="hola"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
+
+        <include target="//panel[@name='head']" />
+
+        <include target="//panel[@name='datos-solicitante']" />
+
+        <include target="//panel-related[@name='fcts-panel']" />
+
+        <extend target="//button[@name='mostrar-historial-estados']">
+            <insert position="before">
+                <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
+                <button name="Borrar" css="btn-danger" title="Borrar" onClick="action-event-borrar-expediente"  prompt="¿Está seguro que desea borrar el expediente?"/>
+            </insert>
+        </extend>
+
+        <extend target="//panel[@name='datos-solicitante']//field">
+            <attribute name="readonly" value="true"/>
+        </extend>
+
+    </form>
+</object-views>

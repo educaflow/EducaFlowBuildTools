@@ -1,4 +1,4 @@
-package com.educaflow.axelorxmlpreprocesor;
+package com.educaflow.common.buildtools.viewprocessor;
 
 import java.util.ArrayList;
 import java.util.List;
