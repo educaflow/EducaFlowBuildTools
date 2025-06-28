@@ -48,14 +48,14 @@ public class XMLPreprocesor {
                     }
 
                     boolean readOnly = false;
-                    if (includeElement.hasAttribute("readOnly")) {
-                        String readOnlyValue = includeElement.getAttribute("readOnly");
+                    if (includeElement.hasAttribute("readonly")) {
+                        String readOnlyValue = includeElement.getAttribute("readonly");
                         if ("true".equalsIgnoreCase(readOnlyValue)) {
                             readOnly = true;
                         } else if ("false".equalsIgnoreCase(readOnlyValue)) {
                             readOnly = false;
                         } else {
-                            throw new RuntimeException("El valor del atributo 'readOnly' no es válido:" + readOnlyValue);
+                            throw new RuntimeException("El valor del atributo 'readonly' no es válido:" + readOnlyValue);
                         }
                     }
 
@@ -447,7 +447,6 @@ public class XMLPreprocesor {
 
                 Element fieldElement = (Element) fieldNode;
                 fieldElement.setAttribute("readonly","true");
-                System.out.println(fieldElement.getAttribute("name"));
                 
             }
         }

@@ -37,7 +37,7 @@
 
     <form name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" include="exp-Prueba-Base" title="hola"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
 
-        <include target=".//toolbar[@name='pepe']" sourceFileName="template.xml" readOnly="true">
+        <include target=".//toolbar[@name='pepe']" sourceFileName="template.xml" readonly="true">
             <extend target="panel[@name='botones']">
                 <insert position="inside-before">
                     <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
@@ -47,7 +47,7 @@
         </include> 
         <include target=".//panel[@name='head']" />
 
-        <include target=".//panel[@name='datos-solicitante']" readOnly="true" />
+        <include target=".//panel[@name='datos-solicitante']" readonly="true" />
 
         <include target=".//panel-related[@name='fcts-panel']" />
 

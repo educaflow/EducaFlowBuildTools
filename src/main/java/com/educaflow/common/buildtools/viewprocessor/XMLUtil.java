@@ -113,10 +113,10 @@ public class XMLUtil {
                     // Validar la combinación de atributos
                     boolean hasTarget = currentElement.hasAttribute("target");
                     boolean hasSourceFileName = currentElement.hasAttribute("sourceFileName");
-                    boolean hasReadOnly = currentElement.hasAttribute("readOnly");
+                    boolean hasReadOnly = currentElement.hasAttribute("readonly");
                     int numAttributes = currentElement.getAttributes().getLength();
 
-                    if (hasTarget && !hasSourceFileName && numAttributes == 1) {
+                    if (hasTarget && numAttributes == 1) {
                         includeElements.add(currentElement);
                     } else if (hasTarget && hasSourceFileName && numAttributes == 2) {
                         includeElements.add(currentElement);
@@ -136,7 +136,7 @@ public class XMLUtil {
                                 errorMessage += ", ";
                             }
                         }
-                        errorMessage += "]. Solo se permiten 'target' o 'target' y 'file'.";
+                        errorMessage += "]. Solo se permiten 'target' (Obligatorio) y  'sourceFileName' o 'readonly'.";
                         throw new IllegalArgumentException(errorMessage);
                     }
                 }
