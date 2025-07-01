@@ -35,56 +35,60 @@ public class XMLPreprocesor {
                 String tagName = mainElementForIncludesAndExtends.getTagName();
                 String include = mainElementForIncludesAndExtends.getAttribute("include");
 
-                Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, include, tagName);
-                if (baseElement == null) {
-                    throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + include + " y nombre " + name);
-                }
-
-                List<Element> includesElements = XMLUtil.getInclude(mainElementForIncludesAndExtends);
-                for (Element includeElement : includesElements) {
-                    String xpathTarget = includeElement.getAttribute("target");
-                    if (xpathTarget.startsWith("//")) {
-                        throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
+                try {
+                    Element baseElement = XMLUtil.findNodeByTagName(newDocument, ROOT_TAG_NAME, include, tagName);
+                    if (baseElement == null) {
+                        throw new RuntimeException("No existe el padre para el tag " + tagName + " y con padre " + include + " y nombre " + name);
                     }
 
-                    boolean readOnly = false;
-                    if (includeElement.hasAttribute("readonly")) {
-                        String readOnlyValue = includeElement.getAttribute("readonly");
-                        if ("true".equalsIgnoreCase(readOnlyValue)) {
-                            readOnly = true;
-                        } else if ("false".equalsIgnoreCase(readOnlyValue)) {
-                            readOnly = false;
-                        } else {
-                            throw new RuntimeException("El valor del atributo 'readonly' no es válido:" + readOnlyValue);
+                    List<Element> includesElements = XMLUtil.getInclude(mainElementForIncludesAndExtends);
+                    for (Element includeElement : includesElements) {
+                        String xpathTarget = includeElement.getAttribute("target");
+                        if (xpathTarget.startsWith("//")) {
+                            throw new RuntimeException("El atributo target no puede empezar por // ya que todo debe ser relativo al element include con el que estamos trabajando:" + xpathTarget);
                         }
+
+                        boolean readOnly = false;
+                        if (includeElement.hasAttribute("readonly")) {
+                            String readOnlyValue = includeElement.getAttribute("readonly");
+                            if ("true".equalsIgnoreCase(readOnlyValue)) {
+                                readOnly = true;
+                            } else if ("false".equalsIgnoreCase(readOnlyValue)) {
+                                readOnly = false;
+                            } else {
+                                throw new RuntimeException("El valor del atributo 'readonly' no es válido:" + readOnlyValue);
+                            }
+                        }
+
+                        Element realBaseElement;
+                        Path absolutePathSourceFileName = null;
+                        if (includeElement.hasAttribute("sourceFileName")) {
+                            Path baseDirectory = filePath.getParent();
+                            Path absolutePath = baseDirectory.resolve(includeElement.getAttribute("sourceFileName")).normalize();
+
+                            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                            documentBuilderFactory.setNamespaceAware(false);
+                            DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
+                            Document doc = dBuilder.parse(absolutePath.toFile());
+                            realBaseElement = doc.getDocumentElement();
+
+                        } else {
+                            realBaseElement = baseElement;
+                        }
+
+                        includeElement.getAttribute("sourceFileName");
+                        doTareaInclude(includeElement, realBaseElement, xpathTarget, readOnly);
                     }
 
-                    Element realBaseElement;
-                    Path absolutePathSourceFileName = null;
-                    if (includeElement.hasAttribute("sourceFileName")) {
-                        Path baseDirectory = filePath.getParent();
-                        Path absolutePath = baseDirectory.resolve(includeElement.getAttribute("sourceFileName")).normalize();
+                    List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
+                    applyExtends(extendsElements, mainElementForIncludesAndExtends);
 
-                        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                        documentBuilderFactory.setNamespaceAware(false);
-                        DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
-                        Document doc = dBuilder.parse(absolutePath.toFile());
-                        realBaseElement = doc.getDocumentElement();
+                    doMergeAttributes(mainElementForIncludesAndExtends, baseElement);
 
-                    } else {
-                        realBaseElement = baseElement;
-                    }
-
-                    includeElement.getAttribute("sourceFileName");
-                    doTareaInclude(includeElement, realBaseElement, xpathTarget, readOnly);
+                    mainElementForIncludesAndExtends.removeAttribute("include");
+                } catch (Exception ex) {
+                    throw new RuntimeException("tag=" + tagName + " name=" + name + " include=" + include, ex);
                 }
-                
-                List<Element> extendsElements = XMLUtil.getExtends(mainElementForIncludesAndExtends);
-                applyExtends(extendsElements,mainElementForIncludesAndExtends);
-
-                doMergeAttributes(mainElementForIncludesAndExtends, baseElement);
-
-                mainElementForIncludesAndExtends.removeAttribute("include");
             }
 
             return newDocument;
@@ -94,7 +98,7 @@ public class XMLPreprocesor {
         }
     }
 
-    private static void applyExtends(List<Element> extendsElements,Element mainElementForIncludesAndExtends) {
+    private static void applyExtends(List<Element> extendsElements, Element mainElementForIncludesAndExtends) {
         for (Element extendElement : extendsElements) {
             String xpathTarget = extendElement.getAttribute("target");
             if (xpathTarget.startsWith("//")) {
@@ -391,7 +395,9 @@ public class XMLPreprocesor {
         if (targetNodes == null) {
             throw new RuntimeException("Target elements specified by xpathTarget '" + xpathTarget + "' not found.");
         }
-
+        if (targetNodes.getLength()==0) {
+            throw new RuntimeException("Con xpathTarget='" + xpathTarget + "' targetNodes no tiene elementos  con respecto a tag '" + elementGridOrFormWithIncludeAttribute.getTagName() + "'.");
+        }
         for (int i = 0; i < targetNodes.getLength(); i++) {
             Node targetNode = targetNodes.item(i);
             if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
@@ -422,34 +428,41 @@ public class XMLPreprocesor {
     }
 
     private static void doTareaInclude(Element tareaInclude, Element baseElement, String xpathTarget, boolean readOnly) {
-        if (tareaInclude == null) {
-            throw new IllegalArgumentException("tareaReplace  parameters cannot be null.");
-        }
-
-        NodeList targetElementsToInclude = XMLUtil.getNodeListFromEvaluateXPath(xpathTarget, baseElement);
-
-        if (targetElementsToInclude == null) {
-            throw new RuntimeException("XPath target '" + xpathTarget + "' did not find any node relative to element '" + baseElement.getTagName() + "'.");
-        }
-
-        Element newElementIncluded = (Element) XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
-
-        List<Element> extendsElements = XMLUtil.getExtends(tareaInclude);
-        applyExtends(extendsElements,newElementIncluded);
-        
-        if (readOnly == true) {
-            String fieldsExpresionXPath=".//field";
-            NodeList fields = XMLUtil.getNodeListFromEvaluateXPath(fieldsExpresionXPath, newElementIncluded);
-            for (int i = 0; i < fields.getLength(); i++) {
-                Node fieldNode = fields.item(i);
-                if (fieldNode.getNodeType() != Node.ELEMENT_NODE) {
-                    throw new RuntimeException("Target node found by xpathTarget '" + fieldsExpresionXPath + "' is not an Element. Cannot modify attributes on it.");
-                }
-
-                Element fieldElement = (Element) fieldNode;
-                fieldElement.setAttribute("readonly","true");
-                
+        try {
+            if (tareaInclude == null) {
+                throw new IllegalArgumentException("tareaReplace  parameters cannot be null.");
             }
+
+            NodeList targetElementsToInclude = XMLUtil.getNodeListFromEvaluateXPath(xpathTarget, baseElement);
+
+            if (targetElementsToInclude == null) {
+                throw new RuntimeException("Con xpathTarget='" + xpathTarget + "' targetElementsToInclude es null con respecto a tag '" + baseElement.getTagName() + "'.");
+            }
+            if (targetElementsToInclude.getLength()==0) {
+                throw new RuntimeException("Con xpathTarget='" + xpathTarget + "' targetElementsToInclude no tiene elementos  con respecto a tag '" + baseElement.getTagName() + "'.");
+            }
+
+            Element newElementIncluded = (Element) XMLUtil.replaceElementWithCopy(tareaInclude, targetElementsToInclude);
+
+            List<Element> extendsElements = XMLUtil.getExtends(tareaInclude);
+            applyExtends(extendsElements, newElementIncluded);
+
+            if (readOnly == true) {
+                String fieldsExpresionXPath = ".//field";
+                NodeList fields = XMLUtil.getNodeListFromEvaluateXPath(fieldsExpresionXPath, newElementIncluded);
+                for (int i = 0; i < fields.getLength(); i++) {
+                    Node fieldNode = fields.item(i);
+                    if (fieldNode.getNodeType() != Node.ELEMENT_NODE) {
+                        throw new RuntimeException("Target node found by xpathTarget '" + fieldsExpresionXPath + "' is not an Element. Cannot modify attributes on it.");
+                    }
+
+                    Element fieldElement = (Element) fieldNode;
+                    fieldElement.setAttribute("readonly", "true");
+
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("xpathTarget="+xpathTarget + " readOnly="+readOnly,ex);
         }
     }
 
