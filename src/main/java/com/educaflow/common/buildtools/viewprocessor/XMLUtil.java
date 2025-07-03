@@ -25,19 +25,7 @@ import org.w3c.dom.NamedNodeMap;
  */
 public class XMLUtil {
 
-    public static Element findNodeByTagName(Document doc, String rootTagName, String name, String tagName) {
-
-        NodeList objectViewsList = doc.getElementsByTagName(rootTagName);
-        if (objectViewsList.getLength() == 0) {
-            return null;
-        }
-        Node objectViewsNode = objectViewsList.item(0);
-
-        if (objectViewsNode.getNodeType() != Node.ELEMENT_NODE) {
-            return null;
-        }
-        Element objectViewsElement = (Element) objectViewsNode;
-
+    public static Element findNodeByTagName(Element objectViewsElement, String name, String tagName) {
         NodeList children = objectViewsElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node currentNode = children.item(i);
@@ -55,7 +43,73 @@ public class XMLUtil {
         }
         return null;
     }
+    
+    
+    
+    
+    public static Element findElementByTag(Element parentElement, String tagName) {
+        List<Element> elements =findElementsByTag(parentElement, tagName);
+        
+        if (elements.size()==1) {
+            return elements.get(0);
+        } else if (elements.size()==0) {
+            return null;
+        } else {
+            throw new RuntimeException("Hay mas de un elemento con tag:" + tagName);
+        }
+        
 
+    }    
+    
+    public static List<Element> findElementsByTag(Element parentElement, String tagName) {
+        List<Element> elements = new ArrayList<>();
+        
+        NodeList children = parentElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node currentNode = children.item(i);
+
+            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element currentElement = (Element) currentNode;
+
+                if (currentElement.getTagName().equals(tagName)) {
+                    elements.add(currentElement);
+                }
+            }
+        }
+        return elements;
+    }    
+    
+    public static List<Element> findElementsByTag(Element parentElement) {
+        List<Element> elements = new ArrayList<>();
+        
+        NodeList children = parentElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node currentNode = children.item(i);
+
+            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+                 elements.add((Element)currentNode);
+
+            }
+        }
+        return elements;
+    }
+    
+    public static List<Element> getFormElementsWithRoleStateAttributes(Element parentElement) {
+        List<Element> findElementsByTag=findElementsByTag(parentElement,"form");
+        List<Element> formsElement=new ArrayList<>();
+        
+        for(Element formElement:findElementsByTag) {
+                if (formElement.hasAttribute("role") && formElement.hasAttribute("state")) {
+                    formsElement.add((Element) formElement);
+                }
+        }
+        
+        
+        return formsElement;
+        
+    }
+    
+    
     /**
      * Finds and returns a list of all direct child nodes of "object-views" that
      * have the "Inherit" attribute.
@@ -93,6 +147,12 @@ public class XMLUtil {
         }
         return inheritNodes;
     }
+    
+    public static List<Element> getElementsWithTagStep(Element parentNode) {
+        return findElementsByTag(parentNode,"step");
+    }    
+    
+    
 
     public static List<Element> getInclude(Element parentElement) {
         List<Element> includeElements = new ArrayList<>();
@@ -343,6 +403,14 @@ public class XMLUtil {
             throw new IllegalStateException("The replaced node was not an Element as expected.");
         }
     }
+    
+    public static Element cloneElement(Element targetElement,Element sourceElement) {
+
+        Element importedNode = (Element)targetElement.getOwnerDocument().importNode(sourceElement, true);
+        
+        return importedNode;
+    }
+    
 
     public static void copyAttributesIgnoreNamespaces(Element sourceElement, Element targetElement) {
         if (sourceElement == null) {
@@ -452,6 +520,50 @@ public class XMLUtil {
     }    
     
     
+    public static List<Element> getChildElements(Element parentElement) {
+        List<Element> childElements = new ArrayList<>();
+        NodeList children = parentElement.getChildNodes();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            Node currentNode = children.item(i);
+
+            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                childElements.add((Element)currentNode);
+
+            }
+        }
+        return childElements;
+    }
+    
+    public static List<Element> getClonedChildElements(Element parentElement) {
+        List<Element> childElements = new ArrayList<>();
+        NodeList children = parentElement.getChildNodes();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            Node currentNode = children.item(i);
+
+            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                childElements.add(XMLUtil.cloneElement((Element)currentNode,(Element)currentNode));
+
+            }
+        }
+        return childElements;
+    }
+       
+    
+    
+    public static void copyChildsInElement(Element source,Element target) {
+        List<Element> childElements=XMLUtil.getChildElements(source);
+        
+        for(Element childElement:childElements) {
+            target.appendChild(XMLUtil.cloneElement(target, childElement));
+        }
+        
+    }
+    
+    
     public static void printDocument(Document doc) {
         if (doc == null) {
             System.out.println("El documento es nulo y no puede ser impreso.");
@@ -485,4 +597,28 @@ public class XMLUtil {
         }
     }
 
+    public static void printXmlElement(Element element) {
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+
+            // Configurar el transformador para una salida legible
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // Indentación
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4"); // Cantidad de espacios para indentar
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // No imprimir <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+            // Crear la fuente DOM a partir del elemento
+            DOMSource source = new DOMSource(element);
+
+            // El resultado va a System.out (la consola)
+            StreamResult result = new StreamResult(System.out);
+
+            // Realizar la transformación
+            transformer.transform(source, result);
+            System.out.println(); // Añadir un salto de línea final para mejor legibilidad
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }    
+    
 }

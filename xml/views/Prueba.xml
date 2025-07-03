@@ -26,12 +26,26 @@
         </panel>
         <panel-related name="fcts-panel" title="FCTs" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
 
-        <panel title="Datos Resolución">
+        <panel name="resolucion" title="Datos Resolución">
             <field name="motivo" colSpan="12"/>
         </panel>
 
 
 
+    </form>
+
+    <form role="KKKKK" state="ENTRADA_KKK_DATOS">
+        <include-panels>
+            -datos-solicitante
+            -fcts-panel
+            resolucion
+        </include-panels>
+        <left>
+            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?"/>
+        </left>
+        <right>
+            <button name="PRESENTAR" colSpan="2" title="Siguiente" onClick="action-event-expediente" />
+        </right>
     </form>
 
 
