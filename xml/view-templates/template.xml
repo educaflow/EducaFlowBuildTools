@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates>
+    <panel name="head" colSpan="12">
+        <panel colSpan="12">
+            <field name="createdBy" title="Creado por" readonly="true" colSpan="3"/>
+            <field name="nameState" readonly="true" colSpan="6"/>
+            <field name="fechaUltimoEstado" readonly="true" colSpan="2"/>
+            <button name="mostrar-historial-estados" icon="assignment" title="" css="btn-link" onClick="action-grid-expediente-historial-estados" colSpan="1"/>
+        </panel>
+    </panel>
+    <panel name="footer" colSpan="12">
+    </panel>
+
+</templates>
