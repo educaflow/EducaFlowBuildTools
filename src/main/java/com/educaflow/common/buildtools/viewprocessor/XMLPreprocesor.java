@@ -63,7 +63,9 @@ public class XMLPreprocesor {
             if (formElement.hasAttribute("title")==false) {
                 formElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
             }
-            
+            if (baseElement.hasAttribute("title")==false) {
+                baseElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
+            }            
             
             List<Element> hijos = XMLUtil.getChilds(formElement);
             if (hijos.size() != 3) {

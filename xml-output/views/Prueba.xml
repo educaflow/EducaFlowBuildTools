@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
-  <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-Base">
+  <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-Base" title="Prueba">
     <panel colSpan="12" name="head">
       <panel colSpan="8">
         <field colSpan="6" name="tipoExpediente.name" readonly="true" title="Nombre"/>
