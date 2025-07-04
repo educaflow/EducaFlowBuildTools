@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
 
 
-    <form name="exp-Prueba-Base" title="hola"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
+    <form name="exp-Prueba-Base"  model="com.educaflow.apps.expedientes.db.Prueba" groups="admins,users" >
 
         <panel name="head" colSpan="12">
             <panel colSpan="8">
