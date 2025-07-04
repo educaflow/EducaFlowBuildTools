@@ -36,33 +36,23 @@
       <button colOffset="8" colSpan="2" name="PRESENTAR" onClick="action-event-expediente" title="Siguiente"/>
     </panel>
   </form>
-  <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" title="hola">
-    <toolbar name="pepe">
-      <button icon="fa-print" name="printBtn" onClick="A" title="Print invoices"/>
-      <field icon="fa-print" name="printBtn" onClick="A" readonly="true" title="Print invoices"/>
-      <panel name="botones">
+  <form groups="admins,users" include="exp-Prueba-Base" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" title="hola">
+    <include readonly="true" sourceFileName="template.xml" target=".//toolbar[@name='pepe']">
+      <extend target="panel[@name='botones']">
+        <insert position="inside-before">
+          <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+          <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
+        </insert>
+      </extend>
+    </include>
+    <include target=".//panel[@name='head']"/>
+    <include readonly="true" target=".//panel[@name='datos-solicitante']"/>
+    <include target=".//panel-related[@name='fcts-panel']"/>
+    <extend target=".//button[@name='mostrar-historial-estados']">
+      <insert position="before">
         <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
         <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
-        <button icon="fa-print" name="printBtn2" onClick="A" title="Print invoices2"/>
-      </panel>
-    </toolbar>
-    <panel colSpan="12" name="head">
-      <panel colSpan="8">
-        <field colSpan="6" name="tipoExpediente.name" readonly="true" title="Nombre"/>
-        <field colSpan="6" name="createdBy.name" readonly="true" title="Creado por"/>
-        <field colSpan="3" name="nameState" readonly="true"/>
-        <field colSpan="3" name="fechaUltimoEstado" readonly="true"/>
-      </panel>
-      <panel colSpan="4" itemSpan="12" name="events">
-        <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
-        <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
-        <button colSpam="2" css="btn-default" icon="assignment" name="mostrar-historial-estados" onClick="action-grid-expediente-historial-estados" title="Historial Eventos.."/>
-      </panel>
-    </panel>
-    <panel name="datos-solicitante" title="Datos Solicitante">
-      <field colSpan="9" name="solicita" readonly="true"/>
-      <field colSpan="3" name="justificante" readonly="true" widget="binary-link" x-accept=".pdf"/>
-    </panel>
-    <panel-related colSpan="12" field="formacionesCentrosTrabajo" form-view="fct-details" grid-view="fct-grid" name="fcts-panel" title="FCTs"/>
+      </insert>
+    </extend>
   </form>
 </object-views>

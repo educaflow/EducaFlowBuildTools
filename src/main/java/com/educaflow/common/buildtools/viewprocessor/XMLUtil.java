@@ -11,7 +11,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter; // To capture output as a string if needed
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -25,457 +24,109 @@ import org.w3c.dom.NamedNodeMap;
  */
 public class XMLUtil {
 
-    public static Element findNodeByTagName(Element objectViewsElement, String name, String tagName) {
-        NodeList children = objectViewsElement.getChildNodes();
+    public static List<Element> getChilds(Element parentElement) {
+        List<Element> elements = new ArrayList<>();
+
+        NodeList children = parentElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node currentNode = children.item(i);
 
             if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                Element currentElement = (Element) currentNode;
+                elements.add((Element) currentNode);
 
-                if (currentElement.getTagName().equals(tagName)) {
-
-                    if (currentElement.hasAttribute("name") && currentElement.getAttribute("name").equals(name)) {
-                        return (Element) currentNode; // Found the node!
-                    }
-                }
             }
         }
-        return null;
-    }
+        return elements;
+    }    
     
-    
-    
-    
-    public static Element findElementByTag(Element parentElement, String tagName) {
-        List<Element> elements =findElementsByTag(parentElement, tagName);
-        
-        if (elements.size()==1) {
+    public static Element getChildFilterByTagName(Element parentElement, String tagName) {
+        List<Element> elements = getChildsFilterByTagName(parentElement, tagName);
+
+        if (elements.size() == 1) {
             return elements.get(0);
-        } else if (elements.size()==0) {
+        } else if (elements.size() == 0) {
             return null;
         } else {
             throw new RuntimeException("Hay mas de un elemento con tag:" + tagName);
         }
-        
 
-    }    
-    
-    public static List<Element> findElementsByTag(Element parentElement, String tagName) {
-        List<Element> elements = new ArrayList<>();
-        
-        NodeList children = parentElement.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                Element currentElement = (Element) currentNode;
-
-                if (currentElement.getTagName().equals(tagName)) {
-                    elements.add(currentElement);
-                }
-            }
-        }
-        return elements;
-    }    
-    
-    public static List<Element> findElementsByTag(Element parentElement) {
-        List<Element> elements = new ArrayList<>();
-        
-        NodeList children = parentElement.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                 elements.add((Element)currentNode);
-
-            }
-        }
-        return elements;
-    }
-    
-    public static List<Element> getFormElementsWithRoleStateAttributes(Element parentElement) {
-        List<Element> findElementsByTag=findElementsByTag(parentElement,"form");
-        List<Element> formsElement=new ArrayList<>();
-        
-        for(Element formElement:findElementsByTag) {
-                if (formElement.hasAttribute("role") && formElement.hasAttribute("state")) {
-                    formsElement.add((Element) formElement);
-                }
-        }
-        
-        
-        return formsElement;
-        
-    }
-    
-    
-    /**
-     * Finds and returns a list of all direct child nodes of "object-views" that
-     * have the "Inherit" attribute.
-     *
-     * @param doc The XML Document to search within.
-     * @return A List of Node objects that are children of "object-views" and
-     * have the "Inherit" attribute. Returns an empty list if "object-views" is
-     * not found or no matching nodes are found.
-     */
-    public static List<Element> getElementsWithIncludeAttribute(Document doc, String rootTagName) {
-        List<Element> inheritNodes = new ArrayList<>();
-
-        NodeList objectViewsList = doc.getElementsByTagName(rootTagName);
-        if (objectViewsList.getLength() == 0) {
-            return inheritNodes;
-        }
-        Node objectViewsNode = objectViewsList.item(0);
-
-        if (objectViewsNode.getNodeType() != Node.ELEMENT_NODE) {
-            return inheritNodes;
-        }
-        Element objectViewsElement = (Element) objectViewsNode;
-
-        NodeList children = objectViewsElement.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                Element currentElement = (Element) currentNode;
-
-                if (currentElement.hasAttribute("include")) {
-                    inheritNodes.add((Element) currentNode);
-                }
-            }
-        }
-        return inheritNodes;
-    }
-    
-    public static List<Element> getElementsWithTagStep(Element parentNode) {
-        return findElementsByTag(parentNode,"step");
-    }    
-    
-    
-
-    public static List<Element> getInclude(Element parentElement) {
-        List<Element> includeElements = new ArrayList<>();
-
-        if (parentElement == null) {
-            throw new RuntimeException("El parametro parentelement es null");
-        }
-
-        NodeList children = parentElement.getChildNodes();
-
-        for (int i = 0; i < children.getLength(); i++) {
-            Node node = children.item(i);
-
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                Element currentElement = (Element) node;
-
-                if (currentElement.getNodeName().equals("include")) {
-                    // Validar la combinación de atributos
-                    boolean hasTarget = currentElement.hasAttribute("target");
-                    boolean hasSourceFileName = currentElement.hasAttribute("sourceFileName");
-                    boolean hasReadOnly = currentElement.hasAttribute("readonly");
-                    int numAttributes = currentElement.getAttributes().getLength();
-
-                    if (hasTarget && numAttributes == 1) {
-                        includeElements.add(currentElement);
-                    } else if (hasTarget && hasSourceFileName && numAttributes == 2) {
-                        includeElements.add(currentElement);
-                    } else if (hasTarget && hasReadOnly && numAttributes == 2) {
-                        includeElements.add(currentElement);
-                    } else if (hasTarget && hasSourceFileName && hasReadOnly && numAttributes == 3) {
-                        includeElements.add(currentElement);                        
-                    } else {
-                        String errorMessage = "El elemento <include> tiene una combinación de atributos no permitida. ";
-                        if (!hasTarget) {
-                            errorMessage += "Falta el atributo obligatorio 'target'. ";
-                        }
-                        errorMessage += "Atributos encontrados: [";
-                        for (int k = 0; k < currentElement.getAttributes().getLength(); k++) {
-                            errorMessage += currentElement.getAttributes().item(k).getNodeName();
-                            if (k < currentElement.getAttributes().getLength() - 1) {
-                                errorMessage += ", ";
-                            }
-                        }
-                        errorMessage += "]. Solo se permiten 'target' (Obligatorio) y  'sourceFileName' o 'readonly'.";
-                        throw new IllegalArgumentException(errorMessage);
-                    }
-                }
-
-                try {
-                    includeElements.addAll(getInclude(currentElement));
-                } catch (IllegalArgumentException e) {
-                    // Propagar la excepción hacia arriba si un descendiente falla la validación
-                    throw e;
-                }
-            }
-        }
-        return includeElements;
     }
 
-    public static List<Element> getExtends(Element parentElement) {
-        List<Element> extendElements = new ArrayList<>();
-        NodeList children = parentElement.getChildNodes();
+    public static List<Element> getChildsFilterByTagName(Element parentElement, String tagName) {
+        List<Element> childs = XMLUtil.getChilds(parentElement);
+        List<Element> filter = new ArrayList<>();
 
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                Element currentElement = (Element) currentNode;
-                if ("extend".equals(currentElement.getTagName())) {
-                    if (currentElement.hasAttribute("target") && currentElement.getAttributes().getLength() == 1) {
-                        extendElements.add(currentElement);
-                    } else {
-                        throw new RuntimeException("Found 'extend' element with invalid attributes. Expected only 'target'. Element: " + currentElement.getTagName());
-                    }
-                }
-
-                try {
-                    extendElements.addAll(getExtends(currentElement));
-                } catch (IllegalArgumentException e) {
-                    throw e;
-                }
-
+        for (Element element : childs) {
+            if (element.getTagName().equals(tagName)) {
+                filter.add(element);
             }
         }
-        return extendElements;
+        return filter;
     }
 
-    public static Element getChildElementUniqueByTagName(Element parentElement, String tagName) {
-        if (parentElement == null) {
-            throw new IllegalArgumentException("parentElement cannot be null");
+
+    public static List<Element> getClonedChildElements(Element parentElement) {
+        List<Element> childs = XMLUtil.getChilds(parentElement);
+        List<Element> clonedElements = new ArrayList<>();
+
+        for (Element element : childs) {
+            clonedElements.add(XMLUtil.cloneElement((Element) element, (Element) element));
         }
-        if (tagName == null || tagName.trim().isEmpty()) {
-            throw new IllegalArgumentException("tagName cannot be null or empty.");
-        }
+        return clonedElements;
+    }
+    public static Element cloneElement(Element targetElement, Element sourceElement) {
 
-        Element foundElement = null;
-        NodeList children = parentElement.getChildNodes();
-        int elementChildCount = 0; // To count actual Element nodes
+        Element importedNode = (Element) targetElement.getOwnerDocument().importNode(sourceElement, true);
 
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            switch (currentNode.getNodeType()) {
-                case Node.ELEMENT_NODE:
-                    elementChildCount++;
-                    Element currentElement = (Element) currentNode;
-                    if (currentElement.getTagName().equals(tagName)) {
-                        if (foundElement != null) {
-                            // This means we've already found one matching element, and now found another.
-                            // This violates the "only one Element child" rule if both match the tagName
-                            // or if we already found the target and now found another element (even if it doesn't match tagName).
-                            throw new IllegalStateException(
-                                    "Parent element '" + parentElement.getTagName()
-                                    + "' contains more than one Element child. Expected only one with tag '" + tagName + "'."
-                            );
-                        }
-                        foundElement = currentElement;
-                    } else {
-                        return null;
-                    }
-                    break;
-                case Node.TEXT_NODE:
-                    // Allow whitespace text nodes, but throw an error if it's non-whitespace text
-                    if (!currentNode.getNodeValue().trim().isEmpty()) {
-                        throw new IllegalStateException(
-                                "Parent element '" + parentElement.getTagName()
-                                + "' contains unexpected non-whitespace text node: '" + currentNode.getNodeValue().trim() + "'."
-                        );
-                    }
-                    break;
-                case Node.COMMENT_NODE:
-                    // Allow comment nodes, do nothing
-                    break;
-                default:
-                    // Disallow other node types explicitly
-                    throw new IllegalStateException(
-                            "Parent element '" + parentElement.getTagName()
-                            + "' contains an unexpected node type: " + currentNode.getNodeType() + "."
-                    );
-            }
-        }
-
-        // After iterating through all children, check if we found exactly one element and it matched
-        // If elementChildCount is 0 and foundElement is null, it means no element child was found.
-        // This is not an error based on the requirement "no more Element children".
-        // It simply returns null, indicating no matching element was found under the strict conditions.
-        return foundElement;
+        return importedNode;
     }
 
-    public static List<Element> getChildrenElementsByTagName(Element parentElement, String tagName) {
-        List<Element> matchingElements = new ArrayList<>();
+    
 
-        if (parentElement == null) {
-            throw new IllegalArgumentException("parentElement cannot be null.");
-        }
-        if (tagName == null || tagName.trim().isEmpty()) {
-            throw new IllegalArgumentException("tagName cannot be null or empty.");
-        }
+    
+    
+    public static List<Element> getChildsFilterByTagNameAndAttributeName(Element parentElement, String name, String tagName) {
+        List<Element> childs = XMLUtil.getChildsFilterByTagName(parentElement,tagName);
+        List<Element> filter = new ArrayList<>();
 
-        NodeList children = parentElement.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            switch (currentNode.getNodeType()) {
-                case Node.ELEMENT_NODE:
-                    Element currentElement = (Element) currentNode;
-                    if (currentElement.getTagName().equals(tagName)) {
-                        matchingElements.add(currentElement);
-                    } else {
-//                        // If it's an Element node but doesn't match the desired tagName, throw an error
-//                        throw new IllegalStateException(
-//                                "Parent element '" + parentElement.getTagName()
-//                                + "' contains an unexpected Element child with tag: '" + currentElement.getTagName()
-//                                + "'. Expected only elements with tag '" + tagName + "', comments, or whitespace text."
-//                        );
-                    }
-                    break;
-                case Node.TEXT_NODE:
-                    // Allow whitespace text nodes, but throw an error if it's non-whitespace text
-                    if (!currentNode.getNodeValue().trim().isEmpty()) {
-                        throw new IllegalStateException(
-                                "Parent element '" + parentElement.getTagName()
-                                + "' contains unexpected non-whitespace text node: '" + currentNode.getNodeValue().trim() + "'."
-                        );
-                    }
-                    break;
-                case Node.COMMENT_NODE:
-                    // Allow comment nodes, do nothing
-                    break;
-                default:
-                    // Disallow other node types explicitly
-                    throw new IllegalStateException(
-                            "Parent element '" + parentElement.getTagName()
-                            + "' contains an unexpected node type: " + currentNode.getNodeType() + "."
-                    );
+        for (Element element : childs) {
+            if (element.hasAttribute("name") && element.getAttribute("name").equals(name)) {
+                filter.add(element);
             }
         }
-        return matchingElements;
+        return filter;
+    }
+
+    public static Element getChildFilterByTagNameAndAttributeName(Element parentElement, String name, String tagName) {
+        List<Element> elements = getChildsFilterByTagNameAndAttributeName(parentElement,name, tagName);
+
+        if (elements.size() == 1) {
+            return elements.get(0);
+        } else if (elements.size() == 0) {
+            return null;
+        } else {
+            throw new RuntimeException("Hay mas de un elemento con tag:" + tagName + " y atributo name="+ name);
+        }
     }
 
     public static Document cloneDocument(Document originalDocument) {
         if (originalDocument == null) {
-            return null; // Handle null input gracefully
+            return null;
         }
 
-        // The cloneNode(true) method performs a deep clone.
-        // It returns a Node, which then needs to be cast to a Document.
-        // The Document object itself is a special type of Node.
+
         Node clonedNode = originalDocument.cloneNode(true);
 
-        // Cast the cloned Node back to a Document
         if (clonedNode instanceof Document) {
             return (Document) clonedNode;
         } else {
-            // This case should theoretically not happen if originalDocument is a valid Document,
-            // but it's good for robustness.
             throw new IllegalStateException("Failed to clone Document. Cloned node is not a Document type.");
         }
     }
 
-    public static Element replaceElementWithClone(Document doc, Element clonedSourceElement, Element targetElement) {
-        if (doc == null || clonedSourceElement == null || targetElement == null) {
-            return null; // Handle null inputs gracefully
-        }
 
-        // Ensure both elements belong to the same document
-        if (clonedSourceElement.getOwnerDocument() != doc || targetElement.getOwnerDocument() != doc) {
-            //throw new IllegalArgumentException(                "Both sourceElement and targetElement must belong to the provided Document."            );
-        }
 
-        Node targetParent = targetElement.getParentNode();
-        if (targetParent == null) {
-            throw new IllegalStateException("Target element has no parent and cannot be replaced.");
-        }
-
-        // 2. Replace targetElement with the cloned source element
-        // replaceChild returns the old child (targetElement in this case).
-        Node oldChild = targetParent.replaceChild(clonedSourceElement, targetElement);
-
-        // oldChild will be the original targetElement, which is no longer in the document tree.
-        // It should still be an Element if targetElement was one.
-        if (oldChild instanceof Element) {
-            return (Element) oldChild;
-        } else {
-            // This might happen if targetElement itself was not an Element,
-            // which is contrary to the function's contract accepting Element for targetElement.
-            throw new IllegalStateException("The replaced node was not an Element as expected.");
-        }
-    }
-    
-    public static Element cloneElement(Element targetElement,Element sourceElement) {
-
-        Element importedNode = (Element)targetElement.getOwnerDocument().importNode(sourceElement, true);
-        
-        return importedNode;
-    }
-    
-
-    public static void copyAttributesIgnoreNamespaces(Element sourceElement, Element targetElement) {
-        if (sourceElement == null) {
-            throw new IllegalArgumentException("Source element cannot be null.");
-        }
-        if (targetElement == null) {
-            throw new IllegalArgumentException("Target element cannot be null.");
-        }
-
-        NamedNodeMap sourceAttributes = sourceElement.getAttributes();
-
-        for (int i = 0; i < sourceAttributes.getLength(); i++) {
-            Attr attribute = (Attr) sourceAttributes.item(i);
-
-            // Get the local name of the attribute (ignores prefix like "ns1:")
-            // For attributes without a namespace (like "id"), getLocalName() == getName()
-            String attrLocalName = attribute.getLocalName();
-            if (attrLocalName == null) { // Fallback for attributes without explicit local name (e.g., if parser not namespace-aware)
-                attrLocalName = attribute.getName();
-            }
-
-            String attrValue = attribute.getValue();
-            String attrQualifiedName = attribute.getName(); // The full name, including prefix if present
-
-            // IMPORTANT: Still skip namespace declaration attributes (xmlns or xmlns:prefix)
-            // These are not "regular" attributes and can break XML if treated as such.
-            if (attrQualifiedName.startsWith("xmlns:") || attrQualifiedName.equals("xmlns")) {
-                continue; // Skip namespace declaration attributes
-            }
-
-            // Always use setAttribute with the local name (or qualified name if local name is null)
-            // This implicitly ignores namespaces for the attribute when setting.
-            targetElement.setAttribute(attrLocalName, attrValue);
-        }
-    }
-
-    public static Node replaceElementWithCopy(Element targetElement, NodeList sourceElements) {
-        Node returnNode=null;
-        
-        if (targetElement == null || sourceElements == null) {
-            throw new IllegalArgumentException("El elemento de destino y la lista de origen no pueden ser nulos.");
-        }
-
-        Node parent = targetElement.getParentNode();
-        Document doc = parent.getOwnerDocument();
-
-        // Insertar cada nodo clonado antes del elemento objetivo
-        for (int i = 0; i < sourceElements.getLength(); i++) {
-            Node imported = doc.importNode(sourceElements.item(i), true);
-            
-            if (returnNode==null) {
-                returnNode=imported;
-            }
-            
-            parent.insertBefore(imported, targetElement);
-        }
-
-        // Eliminar el nodo objetivo original
-        parent.removeChild(targetElement);
-        
-        return returnNode;
-    }
-
-    
-    public static NodeList getNodeListFromEvaluateXPath(String expression,Element element) {
+    public static NodeList getNodeListFromEvaluateXPath(String expression, Element element) {
         try {
             if (expression == null || expression.trim().isEmpty()) {
                 throw new IllegalArgumentException("expression no puede ser null o vacio.");
@@ -484,20 +135,19 @@ public class XMLUtil {
                 throw new IllegalArgumentException("element no puede ser null.");
             }
             if (expression.startsWith("//")) {
-                throw new IllegalArgumentException("expression no puede empezar por //:"+expression);
+                throw new IllegalArgumentException("expression no puede empezar por //:" + expression);
             }
-            
-            
+
             XPath xpath = XPathFactory.newInstance().newXPath();
             NodeList result = (NodeList) xpath.evaluate(expression, element, XPathConstants.NODESET);
-            
+
             return result;
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating XPath expression: " + expression, e);
-        }        
+        }
     }
     
-    public static Node getNodeFromEvaluateXPath(String expression,Element element) {
+    public static Node getNodeFromEvaluateXPath(String expression, Element element) {
         try {
             if (expression == null || expression.trim().isEmpty()) {
                 throw new IllegalArgumentException("expression no puede ser null o vacio.");
@@ -506,119 +156,42 @@ public class XMLUtil {
                 throw new IllegalArgumentException("element no puede ser null.");
             }
             if (expression.startsWith("//")) {
-                throw new IllegalArgumentException("expression no puede empezar por //:"+expression);
+                throw new IllegalArgumentException("expression no puede empezar por //:" + expression);
             }
-            
-            
+
             XPath xpath = XPathFactory.newInstance().newXPath();
             Node result = (Node) xpath.evaluate(expression, element, XPathConstants.NODE);
-            
+
             return result;
         } catch (XPathExpressionException e) {
             throw new RuntimeException("Error evaluating XPath expression: " + expression, e);
-        }        
-    }    
-    
-    
-    public static List<Element> getChildElements(Element parentElement) {
-        List<Element> childElements = new ArrayList<>();
-        NodeList children = parentElement.getChildNodes();
-
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                childElements.add((Element)currentNode);
-
-            }
         }
-        return childElements;
     }
-    
-    public static List<Element> getClonedChildElements(Element parentElement) {
-        List<Element> childElements = new ArrayList<>();
-        NodeList children = parentElement.getChildNodes();
-
-        for (int i = 0; i < children.getLength(); i++) {
-            Node currentNode = children.item(i);
-
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                childElements.add(XMLUtil.cloneElement((Element)currentNode,(Element)currentNode));
-
-            }
-        }
-        return childElements;
-    }
-       
-    
-    
-    public static void copyChildsInElement(Element source,Element target) {
-        List<Element> childElements=XMLUtil.getChildElements(source);
-        
-        for(Element childElement:childElements) {
-            target.appendChild(XMLUtil.cloneElement(target, childElement));
-        }
-        
-    }
-    
-    
-    public static void printDocument(Document doc) {
-        if (doc == null) {
+    public static void printNode(Node node) {
+        if (node == null) {
             System.out.println("El documento es nulo y no puede ser impreso.");
             return;
         }
         try {
-            // Crea un TransformerFactory
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            // Crea un Transformer a partir del factory
             Transformer transformer = transformerFactory.newTransformer();
-
-            // Configura las propiedades de salida para una impresión legible
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // Activa la indentación
-            // Propiedad específica de Apache Xalan para el número de espacios de indentación
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes"); 
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no"); // Incluye la declaración XML (<?xml version="1.0" ...?>)
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); // Asegura la codificación correcta
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no"); 
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); 
 
-            // Prepara la fuente del documento (el DOMSource)
-            DOMSource source = new DOMSource(doc);
 
-            // Prepara el resultado para la salida (la consola en este caso)
+            DOMSource source = new DOMSource(node);
             StreamResult result = new StreamResult(System.out);
 
-            // Realiza la transformación y escribe el XML a la consola
+
             transformer.transform(source, result);
-            System.out.println(); // Añade una nueva línea al final para mejor formato
+            System.out.println(); 
         } catch (Exception e) {
             System.err.println("Error al imprimir el documento XML: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public static void printXmlElement(Element element) {
-        try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
 
-            // Configurar el transformador para una salida legible
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes"); // Indentación
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4"); // Cantidad de espacios para indentar
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // No imprimir <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
-            // Crear la fuente DOM a partir del elemento
-            DOMSource source = new DOMSource(element);
-
-            // El resultado va a System.out (la consola)
-            StreamResult result = new StreamResult(System.out);
-
-            // Realizar la transformación
-            transformer.transform(source, result);
-            System.out.println(); // Añadir un salto de línea final para mejor legibilidad
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }    
-    
 }

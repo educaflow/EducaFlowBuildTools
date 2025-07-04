@@ -18,24 +18,28 @@
     <field name="descripcion"/>
     <field name="estado"/>
   </grid>
-  <grid action="accion-condicional" actionSignal="bbbb" canDelete="false" canEdit="false" canNew="false" canSave="false" edit-icon="false" editable="false" groups="admins,users" model="com.eduflow.common.geo.db.Provincia" name="grid-provincias-extendido" onDelete="C" onNew="A" title="Provincias" x-selector="none">
-    <toolbar>
-      <button icon="fa-print2" name="printBtn2" onClick="A2" title="Print invoices2"/>
-    </toolbar>
-    <menubar>
-      <menu icon="fa-wrench" name="invoiceToolsMenu" showTitle="true" title="Tools">
-        <item action="Pepe" name="validateSelectedInvoicesItem" title="Hola mundo"/>
-        <item action="C" name="ventilateSelectedInvoicesItem" prompt="Are you sure you want to ventilate all selected invoices ?" title="Ventilate selected invoices"/>
-        <item action="D" name="mergeCustInvoicesItem" title="Merge Cust. Invoices"/>
-        <item action="A" name="seeCustInvoicesLinesItem" title="See cust. invoices lines"/>
-      </menu>
-    </menubar>
-    <button icon="fa-envelope" name="sendByEmailBtn" onClick="accion-condicional" showTitle="true" title="Send Email"/>
-    <button icon="fa-envelope" name="sendByEmailBtn2" onClick="accion-condicional" prompt="hola" showTitle="true" title="Send Email"/>
-    <field name="descripcion"/>
-    <field name="idProvincia"/>
-    <field name="estado"/>
-    <field name="comentario"/>
+  <grid actionSignal="bbbb" include="grid-provincias" name="grid-provincias-extendido">
+    <include target="./*"/>
+    <extend target=".//field[@name='estado']">
+      <insert position="after">
+        <field name="comentario"/>
+      </insert>
+    </extend>
+    <extend target=".//toolbar">
+      <replace>
+        <toolbar>
+          <button icon="fa-print2" name="printBtn2" onClick="A2" title="Print invoices2"/>
+        </toolbar>
+      </replace>
+    </extend>
+    <extend target=".//field[@name='idProvincia']">
+      <move position="before" source=".//field[@name='descripcion']"/>
+    </extend>
+    <extend target=".//menubar/menu/item[@name='validateSelectedInvoicesItem']">
+      <attribute name="title" value="Hola mundo"/>
+      <attribute name="action" value="Pepe"/>
+      <attribute name="prompt" value=""/>
+    </extend>
   </grid>
   <form groups="admins,users" model="com.eduflow.common.geo.db.Provincia" name="form-provincia" onSave="accion-listado-provincias" title="Provincia">
     <panel title="Overview">
