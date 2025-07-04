@@ -53,8 +53,9 @@ public class XMLPreprocesor {
             String content=elementIncludePanel.getTextContent();
             String[] lines = content.split("\n");
 
-            doInclude(formElement,"./panel[@name='head']",getBaseElement(filePath,"../view-templates/template.xml"),false);
-            
+
+            Element headElement=createElementPanelInclude(formElement.getOwnerDocument(),"exp-Expediente-Base-Head-form",null);
+            formElement.appendChild(headElement);
             
             for (String line : lines) {
                 String trimmedLine = line.trim();
@@ -77,17 +78,43 @@ public class XMLPreprocesor {
                 }
             }
         
-            doInclude(formElement,"./panel[@name='footer']",getBaseElement(filePath,"../view-templates/template.xml"),false);
-       
+            Element footerElement=createElementPanel(formElement.getOwnerDocument(),"exp-Expediente-Base-Footer-form");
+            footerElement.setAttribute("itemSpan", "2");
+        
+            formElement.appendChild(footerElement);
 
             
     }
+    
+    
+    public static Element createElementPanelInclude(Document document,String viewValue,String fromValue) {
+        Element panelInclude = document.createElement("panel-include");
+
+        if (viewValue!=null) {
+            panelInclude.setAttribute("view", viewValue);
+        }
+        
+        if (fromValue!=null) {
+            panelInclude.setAttribute("from", fromValue);
+        }
+        
+        return panelInclude;
+    }
+    
+    public static Element createElementPanel(Document document,String name) {
+        Element panel = document.createElement("panel");
+
+        panel.setAttribute("name", name);
+
+        return panel;
+    }
+    
     
     public static void doLeftRight(Element leftElement,Element rightElement,Element formElement) {
         Element cloneLeftElement=XMLUtil.cloneElement(formElement, leftElement);
         Element cloneRightElement=XMLUtil.cloneElement(formElement, rightElement);
         
-        Element footerElement=(Element)XMLUtil.getNodeFromEvaluateXPath("./panel[@name='footer']",formElement);
+        Element footerElement=(Element)XMLUtil.getNodeFromEvaluateXPath("./panel[@name='exp-Expediente-Base-Footer-form']",formElement);
         
         
         List<Element> childLeftElements=XMLUtil.getClonedChildElements(cloneLeftElement);

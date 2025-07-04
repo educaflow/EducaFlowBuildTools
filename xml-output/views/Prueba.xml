@@ -22,14 +22,7 @@
     </panel>
   </form>
   <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-KKKKK-ENTRADA_KKK_DATOS-form" title="hola">
-    <panel colSpan="12" name="head">
-      <panel colSpan="12">
-        <field colSpan="3" name="createdBy" readonly="true" title="Creado por"/>
-        <field colSpan="6" name="nameState" readonly="true"/>
-        <field colSpan="2" name="fechaUltimoEstado" readonly="true"/>
-        <button colSpan="1" css="btn-link" icon="assignment" name="mostrar-historial-estados" onClick="action-grid-expediente-historial-estados" title=""/>
-      </panel>
-    </panel>
+    <panel-include view="exp-Expediente-Base-Head-form"/>
     <panel name="datos-solicitante" title="Datos Solicitante">
       <field colSpan="9" name="solicita" readonly="true"/>
       <field colSpan="3" name="justificante" readonly="true" widget="binary-link" x-accept=".pdf"/>
@@ -38,9 +31,9 @@
     <panel name="resolucion" title="Datos Resolución">
       <field colSpan="12" name="motivo"/>
     </panel>
-    <panel colSpan="12" name="footer">
+    <panel itemSpan="2" name="exp-Expediente-Base-Footer-form">
       <button colSpan="2" css="btn-danger" name="DELETE" onClick="action-event-expediente" outline="true" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
-      <button colOffset="8" colSpan="2" css="btn-danger" name="DELETE" onClick="action-event-expediente" outline="true" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
+      <button colOffset="8" colSpan="2" name="PRESENTAR" onClick="action-event-expediente" title="Siguiente"/>
     </panel>
   </form>
   <form groups="admins,users" model="com.educaflow.apps.expedientes.db.Prueba" name="exp-Prueba-CREADOR-ENTRADA_DATOS-form" title="hola">
