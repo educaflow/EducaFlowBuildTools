@@ -3,6 +3,8 @@ package com.educaflow.common.buildtools.viewprocessor;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,7 +45,7 @@ public class XMLPreprocesor {
         formElement.removeAttribute("role");
         formElement.removeAttribute("state");
         
-        String nombreExpediente=getNombreExpediente(filePath);
+        String nombreExpediente=getNombreExpediente(formElement.getOwnerDocument());
         
         try {
             String nameAttributeValue="exp-"+nombreExpediente+"-Base";
@@ -282,26 +284,26 @@ public class XMLPreprocesor {
             return defaultColSpam;
         }
     }
-    private static String getNombreExpediente(Path filePath) {
-        Path fileNamePath = filePath.getFileName();
-
-
-        String fileName = fileNamePath.toString();
-
-        int dotIndex = fileName.lastIndexOf('.');
-
-        String fileNameSinExtension;
-        if (dotIndex > 0) {
-            fileNameSinExtension=fileName.substring(0, dotIndex);
-        } else {
-            fileNameSinExtension=fileName;
+    private static String getNombreExpediente(Document document) {
+        String nombreExpediente=null;
+        
+        List<Element> elements=XMLUtil.getChildsFilterByTagName(document.getDocumentElement(),"form");
+        
+        
+        Pattern pattern = Pattern.compile("exp-([a-zA-Z0-9]+)-Base");
+        
+        for(Element element:elements) {
+             Matcher matcher = pattern.matcher(element.getAttribute("name"));
+             if (matcher.find()) {
+                 
+                if (nombreExpediente==null) {
+                    nombreExpediente=matcher.group(1);
+                } else {
+                    throw new RuntimeException("Existen al menos 2 nodos base:" +nombreExpediente + " y " +matcher.group(1) );
+                }
+             }
         }
-        
-        String firstLetter = fileNameSinExtension.substring(0, 1).toUpperCase();
-        String restOfText = fileNameSinExtension.substring(1);
-        
-        String nombreExpediente=firstLetter + restOfText;
-        
+
         return nombreExpediente;
         
     }
