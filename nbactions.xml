@@ -12,7 +12,7 @@
             <properties>
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>xml xml-output</exec.appArgs>
+                <exec.appArgs>axelor-config.properties</exec.appArgs>
                 <exec.mainClass>com.educaflow.common.buildtools.deletemeta.Main</exec.mainClass>
                 <exec.executable>java</exec.executable>
             </properties>
@@ -29,7 +29,7 @@
             <properties>
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>xml xml-output</exec.appArgs>
+                <exec.appArgs>axelor-config.properties</exec.appArgs>
                 <exec.mainClass>com.educaflow.common.buildtools.deletemeta.Main</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
@@ -49,7 +49,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>com.educaflow.common.buildtools.deletemeta.Main</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <exec.appArgs>xml xml-output</exec.appArgs>
+                <exec.appArgs>axelor-config.properties</exec.appArgs>
             </properties>
         </action>
     </actions>
