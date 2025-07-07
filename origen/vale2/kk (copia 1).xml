@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<datos>
+    <tiposExpedientes>
+        <tipoExpediente code="Prueba1"           name="Expediente de prueba1"  versionExpediente="1" fqcnEventManager="com.educaflow.apps.expedientes.tipo.prueba.EventManager4" />
+    </tiposExpedientes>
+</datos>
