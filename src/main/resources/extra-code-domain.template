@@ -1,0 +1,25 @@
+    {%- macro generateEnum(name, items, newLine, tab) -%}
+
+    {{tab}}public enum {{ name }} {
+{% if items is not empty %}{% for item in items %}{{tab}}{{tab}}{{ item }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}{% endif %}
+    }
+
+    {%- endmacro -%}
+
+    {{tab}}//Estados del expediente{{newLine}}
+    {{- generateEnum("Estado", states, newLine, tab) }}
+
+
+    //Eventos del expediente{{newLine}}
+    {{- generateEnum("Evento", events, newLine, tab) }}
+
+    //Perfiles del expediente{{newLine}}
+    {{- generateEnum("Profile", profiles, newLine, tab) }}
+
+    public void updateState(Estado estado) {
+        super.updateState(estado);
+    }
+
+    public void setCurrentActionProfiles(Profile...profiles) {
+        super.setCurrentActionProfiles(profiles);
+    }

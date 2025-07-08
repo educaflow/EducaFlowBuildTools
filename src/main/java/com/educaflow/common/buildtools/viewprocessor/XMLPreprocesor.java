@@ -1,5 +1,6 @@
 package com.educaflow.common.buildtools.viewprocessor;
 
+import com.educaflow.common.buildtools.common.XMLUtil;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

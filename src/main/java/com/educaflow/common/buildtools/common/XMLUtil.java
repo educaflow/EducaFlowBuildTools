@@ -1,4 +1,4 @@
-package com.educaflow.common.buildtools.viewprocessor;
+package com.educaflow.common.buildtools.common;
 
 import java.util.ArrayList;
 import java.util.List;
