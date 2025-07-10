@@ -1,0 +1,243 @@
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
+
+    <form name="exp-ComisionServicio-Base"   width="large"  model="com.educaflow.apps.expedientes.db.ComisionServicio" groups="admins,users">
+
+
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- ***************************************************************************************  -->
+    <!-- *************************************** CREADOR ***************************************  -->
+    <!-- ***************************************************************************************  -->
+
+    <form profile="CREADOR" state="ENTRADA_DATOS">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="CREADOR" state="FIRMA_POR_USUARIO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="CREADOR" state="REVISION_Y_FIRMA_POR_RESPONSABLE">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="CREADOR" state="ACEPTADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="CREADOR" state="RECHAZADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- *******************************************************************************************  -->
+    <!-- *************************************** RESPONSABLE ***************************************  -->
+    <!-- *******************************************************************************************  -->
+
+    <form profile="RESPONSABLE" state="ENTRADA_DATOS">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="RESPONSABLE" state="FIRMA_POR_USUARIO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="RESPONSABLE" state="REVISION_Y_FIRMA_POR_RESPONSABLE">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="RESPONSABLE" state="ACEPTADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="RESPONSABLE" state="RECHAZADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- ***************************************************************************************  -->
+    <!-- *************************************** AUDITOR ***************************************  -->
+    <!-- ***************************************************************************************  -->
+
+    <form profile="AUDITOR" state="ENTRADA_DATOS">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="AUDITOR" state="FIRMA_POR_USUARIO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="AUDITOR" state="REVISION_Y_FIRMA_POR_RESPONSABLE">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="AUDITOR" state="ACEPTADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+    <form profile="AUDITOR" state="RECHAZADO">
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+        </right>
+    </form>
+
+
+
+
+
+</object-views>

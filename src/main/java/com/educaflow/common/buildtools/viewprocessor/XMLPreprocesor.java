@@ -25,10 +25,10 @@ public class XMLPreprocesor {
             
             Document newDocument = XMLUtil.cloneDocument(document);
 
-            List<Element> elementsStep = getFormElementsWithRoleStateAttributes(getRootElement(newDocument));
+            List<Element> elementsStep = getFormElementsWithProfileStateAttributes(getRootElement(newDocument));
             for (Element elementStep : elementsStep) {
 
-                doFormStateRole(filePath, elementStep);
+                doFormStateProfile(filePath, elementStep);
 
             }
 
@@ -40,10 +40,10 @@ public class XMLPreprocesor {
     }    
     
     
-    private static void doFormStateRole(Path filePath,Element formElement) {
-        String role = formElement.getAttribute("role");
+    private static void doFormStateProfile(Path filePath,Element formElement) {
+        String profile = formElement.getAttribute("profile");
         String state = formElement.getAttribute("state");
-        formElement.removeAttribute("role");
+        formElement.removeAttribute("profile");
         formElement.removeAttribute("state");
         
         String nombreExpediente=getNombreExpediente(formElement.getOwnerDocument());
@@ -61,7 +61,7 @@ public class XMLPreprocesor {
             
             doMergeAttributes(formElement, baseElement);
             
-            formElement.setAttribute("name", "exp-"+nombreExpediente+"-"+role+"-"+state+"-form");
+            formElement.setAttribute("name", "exp-"+nombreExpediente+"-"+profile+"-"+state+"-form");
             
             if (formElement.hasAttribute("title")==false) {
                 formElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
@@ -97,7 +97,7 @@ public class XMLPreprocesor {
 
 
         } catch (Exception ex) {
-            throw new RuntimeException("step con role=" + role + " state=" + state, ex);
+            throw new RuntimeException("step con profile=" + profile + " state=" + state, ex);
         }
         
     }
@@ -264,12 +264,12 @@ public class XMLPreprocesor {
     /*******************************************************************************************/
     /*******************************************************************************************/
     
-    public static List<Element> getFormElementsWithRoleStateAttributes(Element parentElement) {
+    public static List<Element> getFormElementsWithProfileStateAttributes(Element parentElement) {
         List<Element> childs = XMLUtil.getChildsFilterByTagName(parentElement, "form");
         List<Element> filter = new ArrayList<>();
 
         for (Element formElement : childs) {
-            if (formElement.hasAttribute("role") && formElement.hasAttribute("state")) {
+            if (formElement.hasAttribute("profile") && formElement.hasAttribute("state")) {
                 filter.add((Element) formElement);
             }
         }

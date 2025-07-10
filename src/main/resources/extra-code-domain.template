@@ -1,20 +1,18 @@
-    {%- macro generateEnum(name, items, newLine, tab) -%}
-
-    {{tab}}public enum {{ name }} {
-{% if items is not empty %}{% for item in items %}{{tab}}{{tab}}{{ item }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}{% endif %}
+    //Estados del expediente
+    public enum Estado {
+{% for state in states %}{{tab}}{{tab}}{{ state }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
     }
 
-    {%- endmacro -%}
+    //Eventos del expediente
+    public enum Evento {
+{% for event in events %}{{tab}}{{tab}}{{ event }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+    }
 
-    {{tab}}//Estados del expediente{{newLine}}
-    {{- generateEnum("Estado", states, newLine, tab) }}
+    //Perfiles del expediente
+    public enum Profile {
+{% for profile in profiles %}{{tab}}{{tab}}{{ profile }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+    }
 
-
-    //Eventos del expediente{{newLine}}
-    {{- generateEnum("Evento", events, newLine, tab) }}
-
-    //Perfiles del expediente{{newLine}}
-    {{- generateEnum("Profile", profiles, newLine, tab) }}
 
     public void updateState(Estado estado) {
         super.updateState(estado);

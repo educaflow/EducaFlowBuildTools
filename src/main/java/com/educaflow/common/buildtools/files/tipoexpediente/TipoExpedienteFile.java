@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.educaflow.common.buildtools.generatecodedomain;
+package com.educaflow.common.buildtools.files.tipoexpediente;
 
 
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -10,11 +10,13 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
+import java.nio.file.Path;
 import java.util.List;
 
 @XmlRootElement(name = "tipoExpediente")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class TipoExpediente {
+public class TipoExpedienteFile {
 
     @XmlElement(name = "name")
     private String name;
@@ -33,6 +35,9 @@ public class TipoExpediente {
     @XmlElementWrapper(name = "profiles")
     @XmlElement(name = "profile")
     private List<Profile> profiles;
+    
+    @XmlTransient
+    private Path path;
 
     // Getters y Setters
     public String getName() {
@@ -74,6 +79,9 @@ public class TipoExpediente {
     public void setProfiles(List<Profile> profiles) {
         this.profiles = profiles;
     }
+    
+    
+    
 
     @Override
     public String toString() {
@@ -84,5 +92,19 @@ public class TipoExpediente {
                ", events=" + events +
                ", profiles=" + profiles +
                '}';
+    }
+
+    /**
+     * @return the path
+     */
+    public Path getPath() {
+        return path;
+    }
+
+    /**
+     * @param path the path to set
+     */
+    public void setPath(Path path) {
+        this.path = path;
     }
 }
