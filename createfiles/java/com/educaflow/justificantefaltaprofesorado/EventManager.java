@@ -4,7 +4,9 @@ import com.axelor.inject.Beans;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
-import com.educaflow.apps.expedientes.db.*;
+import com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado;
+import com.educaflow.apps.expedientes.db.TipoExpediente;
+import com.educaflow.apps.expedientes.db.Expediente;
 import com.educaflow.apps.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 import com.google.inject.Inject;
 
@@ -25,7 +27,7 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
         JustificacionFaltaProfesorado justificacionFaltaProfesorado = new JustificacionFaltaProfesorado();
         justificacionFaltaProfesorado.setTipoExpediente(tipoExpediente);
-        justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
 
 
         return justificacionFaltaProfesorado;
@@ -35,30 +37,34 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @WhenEvent
-    public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
-        justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+    public void triggerPresenta(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
+
 
 
 
     @WhenEvent
     public void triggerPresentarDocumentosFirmados(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
-        justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
+
 
 
 
     @WhenEvent
     public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
-        justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
+
 
 
 
     @WhenEvent
     public void triggerBack(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
-        justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
+
 
 
 
@@ -76,35 +82,45 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 
+
     @OnEnterState
     public void onEnterEntradaDatos(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.CREADOR);
-        justificacionFaltaProfesorado.setAbierto(true);
+        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
+
+
+
 
     @OnEnterState
     public void onEnterFirmaPorUsuario(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.CREADOR);
-        justificacionFaltaProfesorado.setAbierto(true);
+        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
+
+
+
 
     @OnEnterState
     public void onEnterRevisionYFirmaPorResponsable(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.CREADOR);
-        justificacionFaltaProfesorado.setAbierto(true);
+        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
 
+
+
+
     @OnEnterState
-    public void onEnterAceptado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.CREADOR);
-        justificacionFaltaProfesorado.setAbierto(true);
+    public void onEnterAceptad(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
+        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
+
+
+
 
     @OnEnterState
     public void onEnterRechazado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.CREADOR);
-        justificacionFaltaProfesorado.setAbierto(true);
+        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
+
+
 
 
 

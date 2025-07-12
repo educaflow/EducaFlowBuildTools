@@ -5,6 +5,8 @@
 package com.educaflow.common.buildtools.common;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtAnnotation;
@@ -29,57 +31,92 @@ public class SpoonUtil {
 
     }
 
-    public static boolean existsMethod(CtModel ctModel,String methodName,String fqcnAnnotation,String...fqcnParams) {
-
-
-
-        boolean methodFound = false;
+    public static List<CtMethod<?>> getMethods(CtModel ctModel, String methodName, String fqcnAnnotation, String fqcnReturnType, boolean checkParams, String... fqcnParams) {
+        List<CtMethod<?>> methods = new ArrayList<>();
 
         for (CtMethod<?> method : ctModel.getElements(new TypeFilter<>(CtMethod.class))) {
+            boolean meetsMethodNameCriteria;
+            boolean meetsAnnotationCriteria;
+            boolean meetsReturnTypeCriteria;
+            boolean meetsArgumentsCriteria;
 
-            if (method.getSimpleName().equals(methodName)==false) {
-                continue;
-            }
-
-            if (fqcnAnnotation!=null) {
-                boolean hasAnnotation = false;
-                for (CtAnnotation<?> annotation : method.getAnnotations()) {
-                    if (annotation.getAnnotationType() != null && annotation.getAnnotationType().getQualifiedName().equals(fqcnAnnotation)) {
-                        hasAnnotation = true;
-                        break;
-                    }
-                }
-
-                if (hasAnnotation==false) {
-                    continue;
-                }
-            }
-
-            
-
-            if (method.getParameters().size() == fqcnParams.length) {
-                
-                if (fqcnParams.length==0) {
-                    methodFound = true;
-                    break;
+            if (methodName != null) {
+                if (method.getSimpleName().equals(methodName) == true) {
+                    meetsMethodNameCriteria = true;
                 } else {
-                    for (int i=0;i<fqcnParams.length;i++) {
-                        CtParameter<?> param=method.getParameters().get(i);
-                        String fqcnParam=fqcnParams[i];
-                        if (param.getType() != null && param.getType().getQualifiedName().equals(fqcnParam)) {
-                            methodFound = true;
-                            break;
+                    meetsMethodNameCriteria = false;
+                }
+            } else {
+                meetsMethodNameCriteria = true;
+            }
+
+            if (fqcnAnnotation != null) {
+                meetsAnnotationCriteria = hasAnnotation(method,fqcnAnnotation);
+            } else {
+                meetsAnnotationCriteria = true;
+            }
+
+            if (fqcnReturnType != null) {
+                String returnTypeName = method.getType().getQualifiedName();
+                if (fqcnReturnType.equals(returnTypeName)) {
+                    meetsReturnTypeCriteria = true;
+                } else {
+                    meetsReturnTypeCriteria = false;
+                }
+            } else {
+                meetsReturnTypeCriteria = true;
+            }
+
+            if (checkParams == true) {
+                if (method.getParameters().size() == fqcnParams.length) {
+
+                    if (fqcnParams.length == 0) {
+                        meetsArgumentsCriteria = true;
+                    } else {
+                        meetsArgumentsCriteria = true;
+                        for (int i = 0; i < fqcnParams.length; i++) {
+                            CtParameter<?> param = method.getParameters().get(i);
+                            String fqcnParam = fqcnParams[i];
+                            if (param.getType().getQualifiedName().equals(fqcnParam) == false) {
+                                meetsArgumentsCriteria = false;
+                            }
                         }
                     }
-                }
 
+                } else {
+                    meetsArgumentsCriteria = false;
+                }
             } else {
-                continue;
+                meetsArgumentsCriteria = true;
+            }
+
+            if (meetsMethodNameCriteria && meetsAnnotationCriteria && meetsReturnTypeCriteria && meetsArgumentsCriteria) {
+                methods.add(method);
             }
         }
 
-        return methodFound;
+        return methods;
+    }
 
+    public static boolean hasOnlyMethod(CtModel ctModel, String methodName, String fqcnAnnotation, String fqcnReturnType, boolean checkParams, String... fqcnParams) {
+        List<CtMethod<?>> methods = getMethods(ctModel, methodName, fqcnAnnotation, fqcnReturnType, checkParams, fqcnParams);
+
+        if (methods.size() == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean hasAnnotation(CtMethod<?> method,String fqcnAnnotation) {
+        boolean meetsAnnotationCriteria = false;
+        for (CtAnnotation<?> annotation : method.getAnnotations()) {
+            if (annotation.getAnnotationType() != null && annotation.getAnnotationType().getQualifiedName().equals(fqcnAnnotation)) {
+                meetsAnnotationCriteria = true;
+            }
+        }
+
+        return meetsAnnotationCriteria;
     }
 
 }

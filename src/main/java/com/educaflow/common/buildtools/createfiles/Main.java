@@ -26,6 +26,8 @@ public class Main {
         
         List<TipoExpedienteFile> tipoExpedienteFiles=TipoExpedienteFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
         
+        StringBuilder messages=new StringBuilder();
+        
         for (TipoExpedienteFile tipoExpedienteFile : tipoExpedienteFiles) {
 
             Path pathDomainModelFile=getPathDomainModelFile(tipoExpedienteFile);
@@ -42,12 +44,17 @@ public class Main {
             Path pathEventManagerFile=getPathEventManagerFile(tipoExpedienteFile);
             EventManagerFile eventManagerFile=new EventManagerFile(pathEventManagerFile, tipoExpedienteFile);
             eventManagerFile.createEventManagerFileIfNotExists();
-            eventManagerFile.checkEvents();
-            eventManagerFile.checkStates();
+            String message=eventManagerFile.check();
+            if (message!=null) {
+                messages.append(message);
+            }
             
         }
         
 
+        if (messages.length()>0) {
+            throw new RuntimeException("Alguno de las clases no se pudo precompilar:\n"+messages.toString());
+        }
 
     }
     

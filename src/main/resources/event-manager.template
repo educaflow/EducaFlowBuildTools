@@ -4,7 +4,9 @@ import com.axelor.inject.Beans;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
-import com.educaflow.apps.expedientes.db.*;
+import com.educaflow.apps.expedientes.db.{{ code }};
+import com.educaflow.apps.expedientes.db.TipoExpediente;
+import com.educaflow.apps.expedientes.db.Expediente;
 import com.educaflow.apps.expedientes.db.repo.{{ code }}Repository;
 import com.google.inject.Inject;
 
@@ -34,10 +36,7 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 {% for event in caseEvents %}
 
-    @WhenEvent
-    public void trigger{{event}}({{ code }} {{ lowerCode }}, {{ code }} original, EventContext eventContext) {
-        //{{ lowerCode }}.updateState({{ code }}.Estado.);
-    }
+{% include "event-manager-trigger-method.template" %}
 
 {% endfor %}
 
@@ -55,11 +54,9 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 {% for state in caseStates %}
-    @OnEnterState
-    public void onEnter{{state}}({{ code }} {{ lowerCode }}, EventContext eventContext) {
-        {{ lowerCode }}.setCurrentActionProfiles({{ code }}.Profile.CREADOR);
-        {{ lowerCode }}.setAbierto(true);
-    }
+
+{% include "event-manager-onenter-method.template" %}
+
 {% endfor %}
 
 
