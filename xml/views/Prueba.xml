@@ -34,7 +34,7 @@
 
     </form>
 
-    <form role="KKKKK" state="ENTRADA_KKK_DATOS">
+    <form profile="KKKKK" state="ENTRADA_KKK_DATOS">
         <include-panels>
             -datos-solicitante
             -fcts-panel

@@ -1,11 +1,17 @@
 package com.educaflow.common.buildtools.viewprocessor;
 
+import com.educaflow.common.buildtools.common.TemplateUtil;
 import com.educaflow.common.buildtools.common.XMLUtil;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -186,7 +192,16 @@ public class XMLPreprocesor {
             footerElement.appendChild(childElement);
         } 
         
-
+        String xmlErrorMessages=getFileContent("view-error-messages.template");
+        Node errorMessages=XMLUtil.getNodeFromString(footerElement.getOwnerDocument(),xmlErrorMessages);
+        
+        
+        Node primerHijo = footerElement.getFirstChild();
+        if (primerHijo != null) {
+            footerElement.insertBefore(errorMessages, primerHijo);
+        } else {
+            footerElement.appendChild(errorMessages);
+        }        
         
     }
     
@@ -346,5 +361,21 @@ public class XMLPreprocesor {
         Element objectViewsElement = (Element) objectViewsNode;
         
         return objectViewsElement;
-    }    
+    }
+
+
+    private static String getFileContent(String resourcePath)  {
+        ClassLoader classLoader = XMLPreprocesor.class.getClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new IllegalArgumentException("Recurso no encontrado: " + resourcePath);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                return reader.lines().collect(Collectors.joining("\n"));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
 }

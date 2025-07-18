@@ -1,7 +1,10 @@
 package com.educaflow.common.buildtools.common;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -15,8 +18,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Attr;
-import org.w3c.dom.NamedNodeMap;
+import org.xml.sax.InputSource;
 
 /**
  *
@@ -194,4 +196,24 @@ public class XMLUtil {
     }
 
 
+    public static Node getNodeFromString(Document document, String xmlFragmentString) {
+        try {
+
+            DocumentBuilderFactory fragmentDbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder fragmentDb = fragmentDbf.newDocumentBuilder();
+
+            Document fragmentDoc = fragmentDb.parse(new InputSource(new StringReader(xmlFragmentString)));
+            Node fragmentRootNode = fragmentDoc.getDocumentElement();
+
+
+            Node importedNode = document.importNode(fragmentRootNode, true); 
+
+            return importedNode;
+        } catch (Exception ex) {
+            throw new RuntimeException("Error al obtener un XML de:\n" + xmlFragmentString, ex);
+        }        
+
+    }
+    
+    
 }
