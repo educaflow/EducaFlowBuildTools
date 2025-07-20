@@ -1,23 +1,52 @@
     //Estados del expediente
-    public enum Estado {
-{% for state in states %}{{tab}}{{tab}}{{ state }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+    public enum State {
+{% for state in states %}{{tab}}{{tab}}{{ state.name }}(Profile.{{state.profile}},{{state.initial}},{{state.closed}}{% if state.events|length > 0 %}{% for event in state.events %},Event.{{event}}{% endfor %}{% endif %}){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
+
+    private final Profile profile;
+    private final java.util.List<Event> events;
+    private final boolean initial;
+    private final boolean closed;
+
+    // Constructor del enum Estado
+    State(Profile profile, boolean initial, boolean closed, Event... events) { // Usamos varargs para los events
+        this.profile = profile;
+        this.initial=initial;
+        this.closed=closed;
+        this.events = java.util.Arrays.asList(events); // Convertimos el array de varargs a una List
     }
 
-    //Eventos del expediente
-    public enum Evento {
-{% for event in events %}{{tab}}{{tab}}{{ event }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+
+    public Profile getProfile() {
+        return profile;
+    }
+
+    public java.util.List<Event> getEvents() {
+        return events;
+    }
+
+    public boolean isInitial() {
+        return initial;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+
+    }
+
+    //Events del expediente
+    public enum Event {
+{% for event in events %}        {{ event }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
     }
 
     //Perfiles del expediente
     public enum Profile {
-{% for profile in profiles %}{{tab}}{{tab}}{{ profile }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+{% for profile in profiles %}        {{ profile }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
     }
 
 
-    public void updateState(Estado estado) {
-        super.updateState(estado);
-    }
-
-    public void setCurrentActionProfiles(Profile...profiles) {
-        super.setCurrentActionProfiles(profiles);
+    public void updateState(State state) {
+        super.updateState(state);
+        //super.updateCurrentProfile(state.getProfile());
     }

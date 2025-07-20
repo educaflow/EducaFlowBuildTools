@@ -50,9 +50,7 @@ public class EventManagerFile {
         String modelFQCN = getModelFQCN();
         CtModel ctModel = SpoonUtil.getCtModel(path);
         
-        List<String> allEvents = new ArrayList<>(getUpperCamelCase(tipoExpedienteFile.getEvents()));
-        allEvents.add("Delete");
-        allEvents.add("Exit");    
+        List<String> allEvents = new ArrayList<>(getUpperCamelCase(tipoExpedienteFile.getEvents()));  
         Set<String> allMethodNamesTriggerEvent = allEvents.stream().map(event -> getMethodNameTriggerEvent(event)).collect(Collectors.toSet());
         
         

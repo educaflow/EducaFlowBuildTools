@@ -9,7 +9,6 @@ import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class TipoExpedienteFileFinder {
     
-    static final private String TIPO_EXPEDIENTE_XML="tipoExpediente.xml";
+    static final private String TIPO_EXPEDIENTE_XML="TipoExpediente.xml";
         
         
     public static List<TipoExpedienteFile> findTiposExpedienteFile(Path rootPath) {
@@ -30,9 +29,12 @@ public class TipoExpedienteFileFinder {
         
         List<Path> expedienteXmlFiles = findTiposExpedienteXmlFiles(rootPath);
         for (Path expedienteXmlFile : expedienteXmlFiles) {
-            TipoExpedienteFile tipoExpediente=parseTipoExpedienteXml(expedienteXmlFile);
-            tiposExpedientes.add(tipoExpediente);
-            
+            try {
+                TipoExpedienteFile tipoExpediente=parseTipoExpedienteXml(expedienteXmlFile);
+                tiposExpedientes.add(tipoExpediente);
+            } catch (Exception ex) {
+                throw new RuntimeException("Fallo al obtener el tipo de expediente:"+expedienteXmlFile,ex);
+            }
 
         }
         
@@ -43,13 +45,16 @@ public class TipoExpedienteFileFinder {
 
     public static TipoExpedienteFile parseTipoExpedienteXml(Path expedienteXmlFile) {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(TipoExpedienteFile.class, State.class, Event.class, Profile.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(TipoExpedienteFile.class, State.class);
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             File xmlFile = expedienteXmlFile.toFile();
             TipoExpedienteFile tipoExpediente=(TipoExpedienteFile) unmarshaller.unmarshal(xmlFile);
             tipoExpediente.setPath(expedienteXmlFile);
+            
+            checkOnlyOneInitialState(tipoExpediente);
+            
             
             return tipoExpediente;
         } catch (Exception ex) {
@@ -74,5 +79,23 @@ public class TipoExpedienteFileFinder {
             throw new RuntimeException(ex);
         }
     }    
+
+    private static void checkOnlyOneInitialState(TipoExpedienteFile tipoExpediente) {
+        List<String> initialStates=new ArrayList<>();
+        
+        for(State state:tipoExpediente.getStates()) {
+            if (state.isInitial()==true) {
+                initialStates.add(state.getName());
+            }
+        }
+        
+        
+        if (initialStates.isEmpty()) {
+            throw new RuntimeException("No existe ningun estado inicial");
+        } else if (initialStates.size()>1) {
+            throw new RuntimeException("Existe más de un estado inicial:"+String.join(",", initialStates));
+        }
+        
+    }
     
 }

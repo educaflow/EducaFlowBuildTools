@@ -4,20 +4,34 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
-
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.List;
 
 @XmlRootElement(name = "state")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class State {
 
-    @XmlAttribute(name = "name")
+    @XmlAttribute
     private String name;
 
-    // Getters y Setters
+    @XmlAttribute
+    private String profile;
+
+    @XmlAttribute
+    private boolean initial;
+
+    @XmlAttribute
+    private boolean closed;
+
+    @XmlAttribute
+    @XmlJavaTypeAdapter(CommaSeparatedAdapter.class)
+    private List<String> events;
+
+    // getters y setters
     public String getName() {
         return name;
     }
@@ -26,8 +40,41 @@ public class State {
         this.name = name;
     }
 
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        this.profile = profile;
+    }
+
+    public boolean isInitial() {
+        return initial;
+    }
+
+    public void setInitial(boolean initial) {
+        this.initial = initial;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
+    }
+
+    public List<String> getEvents() {
+        return events;
+    }
+
+    public void setEvents(List<String> events) {
+        this.events = events;
+    }
+    
+    
     @Override
     public String toString() {
-        return name; // Para una representación más limpia en la lista
+        return this.name;
     }
 }
