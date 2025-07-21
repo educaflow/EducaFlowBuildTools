@@ -1,4 +1,4 @@
     @OnEnterState
-    public void onEnter{{state}}({{ code }} {{ lowerCode }}, EventContext eventContext) {
+    public void onEnter{{state}}({{ code }} {{ lowerCode }}, EventContext<{{ code }}.Profile> eventContext) {
         //{{ lowerCode }}.setCurrentActionProfiles({{ code }}.Profile.);
     }
