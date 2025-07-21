@@ -26,9 +26,9 @@ public class XMLPreprocesor {
     private static final String ROOT_TAG_NAME = "object-views";
 
     public static Document process(Path filePath, Document document) {
-        
+
         try {
-            
+
             Document newDocument = XMLUtil.cloneDocument(document);
 
             List<Element> elementsStep = getFormElementsWithProfileStateAttributes(getRootElement(newDocument));
@@ -43,39 +43,38 @@ public class XMLPreprocesor {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }    
-    
-    
-    private static void doFormStateProfile(Path filePath,Element formElement) {
+    }
+
+    private static void doFormStateProfile(Path filePath, Element formElement) {
         String profile = formElement.getAttribute("profile");
         String state = formElement.getAttribute("state");
         formElement.removeAttribute("profile");
         formElement.removeAttribute("state");
-        
-        String nombreExpediente=getNombreExpediente(formElement.getOwnerDocument());
-        
+
+        String nombreExpediente = getNombreExpediente(formElement.getOwnerDocument());
+
         try {
-            String nameAttributeValue="exp-"+nombreExpediente+"-Base";
-            String tagName="form";
-            
-            Element baseElement = XMLUtil.getChildFilterByTagNameAndAttributeName(getRootElement(formElement.getOwnerDocument()),  nameAttributeValue, tagName);
+            String nameAttributeValue = "exp-" + nombreExpediente + "-Base";
+            String tagName = "form";
+
+            Element baseElement = XMLUtil.getChildFilterByTagNameAndAttributeName(getRootElement(formElement.getOwnerDocument()), nameAttributeValue, tagName);
             if (baseElement == null) {
                 throw new RuntimeException("No existe el nodo para el tag " + tagName + " y cuyo atributo name es  " + nameAttributeValue);
             }
-            
+
        
             
             doMergeAttributes(formElement, baseElement);
-            
-            formElement.setAttribute("name", "exp-"+nombreExpediente+"-"+profile+"-"+state+"-form");
-            
-            if (formElement.hasAttribute("title")==false) {
+
+            formElement.setAttribute("name", getFormName(nombreExpediente, state, profile));
+
+            if (formElement.hasAttribute("title") == false) {
                 formElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
             }
-            if (baseElement.hasAttribute("title")==false) {
+            if (baseElement.hasAttribute("title") == false) {
                 baseElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
-            }            
-            
+            }
+
             List<Element> hijos = XMLUtil.getChilds(formElement);
             if (hijos.size() != 3) {
                 throw new RuntimeException("Debe tener 3 hijos pero solo tiene:" + hijos.size());
@@ -98,126 +97,99 @@ public class XMLPreprocesor {
                 throw new RuntimeException("El tercer hijo debe ser right pero es:" + rightElement.getTagName());
             }
 
-            doIncludePanels(includePanelsElement, formElement,baseElement);
+            doIncludePanels(includePanelsElement, formElement, baseElement);
             doLeftRight(leftElement, rightElement, formElement);
-
 
         } catch (Exception ex) {
             throw new RuntimeException("step con profile=" + profile + " state=" + state, ex);
         }
-        
+
     }
-    
-    
-    
-    private static void doIncludePanels(Element elementIncludePanel,Element formElement,Element baseElement) {
-            String content=elementIncludePanel.getTextContent();
-            String[] lines = content.split("\n");
 
+    private static void doIncludePanels(Element elementIncludePanel, Element formElement, Element baseElement) {
+        String content = elementIncludePanel.getTextContent();
+        String[] lines = content.split("\n");
 
-            Element headElement=createElementPanelInclude(formElement.getOwnerDocument(),"exp-Expediente-Base-Head-form",null);
-            formElement.appendChild(headElement);
-            
-            for (String line : lines) {
-                String trimmedLine = line.trim();
+        Element headElement = createElementPanelInclude(formElement.getOwnerDocument(), "exp-Expediente-Base-Head-form", null);
+        formElement.appendChild(headElement);
 
-                String includeName;
-                boolean readonly;
-                if (!trimmedLine.isEmpty()) {
-                    if (trimmedLine.startsWith("-")) {
-                        readonly = true; // Si al menos uno empieza con '-', readonly es true
-                        includeName = trimmedLine.substring(1); // Quita el guion
-                    } else {
-                        readonly=false;
-                        includeName=trimmedLine;
-                    }
-                    
- 
-                    
-                    doInclude(formElement,"./*[@name='" + includeName +"']",baseElement,readonly);
-                    
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+
+            String includeName;
+            boolean readonly;
+            if (!trimmedLine.isEmpty()) {
+                if (trimmedLine.startsWith("-")) {
+                    readonly = true; // Si al menos uno empieza con '-', readonly es true
+                    includeName = trimmedLine.substring(1); // Quita el guion
+                } else {
+                    readonly = false;
+                    includeName = trimmedLine;
                 }
-            }
-        
-            Element footerElement=createElementPanel(formElement.getOwnerDocument(),"exp-Expediente-Base-Footer-form");
-            footerElement.setAttribute("itemSpan", "2");
-            footerElement.setAttribute("colSpan", "12");
-        
-            formElement.appendChild(footerElement);
 
-            
+                doInclude(formElement, "./*[@name='" + includeName + "']", baseElement, readonly);
+
+            }
+        }
+
+        Element footerElement = createElementPanel(formElement.getOwnerDocument(), "exp-Expediente-Base-Footer-form");
+        footerElement.setAttribute("itemSpan", "2");
+        footerElement.setAttribute("colSpan", "12");
+
+        formElement.appendChild(footerElement);
+
     }
-    
-    
 
-    
-    
-    private static void doLeftRight(Element leftElement,Element rightElement,Element formElement) {
-        Element cloneLeftElement=XMLUtil.cloneElement(formElement, leftElement);
-        Element cloneRightElement=XMLUtil.cloneElement(formElement, rightElement);
-        
-        Element footerElement=(Element)XMLUtil.getNodeFromEvaluateXPath("./panel[@name='exp-Expediente-Base-Footer-form']",formElement);
-        
-        
-        List<Element> childLeftElements=XMLUtil.getClonedChildElements(cloneLeftElement);
-        List<Element> childRightElements=XMLUtil.getClonedChildElements(cloneRightElement);
-        
-        
-        int sumColSpam=0;
+
+
+    private static void doLeftRight(Element leftElement, Element rightElement, Element formElement) {
+        Element cloneLeftElement = XMLUtil.cloneElement(formElement, leftElement);
+        Element cloneRightElement = XMLUtil.cloneElement(formElement, rightElement);
+
+        Element footerElement = (Element) XMLUtil.getNodeFromEvaluateXPath("./panel[@name='exp-Expediente-Base-Footer-form']", formElement);
+
+        List<Element> childLeftElements = XMLUtil.getClonedChildElements(cloneLeftElement);
+        List<Element> childRightElements = XMLUtil.getClonedChildElements(cloneRightElement);
+
+        int sumColSpam = 0;
         {
-            int itemSpan=1;
+            int itemSpan = 1;
             if (footerElement.hasAttribute("itemSpan")) {
-                itemSpan=Integer.parseInt(footerElement.getAttribute("itemSpan"));
+                itemSpan = Integer.parseInt(footerElement.getAttribute("itemSpan"));
             }
-            
-            for(Element childElement:childLeftElements) {
-                sumColSpam=sumColSpam+getColSpam(childElement,itemSpan);
+
+            for (Element childElement : childLeftElements) {
+                sumColSpam = sumColSpam + getColSpam(childElement, itemSpan);
             }
-            for(Element childElement:childRightElements) {
-                sumColSpam=sumColSpam+getColSpam(childElement,itemSpan);
+            for (Element childElement : childRightElements) {
+                sumColSpam = sumColSpam + getColSpam(childElement, itemSpan);
             }
         }
-        
-        
-        int colOffset=12-sumColSpam;
-        
-        if (childRightElements.size()>0) {
-            childRightElements.get(0).setAttribute("colOffset", colOffset+"");
+
+        int colOffset = 12 - sumColSpam;
+
+        if (childRightElements.size() > 0) {
+            childRightElements.get(0).setAttribute("colOffset", colOffset + "");
         }
-        
-        for(Element childElement:childLeftElements) {
+
+        for (Element childElement : childLeftElements) {
             footerElement.appendChild(childElement);
         }
-        for(Element childElement:childRightElements) {
+        for (Element childElement : childRightElements) {
             footerElement.appendChild(childElement);
-        } 
-        
-        String xmlErrorMessages=getFileContent("view-error-messages.template");
-        Node errorMessages=XMLUtil.getNodeFromString(footerElement.getOwnerDocument(),xmlErrorMessages);
-        
-        
+        }
+
+        String xmlErrorMessages = getFileContent("view-error-messages.template");
+        Node errorMessages = XMLUtil.getNodeFromString(footerElement.getOwnerDocument(), xmlErrorMessages);
+
         Node primerHijo = footerElement.getFirstChild();
         if (primerHijo != null) {
             footerElement.insertBefore(errorMessages, primerHijo);
         } else {
             footerElement.appendChild(errorMessages);
-        }        
-        
+        }
+
     }
-    
-    
-
-   
-    
-
-    
-    
-
-    
-
-
-
-
 
     private static void doMergeAttributes(Element mainElementForIncludesAndExtends, Element baseElement) {
         for (int i = 0; i < baseElement.getAttributes().getLength(); i++) {
@@ -233,13 +205,8 @@ public class XMLPreprocesor {
         }
     }
 
-
-  
- 
-
     private static void doInclude(Element formElement, String xpathTarget, Element baseElement, boolean readOnly) {
         try {
-
 
             NodeList targetElementsToInclude = XMLUtil.getNodeListFromEvaluateXPath(xpathTarget, baseElement);
 
@@ -250,7 +217,7 @@ public class XMLPreprocesor {
                 throw new RuntimeException("Con xpathTarget='" + xpathTarget + "' deberia tener solo un elemento pero tiene" + targetElementsToInclude.getLength());
             }
 
-            Element newElementIncluded = (Element) XMLUtil.cloneElement(formElement, (Element)targetElementsToInclude.item(0));
+            Element newElementIncluded = (Element) XMLUtil.cloneElement(formElement, (Element) targetElementsToInclude.item(0));
             formElement.appendChild(newElementIncluded);
 
             if (readOnly == true) {
@@ -270,8 +237,8 @@ public class XMLPreprocesor {
         } catch (Exception ex) {
             throw new RuntimeException("xpathTarget=" + xpathTarget + " readOnly=" + readOnly, ex);
         }
-    }    
-    
+    }
+
     
     /*******************************************************************************************/
     /*******************************************************************************************/
@@ -284,70 +251,68 @@ public class XMLPreprocesor {
         List<Element> filter = new ArrayList<>();
 
         for (Element formElement : childs) {
-            if (formElement.hasAttribute("profile") && formElement.hasAttribute("state")) {
+            if (formElement.hasAttribute("state")) {
                 filter.add((Element) formElement);
             }
         }
 
         return filter;
 
-    }    
-    
-    private static int getColSpam(Element element,int defaultColSpam) {
+    }
+
+    private static int getColSpam(Element element, int defaultColSpam) {
         if (element.hasAttribute("colSpan")) {
             return Integer.parseInt(element.getAttribute("colSpan"));
         } else {
             return defaultColSpam;
         }
     }
+
     private static String getNombreExpediente(Document document) {
-        String nombreExpediente=null;
-        
-        List<Element> elements=XMLUtil.getChildsFilterByTagName(document.getDocumentElement(),"form");
-        
-        
+        String nombreExpediente = null;
+
+        List<Element> elements = XMLUtil.getChildsFilterByTagName(document.getDocumentElement(), "form");
+
         Pattern pattern = Pattern.compile("exp-([a-zA-Z0-9]+)-Base");
-        
-        for(Element element:elements) {
-             Matcher matcher = pattern.matcher(element.getAttribute("name"));
-             if (matcher.find()) {
-                 
-                if (nombreExpediente==null) {
-                    nombreExpediente=matcher.group(1);
+
+        for (Element element : elements) {
+            Matcher matcher = pattern.matcher(element.getAttribute("name"));
+            if (matcher.find()) {
+
+                if (nombreExpediente == null) {
+                    nombreExpediente = matcher.group(1);
                 } else {
-                    throw new RuntimeException("Existen al menos 2 nodos base:" +nombreExpediente + " y " +matcher.group(1) );
+                    throw new RuntimeException("Existen al menos 2 nodos base:" + nombreExpediente + " y " + matcher.group(1));
                 }
-             }
+            }
         }
 
         return nombreExpediente;
-        
+
     }
-    
-    private static Element createElementPanelInclude(Document document,String viewValue,String fromValue) {
+
+    private static Element createElementPanelInclude(Document document, String viewValue, String fromValue) {
         Element panelInclude = document.createElement("panel-include");
 
-        if (viewValue!=null) {
+        if (viewValue != null) {
             panelInclude.setAttribute("view", viewValue);
         }
-        
-        if (fromValue!=null) {
+
+        if (fromValue != null) {
             panelInclude.setAttribute("from", fromValue);
         }
-        
+
         return panelInclude;
     }
-    
-    private static Element createElementPanel(Document document,String name) {
+
+    private static Element createElementPanel(Document document, String name) {
         Element panel = document.createElement("panel");
 
         panel.setAttribute("name", name);
 
         return panel;
-    }    
-    
-    
-    
+    }
+
     private static Element getRootElement(Document document) {
         NodeList objectViewsList = document.getElementsByTagName(ROOT_TAG_NAME);
         if (objectViewsList.getLength() == 0) {
@@ -359,12 +324,11 @@ public class XMLPreprocesor {
             return null;
         }
         Element objectViewsElement = (Element) objectViewsNode;
-        
+
         return objectViewsElement;
     }
 
-
-    private static String getFileContent(String resourcePath)  {
+    private static String getFileContent(String resourcePath) {
         ClassLoader classLoader = XMLPreprocesor.class.getClassLoader();
         try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
             if (inputStream == null) {
@@ -377,5 +341,13 @@ public class XMLPreprocesor {
             throw new RuntimeException(ex);
         }
     }
-    
+
+    private static String getFormName(String nombreExpediente, String state, String profile) {
+        if ((profile == null) || (profile.trim().isEmpty())) {
+            return "exp-" + nombreExpediente + "-" + state + "-form";
+        } else {
+            return "exp-" + nombreExpediente + "-" + state + "-" + profile + "-form";
+        }
+    }
+
 }
