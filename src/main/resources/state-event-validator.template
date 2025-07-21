@@ -1,0 +1,24 @@
+package {{packageName}};
+
+import com.educaflow.apps.expedientes.common.StateEventValidator
+import com.educaflow.apps.expedientes.common.annotations.BeanValidationRulesForStateAndEvent
+
+
+import com.educaflow.common.validation.dsl.ifValueIn
+import com.educaflow.common.validation.dsl.rules
+import com.educaflow.common.validation.engine.BeanValidationRules
+import com.educaflow.common.validation.rules.*
+import java.time.LocalDate
+import com.educaflow.apps.expedientes.db.{{ code }} as model
+
+class StateEventValidator: StateEventValidator {
+{% for state in states %}{% if state.events|length > 0 %}{% for eventUpperCamelCase in state.eventsUpperCamelCase %}
+    @BeanValidationRulesForStateAndEvent
+    public fun getForState{{ state.nameUpperCamelCase }}InEvent{{eventUpperCamelCase}}(): BeanValidationRules {
+        return rules {
+
+        }
+    }
+{% endfor %}{% endif %}{% endfor %};
+
+}

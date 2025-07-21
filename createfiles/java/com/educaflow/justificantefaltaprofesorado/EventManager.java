@@ -23,21 +23,16 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
     }
 
     @Override
-    public Expediente triggerInitialEvent(TipoExpediente tipoExpediente, EventContext eventContext) {
-
-        JustificacionFaltaProfesorado justificacionFaltaProfesorado = new JustificacionFaltaProfesorado();
-        justificacionFaltaProfesorado.setTipoExpediente(tipoExpediente);
-        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+    public void triggerInitialEvent(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
 
-        return justificacionFaltaProfesorado;
     }
 
 
 
 
     @WhenEvent
-    public void triggerPresenta(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+    public void triggerDelete(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
         //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
@@ -45,7 +40,7 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @WhenEvent
-    public void triggerPresentarDocumentosFirmados(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+    public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
         //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
@@ -53,7 +48,7 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @WhenEvent
-    public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+    public void triggerBack(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
         //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
@@ -61,7 +56,23 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @WhenEvent
-    public void triggerBack(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+    public void triggerPresentarDocumentosFirmados(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+    }
+
+
+
+
+    @WhenEvent
+    public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+    }
+
+
+
+
+    @WhenEvent
+    public void triggerExit(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
         //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
@@ -70,13 +81,11 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 
-    @WhenEvent
-    public void triggerDelete(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
 
-    }
 
-    @WhenEvent
-    public void triggerExit(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) {
+
+    @OnEnterState
+    public void onEnterEntradaDatos(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
     }
 
@@ -84,40 +93,32 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @OnEnterState
-    public void onEnterEntradaDatos(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
+    public void onEnterFirmaPorUsuario(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterFirmaPorUsuario(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
+    public void onEnterRevisionYFirmaPorResponsable(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterRevisionYFirmaPorResponsable(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
+    public void onEnterAceptado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterAceptad(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
-    }
+    public void onEnterRechazado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
-
-
-
-    @OnEnterState
-    public void onEnterRechazado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext eventContext) {
-        //justificacionFaltaProfesorado.setCurrentActionProfiles(JustificacionFaltaProfesorado.Profile.);
     }
 
 
@@ -129,5 +130,5 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 
-
+//hola mundo
 }

@@ -7,6 +7,7 @@ package com.educaflow.common.buildtools.createfiles;
 import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
 import com.educaflow.common.buildtools.files.domainmodel.DomainModelFile;
 import com.educaflow.common.buildtools.files.eventmanagerfile.EventManagerFile;
+import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFileFinder;
 import com.educaflow.common.buildtools.files.views.ViewsFile;
@@ -48,12 +49,21 @@ public class Main {
             if (message!=null) {
                 messages.append(message);
             }
+                    
+            Path pathStateEventValidatorFile=getPathStateEventValidatorFile(tipoExpedienteFile);
+            StateEventValidatorFile stateEventValidatorFile=new StateEventValidatorFile(pathStateEventValidatorFile, tipoExpedienteFile);
+            stateEventValidatorFile.createStateEventValidatorFileIfNotExists();
+            message=stateEventValidatorFile.check();
+            if (message!=null) {
+                messages.append(message);
+            }            
+            
             
         }
         
 
         if (messages.length()>0) {
-            throw new RuntimeException("Alguno de las clases no se pudo precompilar:\n"+messages.toString());
+            throw new RuntimeException("Alguna de las clases no se pudo precompilar:\n"+messages.toString());
         }
 
     }
@@ -77,5 +87,9 @@ public class Main {
     private static Path getPathEventManagerFile(TipoExpedienteFile tipoExpedienteFile) {
         return replaceFileName(tipoExpedienteFile.getPath(),"EventManager.java");
     }
+    
+    private static Path getPathStateEventValidatorFile(TipoExpedienteFile tipoExpedienteFile) {
+        return replaceFileName(tipoExpedienteFile.getPath(),"StateEventValidator.kt");
+    }    
 
 }

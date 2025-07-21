@@ -12,52 +12,31 @@ import com.google.inject.Inject;
 
 
 
-public class EventManager extends com.educaflow.apps.expedientes.common.EventManager<{{ code }}, {{ code }}.Estado, {{ code }}.Evento,{{ code }}.Profile> {
+public class EventManager extends com.educaflow.apps.expedientes.common.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
 
     private final {{ code }}Repository repository;
 
     @Inject
     public EventManager({{ code }}Repository repository) {
-        super({{ code }}.class, {{ code }}.Estado.class, {{ code }}.Evento.class,{{ code }}.Profile.class);
+        super({{ code }}.class, {{ code }}.State.class, {{ code }}.Event.class,{{ code }}.Profile.class);
         this.repository = repository;
     }
 
     @Override
-    public Expediente triggerInitialEvent(TipoExpediente tipoExpediente, EventContext eventContext) {
+    public void triggerInitialEvent({{ code }} {{ lowerCode }}, EventContext<{{ code }}.Profile> eventContext) {
 
-        {{ code }} {{ lowerCode }} = new {{ code }}();
-        {{ lowerCode }}.setTipoExpediente(tipoExpediente);
-        //{{ lowerCode }}.updateState({{ code }}.Estado.);
-
-
-        return {{ lowerCode }};
-    }
-
-
-{% for event in caseEvents %}
-
-{% include "event-manager-trigger-method.template" %}
-
-{% endfor %}
-
-
-
-    @WhenEvent
-    public void triggerDelete({{ code }} {{ lowerCode }}, {{ code }} original, EventContext eventContext) {
-
-    }
-
-    @WhenEvent
-    public void triggerExit({{ code }} {{ lowerCode }}, {{ code }} original, EventContext eventContext) {
 
     }
 
 
-{% for state in caseStates %}
+{% for event in caseEvents %}{% include "event-manager-trigger-method.template" %}{% endfor %}
 
-{% include "event-manager-onenter-method.template" %}
 
-{% endfor %}
+/***************************************************************************************/
+/*************************************** Estados ***************************************/
+/***************************************************************************************/
+
+{% for state in caseStates %}{% include "event-manager-onenter-method.template" %}{% endfor %}
 
 
 

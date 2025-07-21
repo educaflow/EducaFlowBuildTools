@@ -4,11 +4,14 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
+import com.educaflow.common.buildtools.common.TextUtil;
+import com.google.common.base.CaseFormat;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.ArrayList;
 import java.util.List;
 
 @XmlRootElement(name = "state")
@@ -30,6 +33,7 @@ public class State {
     @XmlAttribute
     @XmlJavaTypeAdapter(CommaSeparatedAdapter.class)
     private List<String> events;
+    
 
     // getters y setters
     public String getName() {
@@ -67,7 +71,15 @@ public class State {
     public List<String> getEvents() {
         return events;
     }
+    
+    public List<String> getEventsUpperCamelCase() {
+        return TextUtil.getUpperCamelCase(events);
+    }    
 
+    public String getNameUpperCamelCase() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name + "");
+    }
+    
     public void setEvents(List<String> events) {
         this.events = events;
     }

@@ -4,65 +4,68 @@ import com.axelor.inject.Beans;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
-import com.educaflow.apps.expedientes.db.ComisionServicio;
+import com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.apps.expedientes.db.TipoExpediente;
 import com.educaflow.apps.expedientes.db.Expediente;
-import com.educaflow.apps.expedientes.db.repo.ComisionServicioRepository;
+import com.educaflow.apps.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 import com.google.inject.Inject;
 
 
 
-public class EventManager extends com.educaflow.apps.expedientes.common.EventManager<ComisionServicio, ComisionServicio.Estado, ComisionServicio.Evento,ComisionServicio.Profile> {
+public class EventManager extends com.educaflow.apps.expedientes.common.EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.Estado, JustificacionFaltaProfesorado.Evento,JustificacionFaltaProfesorado.Profile> {
 
-    private final ComisionServicioRepository repository;
+    private final JustificacionFaltaProfesoradoRepository repository;
 
     @Inject
-    public EventManager(ComisionServicioRepository repository) {
-        super(ComisionServicio.class, ComisionServicio.Estado.class, ComisionServicio.Evento.class,ComisionServicio.Profile.class);
+    public EventManager(JustificacionFaltaProfesoradoRepository repository) {
+        super(JustificacionFaltaProfesorado.class, JustificacionFaltaProfesorado.Estado.class, JustificacionFaltaProfesorado.Evento.class,JustificacionFaltaProfesorado.Profile.class);
         this.repository = repository;
     }
 
     @Override
-    public Expediente triggerInitialEvent(TipoExpediente tipoExpediente, EventContext eventContext) {
-
-        ComisionServicio comisionServicio = new ComisionServicio();
-        comisionServicio.setTipoExpediente(tipoExpediente);
-        //comisionServicio.updateState(ComisionServicio.Estado.);
+    public void triggerInitialEvent(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
 
-        return comisionServicio;
     }
 
 
 
 
     @WhenEvent
-    public void triggerPresentar(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
-        //comisionServicio.updateState(ComisionServicio.Estado.);
+    public void triggerDelete(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
 
 
 
     @WhenEvent
-    public void triggerPresentarDocumentosFirmado(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
-        //comisionServicio.updateState(ComisionServicio.Estado.);
+    public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
 
 
 
     @WhenEvent
-    public void triggerResolver(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
-        //comisionServicio.updateState(ComisionServicio.Estado.);
+    public void triggerBack(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
 
 
 
     @WhenEvent
-    public void triggerBack(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
-        //comisionServicio.updateState(ComisionServicio.Estado.);
+    public void triggerPresentarDocumentosFirmados(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
+    }
+
+
+
+
+    @WhenEvent
+    public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+        //justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.Estado.);
     }
 
 
@@ -70,13 +73,11 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 
-    @WhenEvent
-    public void triggerDelete(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
 
-    }
 
-    @WhenEvent
-    public void triggerExit(ComisionServicio comisionServicio, ComisionServicio original, EventContext eventContext) {
+
+    @OnEnterState
+    public void onEnterEntradaDatos(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
     }
 
@@ -84,40 +85,32 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
     @OnEnterState
-    public void onEnterEntradaDatos(ComisionServicio comisionServicio, EventContext eventContext) {
-        //comisionServicio.setCurrentActionProfiles(ComisionServicio.Profile.);
+    public void onEnterFirmaPorUsuario(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterFirmaPorUsuario(ComisionServicio comisionServicio, EventContext eventContext) {
-        //comisionServicio.setCurrentActionProfiles(ComisionServicio.Profile.);
+    public void onEnterRevisionYFirmaPorResponsable(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterRevisionYFirmaPorResponsabl(ComisionServicio comisionServicio, EventContext eventContext) {
-        //comisionServicio.setCurrentActionProfiles(ComisionServicio.Profile.);
+    public void onEnterAceptado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
+
     }
 
 
 
 
     @OnEnterState
-    public void onEnterAceptado(ComisionServicio comisionServicio, EventContext eventContext) {
-        //comisionServicio.setCurrentActionProfiles(ComisionServicio.Profile.);
-    }
+    public void onEnterRechazado(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<JustificacionFaltaProfesorado.Profile> eventContext) {
 
-
-
-
-    @OnEnterState
-    public void onEnterRechazado(ComisionServicio comisionServicio, EventContext eventContext) {
-        //comisionServicio.setCurrentActionProfiles(ComisionServicio.Profile.);
     }
 
 
@@ -129,5 +122,5 @@ public class EventManager extends com.educaflow.apps.expedientes.common.EventMan
 
 
 
-
+//hola mundo
 }

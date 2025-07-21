@@ -1,4 +1,4 @@
     @WhenEvent
     public void trigger{{event}}({{ code }} {{ lowerCode }}, {{ code }} original, EventContext<{{ code }}.Profile> eventContext) {
-        //{{ lowerCode }}.updateState({{ code }}.Estado.);
+        //{{ lowerCode }}.updateState({{ code }}.State.);
     }

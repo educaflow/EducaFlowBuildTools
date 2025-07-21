@@ -14,12 +14,13 @@
 {{newLine}}
 
 
-{% for profile in profiles %}
-    <!-- ****************************************{{ asterisks(profile) }}****************************************  -->
-    <!-- *************************************** {{ profile }} ***************************************  -->
-    <!-- ****************************************{{ asterisks(profile) }}****************************************  -->
+
 {% for state in states %}
-    <form profile="{{ profile }}" state="{{state}}">
+    <!-- ****************************************{{ asterisks(state.name) }}****************************************  -->
+    <!-- *************************************** {{ state.name }} ***************************************  -->
+    <!-- ****************************************{{ asterisks(state.name) }}****************************************  -->
+{% if state.profile is not empty %}    
+    <form state="{{state.name}}" profile="{{state.profile}}">
         <include-panels>
 
         </include-panels>
@@ -30,14 +31,20 @@
             <button name="" colSpan="2" title="" onClick="action-event-expediente" />
         </right>
     </form>
-{% endfor %}
-
-{% if not loop.last %}
-{{newLine}}
-{{newLine}}
-{{newLine}}
-{{newLine}}
 {% endif %}
+    <form state="{{state.name}}" >
+        <include-panels>
+
+        </include-panels>
+        <left>
+            
+        </left>
+        <right>
+            <button name="EXIT" colSpan="2"  title="Salir" onClick="action-event-expediente"/>
+        </right>
+    </form>
+
+
 {% endfor %}
 
 </object-views>

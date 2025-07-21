@@ -88,9 +88,10 @@ public class TipoExpedienteFile {
         List<String> profiles=new ArrayList<>();
         
         for(State state:states) {
-            
-            if (profiles.contains(state.getProfile())==false) {
-                profiles.add(state.getProfile());
+            if ((state.getProfile()!=null) && (state.getProfile().trim().isEmpty()==false)) {
+                if (profiles.contains(state.getProfile())==false) {
+                    profiles.add(state.getProfile());
+                }
             }
         }
         

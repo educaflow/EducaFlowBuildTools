@@ -1,7 +1,7 @@
     //Estados del expediente
     public enum State {
-{% for state in states %}{{tab}}{{tab}}{{ state.name }}(Profile.{{state.profile}},{{state.initial}},{{state.closed}}{% if state.events|length > 0 %}{% for event in state.events %},Event.{{event}}{% endfor %}{% endif %}){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
-
+{% for state in states %}{{tab}}{{tab}}{{ state.name }}({% if state.profile is not empty %}Profile.{{state.profile}}{% else %}null{% endif %},{{state.initial}},{{state.closed}}{% if state.events|length > 0 %}{% for event in state.events %},Event.{{event}}{% endfor %}{% endif %}){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
+                                                        
     private final Profile profile;
     private final java.util.List<Event> events;
     private final boolean initial;
