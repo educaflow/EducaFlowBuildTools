@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -18,6 +19,7 @@ import java.util.Set;
 public class Main {
 
     private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence");
+    private static final Set<String> tablasIncluidas = new HashSet<>(); 
     
     public static void main(String[] args) {
         Connection conn = null;
@@ -42,6 +44,12 @@ public class Main {
                 dataBasePassword = prop.getProperty("db.default.password");
             }
             
+            
+            if (args.length>0) {
+                for(int i=1;i<args.length;i++) {
+                    tablasIncluidas.add(args[i]);
+                }
+            }
             
             
             Class.forName(dataBaseDriver);
@@ -80,6 +88,11 @@ public class Main {
                     stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
                 }
             }
+            
+            for(String tableName:tablasIncluidas) {
+                stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
+            }
+            
 
             // --- PASO 3: Reactivar todas las restricciones de clave foránea ---
             System.out.println("Reactivando restricciones ...");
