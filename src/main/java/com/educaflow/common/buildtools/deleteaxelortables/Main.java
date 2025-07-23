@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.educaflow.common.buildtools.deletemeta;
+package com.educaflow.common.buildtools.deleteaxelortables;
 
 import java.io.FileReader;
 import java.sql.Connection;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class Main {
 
-    private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence");
+    private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence","auth_user");
     private static final Set<String> tablasIncluidas = new HashSet<>(); 
     
     public static void main(String[] args) {
@@ -29,7 +29,7 @@ public class Main {
         String dataBaseURL;
         String dataBaseUser;
         String dataBasePassword ;
-        String SchemaName = "public";
+        String schemaName = "public";
 
         try {
             Properties prop = new Properties();
@@ -62,7 +62,7 @@ public class Main {
 
             System.out.println("Desactivando restricciones...");
             List<String> allTableNames = new ArrayList<>();
-            ResultSet rsTableNames = stmt.executeQuery("SELECT tablename FROM pg_tables WHERE schemaname = '" + SchemaName + "'");
+            ResultSet rsTableNames = stmt.executeQuery("SELECT tablename FROM pg_tables WHERE schemaname = '" + schemaName + "'");
             while (rsTableNames.next()) {
                 allTableNames.add(rsTableNames.getString("tablename"));
             }
@@ -73,22 +73,9 @@ public class Main {
             }
 
             // --- PASO 2: Truncar las tablas que empiezan por 'meta_' ---
-            System.out.println("Truncando tablas que empiezan por 'meta_'...");
-            List<String> metaTables = new ArrayList<>();
-            ResultSet rsTables = stmt.executeQuery("SELECT tablename FROM pg_tables WHERE schemaname = '" + SchemaName + "' AND tablename LIKE 'meta\\_%'"
-            );
-            while (rsTables.next()) {
-                metaTables.add(rsTables.getString("tablename"));
-            }
-            rsTables.close();
+            truncateTablesByLike(stmt,schemaName,"meta\\_%",tablasExcluidas);
+            truncateTablesByLike(stmt,schemaName,"auth\\_%",tablasExcluidas);
 
-            for (String tableName : metaTables) {
-                
-                if (!tablasExcluidas.contains(tableName)) {
-                    stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
-                }
-            }
-            
             for(String tableName:tablasIncluidas) {
                 stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
             }
@@ -130,4 +117,29 @@ public class Main {
 
         }
     }
+    
+    
+    private static void truncateTablesByLike(Statement stmt,String schemaName, String like,Set<String> tablasExcluidas) {
+        try {
+            System.out.println("Borrando contenido de las tablas que empiezan por '" + like+ "' ....." );
+            List<String> metaTables = new ArrayList<>();
+            ResultSet rsTables = stmt.executeQuery("SELECT tablename FROM pg_tables WHERE schemaname = '" + schemaName + "' AND tablename LIKE '" + like +"'"
+            );
+            while (rsTables.next()) {
+                metaTables.add(rsTables.getString("tablename"));
+            }
+            rsTables.close();
+
+            for (String tableName : metaTables) {
+
+                if (!tablasExcluidas.contains(tableName)) {
+                    System.out.println("Borrando contenido de la tabla:"+tableName);
+                    stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
 }
