@@ -77,7 +77,14 @@ public class Main {
             truncateTablesByLike(stmt,schemaName,"auth\\_%",tablasExcluidas);
 
             for(String tableName:tablasIncluidas) {
-                stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
+                
+                try {
+                    stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
+                } catch (Exception ex) {
+                    System.out.println(ex.getLocalizedMessage());
+                }
+                
+               
             }
             
 
@@ -131,7 +138,6 @@ public class Main {
             rsTables.close();
 
             for (String tableName : metaTables) {
-
                 if (!tablasExcluidas.contains(tableName)) {
                     System.out.println("Borrando contenido de la tabla:"+tableName);
                     stmt.executeUpdate("TRUNCATE TABLE " + tableName + " CASCADE;");
