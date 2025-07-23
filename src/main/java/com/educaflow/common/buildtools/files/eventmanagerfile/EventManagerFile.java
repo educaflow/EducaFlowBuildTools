@@ -6,7 +6,7 @@ package com.educaflow.common.buildtools.files.eventmanagerfile;
 
 import com.educaflow.common.buildtools.common.SpoonUtil;
 import com.educaflow.common.buildtools.common.TemplateUtil;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.google.common.base.CaseFormat;
 import com.educaflow.common.buildtools.common.TextUtil;
 import java.nio.file.Files;
@@ -26,10 +26,10 @@ import spoon.reflect.declaration.CtMethod;
  */
 public class EventManagerFile {
 
-    private final TipoExpedienteFile tipoExpedienteFile;
+    private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path path;
 
-    public EventManagerFile(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    public EventManagerFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         this.path = path;
         this.tipoExpedienteFile = tipoExpedienteFile;
 
@@ -141,7 +141,7 @@ public class EventManagerFile {
 
     }
 
-    private void createEventManagerFile(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    private void createEventManagerFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         Map<String, Object> context = new HashMap<>();
         context.put("states", tipoExpedienteFile.getStates());
         context.put("caseStates", TextUtil.getUpperCamelCase(tipoExpedienteFile.getStates()));

@@ -5,7 +5,7 @@
 package com.educaflow.common.buildtools.files.views;
 
 import com.educaflow.common.buildtools.common.TemplateUtil;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -17,10 +17,10 @@ import java.util.Map;
  */
 public class ViewsFile {
 
-    private final TipoExpedienteFile tipoExpedienteFile;
+    private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path path;
 
-    public ViewsFile(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    public ViewsFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         this.path = path;
         this.tipoExpedienteFile = tipoExpedienteFile;
 
@@ -32,7 +32,7 @@ public class ViewsFile {
         }
     }
 
-    private void createDomainModel(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    private void createDomainModel(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         Map<String, Object> context = new HashMap<>();
         context.put("states", tipoExpedienteFile.getStates());
         context.put("profiles", tipoExpedienteFile.getProfiles());

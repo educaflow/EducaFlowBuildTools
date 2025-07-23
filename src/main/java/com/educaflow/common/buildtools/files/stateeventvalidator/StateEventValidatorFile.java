@@ -7,7 +7,7 @@ package com.educaflow.common.buildtools.files.stateeventvalidator;
 import com.educaflow.common.buildtools.common.SpoonUtil;
 import com.educaflow.common.buildtools.common.TemplateUtil;
 import com.educaflow.common.buildtools.common.TextUtil;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.google.common.base.CaseFormat;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,10 +26,10 @@ import spoon.reflect.declaration.CtMethod;
  */
 public class StateEventValidatorFile {
     
-    private final TipoExpedienteFile tipoExpedienteFile;
+    private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path path;
 
-    public StateEventValidatorFile(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    public StateEventValidatorFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         this.path = path;
         this.tipoExpedienteFile = tipoExpedienteFile;
 
@@ -116,7 +116,7 @@ public class StateEventValidatorFile {
 
     }
 
-    private void createEventManagerFile(Path path, TipoExpedienteFile tipoExpedienteFile) {
+    private void createEventManagerFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         Map<String, Object> context = new HashMap<>();
         context.put("states", tipoExpedienteFile.getStates());
         context.put("caseStates", TextUtil.getUpperCamelCase(tipoExpedienteFile.getStates()));

@@ -8,8 +8,8 @@ import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
 import com.educaflow.common.buildtools.files.domainmodel.DomainModelFile;
 import com.educaflow.common.buildtools.files.eventmanagerfile.EventManagerFile;
 import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFileFinder;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import com.educaflow.common.buildtools.files.views.ViewsFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,11 +25,11 @@ public class Main {
     public static void main(String[] args) {
         Path rootPathSourceFiles = Paths.get(args[0]);
         
-        List<TipoExpedienteFile> tipoExpedienteFiles=TipoExpedienteFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+        List<TipoExpedienteInstanceFile> tipoExpedienteFiles=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
         
         StringBuilder messages=new StringBuilder();
         
-        for (TipoExpedienteFile tipoExpedienteFile : tipoExpedienteFiles) {
+        for (TipoExpedienteInstanceFile tipoExpedienteFile : tipoExpedienteFiles) {
 
             Path pathDomainModelFile=getPathDomainModelFile(tipoExpedienteFile);
             DomainModelFile domainModelFile=new DomainModelFile(pathDomainModelFile,tipoExpedienteFile);
@@ -69,27 +69,28 @@ public class Main {
     }
     
         
-    private static Path getPathDomainModelFile(TipoExpedienteFile tipoExpedienteFile) {
-        return replaceFileName(tipoExpedienteFile.getPath(),tipoExpedienteFile.getCode()+".xml");
+    private static Path getPathDomainModelFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
+        return replaceFileName(tipoExpedienteFile.getPath(),"domains.xml");
     } 
     
-    private static Path getPathViewsFile(TipoExpedienteFile tipoExpedienteFile) {
+    private static Path getPathViewsFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
         return replaceFileName(tipoExpedienteFile.getPath(),"views.xml");
     }  
+
+    private static Path getPathEventManagerFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
+        return replaceFileName(tipoExpedienteFile.getPath(),"EventManager.java");
+    }
+    
+    private static Path getPathStateEventValidatorFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
+        return replaceFileName(tipoExpedienteFile.getPath(),"StateEventValidator.kt");
+    } 
+    
     
     private static Path replaceFileName(Path path,String newFileName) {
         Path parentDirectory = path.getParent();
         Path newPath = parentDirectory.resolve(newFileName);
         
         return newPath;
-    }
-
-    private static Path getPathEventManagerFile(TipoExpedienteFile tipoExpedienteFile) {
-        return replaceFileName(tipoExpedienteFile.getPath(),"EventManager.java");
-    }
-    
-    private static Path getPathStateEventValidatorFile(TipoExpedienteFile tipoExpedienteFile) {
-        return replaceFileName(tipoExpedienteFile.getPath(),"StateEventValidator.kt");
     }    
 
 }

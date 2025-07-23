@@ -29,7 +29,7 @@ public class Main {
         }
 
         Path pathToSearch = Paths.get(args[0]);
-        Path targetBaseDir = Paths.get(args[1]); // Renombrado para mayor claridad
+        Path targetBaseDir = Paths.get(args[1]); 
 
         String targetRoot = "object-views";
 

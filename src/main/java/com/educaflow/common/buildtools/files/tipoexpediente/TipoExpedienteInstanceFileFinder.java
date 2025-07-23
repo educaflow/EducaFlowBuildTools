@@ -18,19 +18,19 @@ import java.util.stream.Stream;
  *
  * @author logongas
  */
-public class TipoExpedienteFileFinder {
+public class TipoExpedienteInstanceFileFinder {
     
-    static final private String TIPO_EXPEDIENTE_XML="TipoExpediente.xml";
+    static final private String TIPO_EXPEDIENTE_XML="TipoExpedienteInstance.xml";
         
         
-    public static List<TipoExpedienteFile> findTiposExpedienteFile(Path rootPath) {
-        List<TipoExpedienteFile> tiposExpedientes=new ArrayList<>();
+    public static List<TipoExpedienteInstanceFile> findTiposExpedienteFile(Path rootPath) {
+        List<TipoExpedienteInstanceFile> tiposExpedientes=new ArrayList<>();
         
         
         List<Path> expedienteXmlFiles = findTiposExpedienteXmlFiles(rootPath);
         for (Path expedienteXmlFile : expedienteXmlFiles) {
             try {
-                TipoExpedienteFile tipoExpediente=parseTipoExpedienteXml(expedienteXmlFile);
+                TipoExpedienteInstanceFile tipoExpediente=parseTipoExpedienteXml(expedienteXmlFile);
                 tiposExpedientes.add(tipoExpediente);
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al obtener el tipo de expediente:"+expedienteXmlFile,ex);
@@ -43,14 +43,14 @@ public class TipoExpedienteFileFinder {
     
     
 
-    public static TipoExpedienteFile parseTipoExpedienteXml(Path expedienteXmlFile) {
+    public static TipoExpedienteInstanceFile parseTipoExpedienteXml(Path expedienteXmlFile) {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(TipoExpedienteFile.class, State.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(TipoExpedienteInstanceFile.class, State.class);
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             File xmlFile = expedienteXmlFile.toFile();
-            TipoExpedienteFile tipoExpediente=(TipoExpedienteFile) unmarshaller.unmarshal(xmlFile);
+            TipoExpedienteInstanceFile tipoExpediente=(TipoExpedienteInstanceFile) unmarshaller.unmarshal(xmlFile);
             tipoExpediente.setPath(expedienteXmlFile);
             
             checkOnlyOneInitialState(tipoExpediente);
@@ -80,7 +80,7 @@ public class TipoExpedienteFileFinder {
         }
     }    
 
-    private static void checkOnlyOneInitialState(TipoExpedienteFile tipoExpediente) {
+    private static void checkOnlyOneInitialState(TipoExpedienteInstanceFile tipoExpediente) {
         List<String> initialStates=new ArrayList<>();
         
         for(State state:tipoExpediente.getStates()) {
@@ -97,5 +97,5 @@ public class TipoExpedienteFileFinder {
         }
         
     }
-    
+      
 }

@@ -5,7 +5,7 @@
 package com.educaflow.common.buildtools.files.domainclass;
 
 import com.educaflow.common.buildtools.common.TemplateUtil;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,10 +20,10 @@ import java.util.Map;
  */
 public class DomainClassFile {
 
-    private final TipoExpedienteFile tipoExpedienteFile;
+    private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path pathDomainClass;
 
-    public DomainClassFile(Path pathDomainClass, TipoExpedienteFile tipoExpedienteFile) {
+    public DomainClassFile(Path pathDomainClass, TipoExpedienteInstanceFile tipoExpedienteFile) {
         this.pathDomainClass = pathDomainClass;
         this.tipoExpedienteFile = tipoExpedienteFile;
     }
@@ -58,7 +58,7 @@ public class DomainClassFile {
 
     }
 
-    private String getExtraCodeToDomainClass(TipoExpedienteFile tipoExpedienteFile) {
+    private String getExtraCodeToDomainClass(TipoExpedienteInstanceFile tipoExpedienteFile) {
 
         Map<String, Object> context = new HashMap<>();
         context.put("states", tipoExpedienteFile.getStates());

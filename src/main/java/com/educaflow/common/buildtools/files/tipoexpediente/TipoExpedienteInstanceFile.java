@@ -17,7 +17,7 @@ import java.util.List;
 
 @XmlRootElement(name = "TipoExpediente")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class TipoExpedienteFile {
+public class TipoExpedienteInstanceFile {
 
     @XmlElement(name = "name")
     private String name;

@@ -4,10 +4,10 @@
  */
 package com.educaflow.common.buildtools.richdomainclass;
 
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.common.XMLUtil;
 import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFileFinder;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -28,20 +28,28 @@ public class Main {
         Path rootPathSourceFiles = Paths.get(args[0]);
         Path rootPathSrcGenJava = Paths.get(args[1]);
         
-        List<TipoExpedienteFile> tiposExpedientes=TipoExpedienteFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+        System.out.println("Iniciando tarea de enriquecer las clases de dominio....");
+        System.out.println("rootPathSourceFiles="+rootPathSourceFiles);
+        System.out.println("rootPathSrcGenJava="+rootPathSrcGenJava);
         
-        for (TipoExpedienteFile tipoExpediente : tiposExpedientes) {
-
+        
+        
+        List<TipoExpedienteInstanceFile> tiposExpedientes=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+        
+        for (TipoExpedienteInstanceFile tipoExpediente : tiposExpedientes) {
+            System.out.println("Encontrado Tipo de expediente instancia:"+tipoExpediente.getName()+ " en " + tipoExpediente.getPath());
             
-            Path entityXmlFileName=getEntityXmlFileName(tipoExpediente.getPath(),tipoExpediente.getCode());
+            Path entityXmlFileName=getEntityXmlFileName(tipoExpediente.getPath(),"domains.xml");
             String packageName=getPackageName(entityXmlFileName,tipoExpediente.getCode());
             Path pathDomainClass=getPathDomainClass(rootPathSrcGenJava,packageName,tipoExpediente.getCode());
-            
+            System.out.println("Encontrado clase de domino es:"+pathDomainClass);
             DomainClassFile domainClassFile=new DomainClassFile(pathDomainClass,tipoExpediente);
             
             domainClassFile.addExtraCodeToDomainClass();
             
         }
+        
+        System.out.println("Finalizada tarea de enriquecer las clases de dominio");
 
     }
 
@@ -70,7 +78,7 @@ public class Main {
             throw new RuntimeException("No hay directorio padre:"+expedienteXmlFile);
         }
 
-        Path entityXmlFileName = directory.resolve(tipoExpedienteName+".xml");
+        Path entityXmlFileName = directory.resolve(tipoExpedienteName);
         
         return entityXmlFileName;
     }

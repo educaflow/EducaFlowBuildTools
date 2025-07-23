@@ -5,7 +5,7 @@
 package com.educaflow.common.buildtools.files.domainmodel;
 
 import com.educaflow.common.buildtools.common.TemplateUtil;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -18,10 +18,10 @@ import java.util.Map;
  */
 public class DomainModelFile {
     
-    private final TipoExpedienteFile tipoExpedienteFile;
+    private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path path;
     
-    public DomainModelFile(Path path,TipoExpedienteFile tipoExpedienteFile) {
+    public DomainModelFile(Path path,TipoExpedienteInstanceFile tipoExpedienteFile) {
         this.path = path;
         this.tipoExpedienteFile = tipoExpedienteFile;
         
