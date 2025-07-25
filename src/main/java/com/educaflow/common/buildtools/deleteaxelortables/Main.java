@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class Main {
 
-    private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence","auth_user","auth_group");
+    private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence","auth_user","auth_group","meta_filter");
     private static final Set<String> tablasIncluidas = new HashSet<>(); 
     
     public static void main(String[] args) {
