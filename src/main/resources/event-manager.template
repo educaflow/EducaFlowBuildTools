@@ -6,22 +6,24 @@ import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
 import com.educaflow.apps.expedientes.db.{{ code }};
 import com.educaflow.apps.expedientes.db.repo.{{ code }}Repository;
+import com.educaflow.common.validation.messages.BusinessException;
+
 import com.google.inject.Inject;
 
 
 
-public class EventManager extends com.educaflow.apps.expedientes.common.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
+public class EventManagerImpl extends com.educaflow.apps.expedientes.common.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
 
     private final {{ code }}Repository repository;
 
     @Inject
-    public EventManager({{ code }}Repository repository) {
+    public EventManagerImpl({{ code }}Repository repository) {
         super({{ code }}.class, {{ code }}.State.class, {{ code }}.Event.class,{{ code }}.Profile.class);
         this.repository = repository;
     }
 
     @Override
-    public void triggerInitialEvent({{ code }} {{ lowerCode }}, EventContext<{{ code }}.Profile> eventContext) {
+    public void triggerInitialEvent({{ code }} {{ lowerCode }}, EventContext<{{ code }}.Profile> eventContext) throws BusinessException {
 
 
     }

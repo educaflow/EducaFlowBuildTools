@@ -12,6 +12,7 @@ import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtParameter;
+import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.filter.TypeFilter;
 
 /**
@@ -57,11 +58,17 @@ public class SpoonUtil {
             }
 
             if (fqcnReturnType != null) {
-                String returnTypeName = method.getType().getQualifiedName();
-                if (fqcnReturnType.equals(returnTypeName)) {
-                    meetsReturnTypeCriteria = true;
-                } else {
+                CtTypeReference type=method.getType();
+                
+                if (type==null ) {
                     meetsReturnTypeCriteria = false;
+                } else {
+                    String returnTypeName = type.getQualifiedName();
+                    if (fqcnReturnType.equals(returnTypeName)) {
+                        meetsReturnTypeCriteria = true;
+                    } else {
+                        meetsReturnTypeCriteria = false;
+                    }
                 }
             } else {
                 meetsReturnTypeCriteria = true;

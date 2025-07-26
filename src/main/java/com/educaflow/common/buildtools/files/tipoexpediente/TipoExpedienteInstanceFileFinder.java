@@ -24,21 +24,21 @@ public class TipoExpedienteInstanceFileFinder {
         
         
     public static List<TipoExpedienteInstanceFile> findTiposExpedienteFile(Path rootPath) {
-        List<TipoExpedienteInstanceFile> tiposExpedientes=new ArrayList<>();
+        List<TipoExpedienteInstanceFile> tipoExpedienteInstanceFiles=new ArrayList<>();
         
         
         List<Path> expedienteXmlFiles = findTiposExpedienteXmlFiles(rootPath);
         for (Path expedienteXmlFile : expedienteXmlFiles) {
             try {
-                TipoExpedienteInstanceFile tipoExpediente=parseTipoExpedienteXml(expedienteXmlFile);
-                tiposExpedientes.add(tipoExpediente);
+                TipoExpedienteInstanceFile tipoExpedienteInstanceFile=parseTipoExpedienteXml(expedienteXmlFile);
+                tipoExpedienteInstanceFiles.add(tipoExpedienteInstanceFile);
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al obtener el tipo de expediente:"+expedienteXmlFile,ex);
             }
 
         }
         
-        return tiposExpedientes;
+        return tipoExpedienteInstanceFiles;
     }
     
     

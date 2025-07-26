@@ -34,16 +34,16 @@ public class Main {
         
         
         
-        List<TipoExpedienteInstanceFile> tiposExpedientes=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+        List<TipoExpedienteInstanceFile> tipoExpedienteInstanceFiles=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
         
-        for (TipoExpedienteInstanceFile tipoExpediente : tiposExpedientes) {
-            System.out.println("Encontrado Tipo de expediente instancia:"+tipoExpediente.getName()+ " en " + tipoExpediente.getPath());
+        for (TipoExpedienteInstanceFile tipoExpedienteInstanceFile : tipoExpedienteInstanceFiles) {
+            System.out.println("Encontrado Tipo de expediente instancia:"+tipoExpedienteInstanceFile.getName()+ " en " + tipoExpedienteInstanceFile.getPath());
             
-            Path entityXmlFileName=getEntityXmlFileName(tipoExpediente.getPath(),"domains.xml");
-            String packageName=getPackageName(entityXmlFileName,tipoExpediente.getCode());
-            Path pathDomainClass=getPathDomainClass(rootPathSrcGenJava,packageName,tipoExpediente.getCode());
+            Path entityXmlFileName=getEntityXmlFileName(tipoExpedienteInstanceFile.getPath(),"domains.xml");
+            String packageName=getPackageName(entityXmlFileName,tipoExpedienteInstanceFile.getCode());
+            Path pathDomainClass=getPathDomainClass(rootPathSrcGenJava,packageName,tipoExpedienteInstanceFile.getCode());
             System.out.println("Encontrado clase de domino es:"+pathDomainClass);
-            DomainClassFile domainClassFile=new DomainClassFile(pathDomainClass,tipoExpediente);
+            DomainClassFile domainClassFile=new DomainClassFile(pathDomainClass,tipoExpedienteInstanceFile);
             
             domainClassFile.addExtraCodeToDomainClass();
             

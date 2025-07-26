@@ -4,7 +4,6 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
-
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -24,33 +23,50 @@ public class TipoExpedienteInstanceFile {
 
     @XmlElement(name = "code")
     private String code;
-    
+
+    @XmlElement(name = "tramite")
+    private String tramite;
+
+    @XmlElement(name = "ambito")
+    private String ambito;
+
     @XmlTransient
     private Path path;
-    
+
     @XmlTransient
-    private List<String> events;  
-    
+    private List<String> events;
+
     @XmlTransient
-    private List<String> profiles;  
-    
-    
+    private List<String> profiles;
+
     @XmlElementWrapper(name = "states")
     @XmlElement(name = "state")
     private List<State> states;
 
     // getters y setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
-
-    public List<State> getStates() { return states; }
-    public void setStates(List<State> states) { 
-        this.states = states; 
+    public String getName() {
+        return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public List<State> getStates() {
+        return states;
+    }
+
+    public void setStates(List<State> states) {
+        this.states = states;
+    }
 
     /**
      * @return the path
@@ -65,40 +81,36 @@ public class TipoExpedienteInstanceFile {
     public void setPath(Path path) {
         this.path = path;
     }
-    
-    
+
     private List<String> getEventsFromStates(List<State> states) {
-        List<String> events=new ArrayList<>();
-        
-        for(State state:states) {
-            for(String event:state.getEvents()) {
-                if (events.contains(event)==false) {
+        List<String> events = new ArrayList<>();
+
+        for (State state : states) {
+            for (String event : state.getEvents()) {
+                if (events.contains(event) == false) {
                     events.add(event);
                 }
             }
         }
-        
-        
+
         return events;
-        
+
     }
-    
-    
+
     private List<String> getProfilesFromStates(List<State> states) {
-        List<String> profiles=new ArrayList<>();
-        
-        for(State state:states) {
-            if ((state.getProfile()!=null) && (state.getProfile().trim().isEmpty()==false)) {
-                if (profiles.contains(state.getProfile())==false) {
+        List<String> profiles = new ArrayList<>();
+
+        for (State state : states) {
+            if ((state.getProfile() != null) && (state.getProfile().trim().isEmpty() == false)) {
+                if (profiles.contains(state.getProfile()) == false) {
                     profiles.add(state.getProfile());
                 }
             }
         }
-        
-        
+
         return profiles;
-        
-    }    
+
+    }
 
     /**
      * @return the events
@@ -127,5 +139,58 @@ public class TipoExpedienteInstanceFile {
     public void setProfiles(List<String> profiles) {
         this.profiles = profiles;
     }
-    
+
+    /**
+     * @return the tramite
+     */
+    public String getTramite() {
+        return tramite;
+    }
+
+    /**
+     * @param tramite the tramite to set
+     */
+    public void setTramite(String tramite) {
+        this.tramite = tramite;
+    }
+
+    /**
+     * @return the ambito
+     */
+    public String getAmbito() {
+        return ambito;
+    }
+
+    /**
+     * @param ambito the ambito to set
+     */
+    public void setAmbito(String ambito) {
+        this.ambito = ambito;
+    }
+
+    public String getPackageName() {
+        Path filePath = path.getParent();
+        String pathString = filePath.toString();
+
+        pathString = pathString.replace("\\", "/");
+
+        int javaIndex = pathString.indexOf("/java/");
+        if (javaIndex == -1) {
+            if (pathString.endsWith("/java")) {
+                javaIndex = pathString.length() - "/java".length();
+            } else {
+                return "";
+            }
+        }
+
+        String packagePath = pathString.substring(javaIndex + "/java/".length());
+
+        int dotIndex = packagePath.lastIndexOf(".");
+        if (dotIndex != -1) {
+            packagePath = packagePath.substring(0, dotIndex);
+        }
+
+        return packagePath.replace("/", ".");
+    }
+
 }

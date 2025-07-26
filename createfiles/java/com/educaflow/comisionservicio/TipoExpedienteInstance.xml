@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <TipoExpediente >
 
-    <name>Justificación de falta del profesorado</name>
-    <code>JustificacionFaltaProfesorado</code>
+    <name>Comisión de servicio</name>
+    <code>ComisionServicio</code>
+    <tramite>ComisionServicio</tramite>
+    <ambito>CENTRO</ambito>    
     <states>
         <state initial="true" name="ENTRADA_DATOS" profile="CREADOR" events="DELETE,PRESENTAR" />
         <state name="FIRMA_POR_USUARIO" profile="CREADOR" events="BACK,PRESENTAR_DOCUMENTOS_FIRMADOS" />
