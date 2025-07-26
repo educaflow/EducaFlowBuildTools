@@ -1,6 +1,6 @@
 package com.educaflow.common.buildtools.viewprocessor;
 
-import com.educaflow.common.buildtools.common.TemplateUtil;
+import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.common.XMLUtil;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -69,10 +69,10 @@ public class XMLPreprocesor {
             formElement.setAttribute("name", getFormName(nombreExpediente, state, profile));
 
             if (formElement.hasAttribute("title") == false) {
-                formElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
+                formElement.setAttribute("title", TextUtil.getHumanNameFromExpedienteName(nombreExpediente));
             }
             if (baseElement.hasAttribute("title") == false) {
-                baseElement.setAttribute("title", StringUtil.getHumanNameFromExpedienteName(nombreExpediente));
+                baseElement.setAttribute("title", TextUtil.getHumanNameFromExpedienteName(nombreExpediente));
             }
 
             List<Element> hijos = XMLUtil.getChilds(formElement);
