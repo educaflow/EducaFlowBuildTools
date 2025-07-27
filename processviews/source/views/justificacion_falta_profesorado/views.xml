@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
+
+    <form name="exp-JustificacionFaltaProfesorado-Templates"   width="large"  model="com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado" groups="admins,users">
+        <panel name="datos-profesor" title="Datos del Profesor">
+            <field name="apellidos" colSpan="4" readonly="true"/>
+            <field name="nombre" colSpan="4" readonly="true"/>
+            <field name="dni" title="DNI" colSpan="4" readonly="true"/>
+        </panel>
+        <panel name="datos-falta" title="Datos de la Falta">
+            <field name="dias" colSpan="1"/>
+            <field name="mes" colSpan="10"  widget="SwitchSelect"/>
+            <field name="anyo" colSpan="1"/>
+
+            <field name="tipoJornadaFalta" colSpan="6" colOffset="9" widget="SwitchSelect"/>
+            <field name="horaInicio" colSpan="3" showIf="tipoJornadaFalta == 'JORNADA_PARCIAL'"/>
+            <field name="horaFin" colSpan="3" showIf="tipoJornadaFalta == 'JORNADA_PARCIAL'"/>
+            <field name="motivoFalta" colSpan="7" widget="SwitchSelect" x-direction="vertical" />
+            <field name="otroMotivo" colSpan="5"  showIf="motivoFalta == 'OTROS'"/>
+        </panel>
+        <panel name="datos-falta-view" title="Datos de la Falta">
+            <field name="dias" colSpan="3" readonly="true"/>
+            <field name="mes" colSpan="3"  readonly="true"/>
+            <field name="anyo" colSpan="3" readonly="true"/>
+            <field name="tipoJornadaFalta" colSpan="4" colOffset="3"  readonly="true"/>
+            <field name="horaInicio" colSpan="4" showIf="tipoJornadaFalta == 'JORNADA_PARCIAL'" readonly="true"/>
+            <field name="horaFin" colSpan="4" showIf="tipoJornadaFalta == 'JORNADA_PARCIAL'" readonly="true"/>
+            <field name="motivoFalta" colSpan="6"   readonly="true"/>
+            <field name="otroMotivo" colSpan="6" colOffset="7"  showIf="motivoFalta == 'OTROS'" readonly="true"/>
+        </panel>
+
+
+        <panel name="justificante-upload" title="Adjuntar justificante">
+            <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" />
+            <help variant="info" colSpan="6" colOffset="8" showIf="motivoFalta=='ENFERMEDAD_COMUN'">Es necesario aportar justificante médico a partir del segundo día</help>
+            <help variant="info" colSpan="6" colOffset="8" showIf="motivoFalta=='PERMISO_MEDICO_EDUCATIVO_ASISTENCIAL' || motivoFalta=='TRASLADO_DOMICILIO' || motivoFalta=='ASISTENCIA_PRUEBAS_EXAMENES' || motivoFalta=='FALLECIMIENTO_ENFERMEDAD_GRAVE_FAMILIAR' || motivoFalta=='DEBER_INEXCUSABLE' || motivoFalta=='FUNCIONES_REPRESENTATIVAS'">Es necesario aportar justificante</help>
+            <help variant="info" colSpan="6" colOffset="8" showIf="motivoFalta=='NACIMIENTO_ADOPCION_ACOGIMIENTO'">Es necesario aportar el libro de familia o justificante del médico</help>
+        </panel>
+        <panel name="justificante-view" title="Adjuntar justificante">
+            <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" readonly="true"/>
+        </panel>
+        <panel name="justificante-firmar-creador" title="Justificante" >
+
+            <field name="new" showTitle="false" readonly="true" colSpan="6">
+                <viewer depends="documentoCompletoSinFirmar" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoCompletoSinFirmar.id}/content/download?inline=true&name=${documentoCompletoSinFirmar.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+            <field name="new2" showTitle="false" readonly="true" colSpan="6">
+                <viewer depends="documentoCompletoFirmadoUsuario" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoCompletoFirmadoUsuario.id}/content/download?inline=true&name=${documentoCompletoFirmadoUsuario.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+
+            <button name="Firmar" colSpan="6"  title="Firmar digitalmente el documento" onClick="js:signDocument('documentoCompletoSinFirmar', 'documentoCompletoFirmadoUsuario', 'com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado', '_firmado_profesor',1)" />
+            <button name="Refrescar" colSpan="6"  title="Ver documento firmado" icon="autorenew" onClick="action-event-view-expediente"/>
+        </panel>
+
+
+
+        <panel name="justificante-firmar-director" title="Resolver expediente">
+            <field name="tipoResolucion" widget="SwitchSelect" colSpan="8" />
+
+            <field name="new" showTitle="false" readonly="true"   colSpan="6" showIf="tipoResolucion == 'ACEPTAR'">
+                <viewer depends="documentoCompletoFirmadoUsuario" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoCompletoFirmadoUsuario.id}/content/download?inline=true&name=${documentoCompletoFirmadoUsuario.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+            <field name="new2" showTitle="false" readonly="true"   colSpan="6" showIf="tipoResolucion == 'ACEPTAR'">
+                <viewer depends="documentoCompletoFirmadoUsuarioDirector" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoCompletoFirmadoUsuarioDirector.id}/content/download?inline=true&name=${documentoCompletoFirmadoUsuarioDirector.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+            <button name="Firmar"  colSpan="6"   title="Firmar digitalmente el documento" showIf="tipoResolucion == 'ACEPTAR'" onClick="js:signDocument('documentoCompletoFirmadoUsuario', 'documentoCompletoFirmadoUsuarioDirector', 'com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado', '_firmado_director',2)" />
+            <button name="Refrescar" colSpan="6"  title="Ver documento firmado" icon="autorenew" onClick="action-event-view-expediente"  showIf="tipoResolucion == 'ACEPTAR'"/>
+
+
+
+            <field name="disconformidad" colSpan="12" title="Explicar los datos a subsanar" showIf="tipoResolucion == 'SUBSANAR_DATOS'" />
+            <field name="resolucion" colSpan="12" title="Motivo del rechazo" showIf="tipoResolucion == 'RECHAZAR'"/>
+
+        </panel>
+        <panel name="justificante-view-documentoCompletoFirmadoUsuario" title="Justificantes">
+            <field name="documentoCompletoFirmadoUsuario" title="Documento firmado por el usuario" widget="binary-link" colSpan="12" readonly="true" />
+        </panel>
+        <panel name="justificante-view-documentoCompletoFirmadoUsuarioDirector" title="Justificantes">
+            <field name="documentoCompletoFirmadoUsuarioDirector" title="Documento firmado por el usuario y el director" widget="binary-link" colSpan="12" readonly="true"/>
+        </panel>
+
+        <panel name="disconformidad-view" title="Disconformidad de los datos presentados" showIf="(disconformidad!=null) &amp;&amp; (disconformidad!='')">
+            <field name="disconformidad" title="Motivo disconformidad"  colSpan="12" readonly="true"/>
+        </panel>
+
+        <panel name="resolucion-view" title="Resolucion">
+            <field name="tipoResolucion" title="Resolución"  readonly="true"  />
+            <field name="disconformidad" colSpan="12" title="Explicar los datos a subsanar" readonly="true" showIf="tipoResolucion == 'SUBSANAR_DATOS'" />
+            <field name="resolucion" colSpan="12" title="Motivo del rechazo" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
+        </panel>
+
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="ENTRADA_DATOS" profile="CREADOR" >
+        <include-panels>
+            -datos-profesor
+            -disconformidad-view
+            datos-falta
+            justificante-upload
+        </include-panels>
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="PRESENTAR" colSpan="2" title="Siguiente" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="ENTRADA_DATOS">
+        <include-panels>
+            -datos-profesor
+            -disconformidad-view
+            -datos-falta
+            -justificante-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************************* FIRMA_POR_USUARIO *************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="FIRMA_POR_USUARIO" profile="CREADOR">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            justificante-firmar-creador
+        </include-panels>
+        <footer>
+            <buttons-left>
+                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="action-event-expediente"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="PRESENTAR_DOCUMENTOS_FIRMADOS" colSpan="3" title="Presentar documentación" onClick="action-event-expediente" prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="FIRMA_POR_USUARIO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -justificante-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+    <!-- **********************************************************************************************  -->
+    <!-- ****************************** REVISION_Y_FIRMA_POR_RESPONSABLE ******************************  -->
+    <!-- **********************************************************************************************  -->
+    <form state="REVISION_Y_FIRMA_POR_RESPONSABLE" profile="RESPONSABLE" >
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            justificante-firmar-director
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="action-event-expediente" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="REVISION_Y_FIRMA_POR_RESPONSABLE">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -justificante-view-documentoCompletoFirmadoUsuario
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+    <!-- **********************************************************************  -->
+    <!-- ****************************** ACEPTADO ******************************  -->
+    <!-- **********************************************************************  -->
+    <form state="ACEPTADO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -justificante-view-documentoCompletoFirmadoUsuarioDirector
+            -resolucion-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+    <!-- **********************************************************************  -->
+    <!-- ****************************** RECHAZADO ******************************  -->
+    <!-- **********************************************************************  -->
+    <form profile="CREADOR" state="RECHAZADO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -justificante-view-documentoCompletoFirmadoUsuario
+            -resolucion-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+
+
+</object-views>

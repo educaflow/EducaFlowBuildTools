@@ -8,10 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.w3c.dom.Document;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -24,31 +27,32 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         if (args.length != 2) {
-            System.out.println("Uso: java YourClass <ruta_origen> <ruta_destino>");
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino>");
             return;
         }
 
         Path pathToSearch = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]); 
 
-        String targetRoot = "object-views";
-
-        XMLFinder finder = new XMLFinder();
-
-        List<Path> allXmlFiles = finder.findXmlFiles(pathToSearch);
+        
+        
+        
+        ViewFileFinder finder = new ViewFileFinder();
+        List<Element> templateForms=finder.findTemplateViews(pathToSearch);
+        Map<Document, Path> views = finder.findViews(pathToSearch);
+        
         Files.createDirectories(targetBaseDir);
 
-        for (Path filePath : allXmlFiles) {
+        for (Entry<Document, Path> entry : views.entrySet()) {
+            Path filePath=entry.getValue();
+            Document document=entry.getKey();
             try {
                 Path relativePath = pathToSearch.relativize(filePath);
                 Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
-                Files.createDirectories(newFilePathInTarget.getParent());
-
-                Document document = finder.parseAndValidateXml(filePath, targetRoot);
-                if (document != null) {
-                    Document newDocument = XMLPreprocesor.process(filePath,document);
-                    guardarXML(newDocument, newFilePathInTarget);
-                }
+                Files.createDirectories(newFilePathInTarget.getParent());                
+                
+                Document newDocument = ViewFilePreprocesor.process(document,templateForms);
+                guardarXML(newDocument, newFilePathInTarget);
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al prerocesar el fichero: " + filePath,ex);
             }
