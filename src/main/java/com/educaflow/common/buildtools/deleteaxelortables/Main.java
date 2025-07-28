@@ -5,6 +5,7 @@
 package com.educaflow.common.buildtools.deleteaxelortables;
 
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,7 +22,7 @@ public class Main {
     private static final Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence","auth_user","auth_group","meta_filter");
     private static final Set<String> tablasIncluidas = new HashSet<>(); 
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Connection conn = null;
         Statement stmt = null;
 
@@ -30,20 +31,21 @@ public class Main {
         String dataBaseUser;
         String dataBasePassword ;
         String schemaName = "public";
+        Properties prop = new Properties();
 
-        try {
-            Properties prop = new Properties();
+        try (FileReader reader = new FileReader(args[0])) {
 
-            try (FileReader reader = new FileReader(args[0])) {
+            prop.load(reader);
 
-                prop.load(reader);
-
-                dataBaseDriver = prop.getProperty("db.default.driver");
-                dataBaseURL = prop.getProperty("db.default.url");
-                dataBaseUser = prop.getProperty("db.default.user");
-                dataBasePassword = prop.getProperty("db.default.password");
-            }
+            dataBaseDriver = prop.getProperty("db.default.driver");
+            dataBaseURL = prop.getProperty("db.default.url");
+            dataBaseUser = prop.getProperty("db.default.user");
+            dataBasePassword = prop.getProperty("db.default.password");
+        }
             
+            
+        try {
+
             
             if (args.length>0) {
                 for(int i=1;i<args.length;i++) {
@@ -99,6 +101,10 @@ public class Main {
             System.out.println("Operación completada exitosamente.");
 
         } catch (Exception ex) {
+            System.err.println(" dataBaseDriver=" + dataBaseDriver);
+            System.err.println(" dataBaseURL=" + dataBaseURL);
+            System.err.println(" dataBaseUser=" + dataBaseUser);
+            System.err.println(" dataBasePassword =" + dataBasePassword);            
             try {
                 if (conn != null) {
                     System.err.println("Realizando rollback...");
@@ -120,7 +126,10 @@ public class Main {
             } catch (SQLException se) {
                 se.printStackTrace();
             }
-            
+            System.err.println(" dataBaseDriver=" + dataBaseDriver);
+            System.err.println(" dataBaseURL=" + dataBaseURL);
+            System.err.println(" dataBaseUser=" + dataBaseUser);
+            System.err.println(" dataBasePassword =" + dataBasePassword);
 
         }
     }
