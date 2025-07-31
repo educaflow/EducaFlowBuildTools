@@ -11,7 +11,8 @@
         <bind node="tiposExpedientes/tipoExpediente" type="com.educaflow.apps.expedientes.db.TipoExpediente" search="self.code = :code"  create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
-            <bind node="@ambito" to="ambito" />
+            <bind node="@ambitoCreador" to="ambitoCreador" />
+            <bind node="@ambitoResponsable" to="ambitoResponsable" />
             <bind node="@tramite" to="tramite" search="self.code = :tramite"   />
             <bind node="@fqcnEventManager" to="fqcnEventManager" />
 

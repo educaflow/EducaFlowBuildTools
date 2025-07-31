@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <datos>
     <tiposExpedientes>
-        <tipoExpediente code="{{tipoExpediente.code}}" name="{{tipoExpediente.name}}"  tramite="{{tipoExpediente.tramite}}"  ambito="{{tipoExpediente.ambito}}"  fqcnEventManager="{{tipoExpediente.packageName}}.EventManagerImpl">
+        <tipoExpediente code="{{tipoExpediente.code}}" name="{{tipoExpediente.name}}"  tramite="{{tipoExpediente.tramite}}"  ambitoCreador="{{tipoExpediente.ambitoCreador}}" ambitoResponsable="{{tipoExpediente.ambitoResponsable}}"  fqcnEventManager="{{tipoExpediente.packageName}}.EventManagerImpl">
 
             {% for state in tipoExpediente.states %}
                 <state   codeState="{{state.name}}"  {% if state.profile is not empty %}profile="{{state.profile}}"{% endif %}  />

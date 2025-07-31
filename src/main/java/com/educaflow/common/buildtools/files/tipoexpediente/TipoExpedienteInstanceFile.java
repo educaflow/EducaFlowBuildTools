@@ -27,9 +27,12 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "tramite")
     private String tramite;
 
-    @XmlElement(name = "ambito")
-    private String ambito;
+    @XmlElement(name = "ambitoCreador")
+    private String ambitoCreador;
 
+    @XmlElement(name = "ambitoResponsable")
+    private String ambitoResponsable;    
+    
     @XmlTransient
     private Path path;
 
@@ -154,19 +157,35 @@ public class TipoExpedienteInstanceFile {
         this.tramite = tramite;
     }
 
+
     /**
-     * @return the ambito
+     * @return the ambitoCreador
      */
-    public String getAmbito() {
-        return ambito;
+    public String getAmbitoCreador() {
+        return ambitoCreador;
     }
 
     /**
-     * @param ambito the ambito to set
+     * @param ambitoCreador the ambitoCreador to set
      */
-    public void setAmbito(String ambito) {
-        this.ambito = ambito;
+    public void setAmbitoCreador(String ambitoCreador) {
+        this.ambitoCreador = ambitoCreador;
     }
+
+    /**
+     * @return the ambitoResponsable
+     */
+    public String getAmbitoResponsable() {
+        return ambitoResponsable;
+    }
+
+    /**
+     * @param ambitoResponsable the ambitoResponsable to set
+     */
+    public void setAmbitoResponsable(String ambitoResponsable) {
+        this.ambitoResponsable = ambitoResponsable;
+    }
+    
 
     public String getPackageName() {
         Path filePath = path.getParent();
