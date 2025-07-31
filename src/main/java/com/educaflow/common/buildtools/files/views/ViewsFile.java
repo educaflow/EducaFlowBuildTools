@@ -31,6 +31,10 @@ public class ViewsFile {
             createDomainModel(path, tipoExpedienteFile);
         }
     }
+    
+    public Path getPath() {
+        return path;
+    }
 
     private void createDomainModel(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         Map<String, Object> context = new HashMap<>();

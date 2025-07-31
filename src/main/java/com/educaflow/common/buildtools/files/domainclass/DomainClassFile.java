@@ -34,6 +34,10 @@ public class DomainClassFile {
         addExtraCodeToDomainClass(pathDomainClass, extraCodeToDomainClass);
     }
 
+    public Path getPathDomainClass() {
+        return pathDomainClass;
+    }
+    
     private void addExtraCodeToDomainClass(Path domainClass, String extraCode) {
         try {
             String content = Files.readString(domainClass, StandardCharsets.UTF_8);

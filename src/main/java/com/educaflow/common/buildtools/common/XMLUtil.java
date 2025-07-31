@@ -1,6 +1,7 @@
 package com.educaflow.common.buildtools.common;
 
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -26,6 +27,19 @@ import org.xml.sax.InputSource;
  */
 public class XMLUtil {
 
+    
+    public static Document getDocument(Path filePath) {
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            documentBuilderFactory.setNamespaceAware(false);
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(filePath.toFile());
+            
+            return document;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     
     /****************************************************************************/
     /****************************************************************************/
@@ -165,6 +179,11 @@ public class XMLUtil {
 
     
     public static List<Element> getElementsFromEvaluateXPath(String expression, Element rootElement) {
+        return getElementsFromEvaluateXPath(expression, rootElement,false);
+    }    
+    
+    
+    public static List<Element> getElementsFromEvaluateXPath(String expression, Element rootElement,boolean allowRootExpresion) {
         try {
             if (expression == null || expression.trim().isEmpty()) {
                 throw new IllegalArgumentException("expression no puede ser null o vacio.");
@@ -172,7 +191,7 @@ public class XMLUtil {
             if (rootElement == null) {
                 throw new IllegalArgumentException("element no puede ser null.");
             }
-            if (expression.startsWith("//")) {
+            if (expression.startsWith("//") && (allowRootExpresion==false)) {
                 throw new IllegalArgumentException("expression no puede empezar por //:" + expression);
             }
 
@@ -256,6 +275,18 @@ public class XMLUtil {
         }        
     }
     
+    public static String getStringAttribute(Element element, String attributeName,String defaultValue) {
+        if (element.hasAttribute(attributeName)==false) {
+            return defaultValue;
+        } else {
+            String rawValue=element.getAttribute(attributeName);
+            if ((rawValue==null) || (rawValue.trim().isEmpty())) {
+                return defaultValue;
+            } else {
+                return element.getAttribute(attributeName);
+            }
+        }        
+    }    
     
     
     

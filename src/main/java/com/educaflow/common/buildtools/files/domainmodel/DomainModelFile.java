@@ -45,6 +45,12 @@ public class DomainModelFile {
         
         TemplateUtil.createFileWithContent(path, content);
     }
-    
+
+    /**
+     * @return the path
+     */
+    public Path getPath() {
+        return path;
+    }
     
 }
