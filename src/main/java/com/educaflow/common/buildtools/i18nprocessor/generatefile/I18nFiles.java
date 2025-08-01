@@ -1,5 +1,6 @@
 package com.educaflow.common.buildtools.i18nprocessor.generatefile;
 
+import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.EntryTitleFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,11 +21,7 @@ public class I18nFiles {
         this.directoryPath = directoryPath;
     }
 
-    public String createOrUpdateOrDeleteI18nFiles() {       
-        List<EntryTitle> titles=TitleFinder.getTitles(directoryPath);
-        
-        System.out.println(titles.size()+" --> " + directoryPath);
-        
+    public String createOrUpdateOrDeleteI18nFiles() {  
         Path filePathCastellano = getFilePath(this.directoryPath,Idioma.Castellano);
         Path filePathValenciano = getFilePath(this.directoryPath,Idioma.Valenciano);
         
@@ -32,12 +29,19 @@ public class I18nFiles {
         List<TextoTraducible> textosTraduciblesOriginalCastellano=getTextosTraduciblesFromI18NFilePath(filePathCastellano);
         List<TextoTraducible> textosTraduciblesOriginalValenciano=getTextosTraduciblesFromI18NFilePath(filePathValenciano);
 
-        
-        String messagesFallosTraduccionCastellano=updateTextos(textosTraduciblesOriginalCastellano,titles,Idioma.Castellano);
-        String messagesFallosTraduccionValenciano=updateTextos(textosTraduciblesOriginalValenciano,titles,Idioma.Valenciano);
+        List<EntryTitle> entryTitles=EntryTitleFactory.getEntryTitles(directoryPath);
+        String messagesFallosTraduccionCastellano=updateTextos(textosTraduciblesOriginalCastellano,entryTitles,Idioma.Castellano);
+        String messagesFallosTraduccionValenciano=updateTextos(textosTraduciblesOriginalValenciano,entryTitles,Idioma.Valenciano);
         
         String messagesFallosTraduccionVacioCastellano=traducirVacios(textosTraduciblesOriginalCastellano,Idioma.Castellano);
         String messagesFallosTraduccionVacioValenciano=traducirVacios(textosTraduciblesOriginalValenciano,Idioma.Valenciano);
+        
+        
+        if (textosTraduciblesCastellano.size()!=textosTraduciblesValenciano.size()) {
+            throw new RuntimeException("El tamaño de las listas no coincide:"+ textosTraduciblesCastellano.size()+ " y " + textosTraduciblesValenciano.size());
+        }
+        
+        System.out.println(textosTraduciblesCastellano.size() + " --> " + directoryPath);
         
                 
         StringBuilder messages = new StringBuilder();
@@ -72,11 +76,11 @@ public class I18nFiles {
     }
    
     
-    public String updateTextos(List<TextoTraducible> textosTraducibles,List<EntryTitle> titles,Idioma idioma) {
+    public String updateTextos(List<TextoTraducible> textosTraducibles,List<EntryTitle> entryTitles,Idioma idioma) {
         StringBuilder messages = new StringBuilder();        
         
         
-        for (EntryTitle entryTitle:titles) {
+        for (EntryTitle entryTitle:entryTitles) {
             TextoTraducible textoTraducible=getTextoTraducible(entryTitle.getTitle(), textosTraducibles);
             
             try { 
