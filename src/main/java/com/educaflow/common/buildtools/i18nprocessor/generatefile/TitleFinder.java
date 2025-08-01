@@ -5,6 +5,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,59 +19,26 @@ public class TitleFinder {
     public static List<EntryTitle> getTitles(Path directoryPath) { 
         List<EntryTitle> titles=new ArrayList<>();
 
-        List<Path> domainModelFiles=findDomainModelinFilesInDirectory(directoryPath);
-        for(Path domainModelFile:domainModelFiles) {
-            List<String> titlesModel=getTitlesFromDomain(domainModelFile);
-            for(String title:titlesModel) {
-                EntryTitle entryTitle=new EntryTitle(title,domainModelFile);
-                titles.add(entryTitle);
-            }
-        }
-        
-        List<Path> viewFiles=findViewFilesInDirectory(directoryPath);
-        for(Path viewFile:viewFiles) {
-            List<String> titlesViews=getTitlesFromViews(viewFile);
-            for(String title:titlesViews) {
-                EntryTitle entryTitle=new EntryTitle(title,viewFile);
-                titles.add(entryTitle);
-            }     
-        }
+        List<Path> domainModelFiles = findDomainModelinFilesInDirectory(directoryPath);
+        titles.addAll(processFiles(domainModelFiles, path -> getTitlesFromDomain(path)));
+
+        List<Path> viewFiles = findViewFilesInDirectory(directoryPath);
+        titles.addAll(processFiles(viewFiles, path -> getTitlesFromViews(path)));
 
         return titles;
     }   
     
+
+    
+    /*********************************************************************************/
+    /****************************** Ficheros de Modelos ******************************/
+    /*********************************************************************************/
     
     private static List<Path> findViewFilesInDirectory(Path directoryPath) {        
         List<Path> xmlFiles=findXMLFiles(directoryPath);
         
         return xmlFiles.stream().filter( file -> isViewFile(file)).collect(Collectors.toList());
     }
-    
-    private static List<Path> findDomainModelinFilesInDirectory(Path directoryPath) {
-        List<Path> xmlFiles=findXMLFiles(directoryPath);
-        
-        return xmlFiles.stream().filter( file -> isDomainModelFile(file)).collect(Collectors.toList());
-    }    
-    
-    
-    
-    
-    
-    private static List<Path> findXMLFiles(Path directoryPath) {
-        List<Path> xmlPaths=new ArrayList<>();
-       
-        File directory = directoryPath.toFile();
-
-        File[] xmlFilesArr = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
-
-
-        for(File file:xmlFilesArr) {
-            xmlPaths.add(file.toPath());
-        }
-        
-        return xmlPaths;
-    }
-    
     
     private static boolean isDomainModelFile(Path filePath) {
         Document document=XMLUtil.getDocument(filePath);
@@ -81,18 +49,7 @@ public class TitleFinder {
             return false;
         }
         
-    }
-    
-    private static boolean isViewFile(Path filePath) {
-        Document document=XMLUtil.getDocument(filePath);
-        
-        if ("object-views".equals(document.getDocumentElement().getTagName())) {
-            return true;
-        } else {
-            return false;
-        }
     }    
-    
     
     private static List<String> getTitlesFromDomain(Path domainFile) {
         List<String> titles=new ArrayList<>();
@@ -131,8 +88,29 @@ public class TitleFinder {
         
     }
     
-            
-            
+    /********************************************************************************/
+    /****************************** Ficheros de Vistas ******************************/
+    /********************************************************************************/
+    
+    
+    private static List<Path> findDomainModelinFilesInDirectory(Path directoryPath) {
+        List<Path> xmlFiles=findXMLFiles(directoryPath);
+        
+        return xmlFiles.stream().filter( file -> isDomainModelFile(file)).collect(Collectors.toList());
+    }    
+
+    
+    private static boolean isViewFile(Path filePath) {
+        Document document=XMLUtil.getDocument(filePath);
+        
+        if ("object-views".equals(document.getDocumentElement().getTagName())) {
+            return true;
+        } else {
+            return false;
+        }
+    }   
+    
+    
     private static List<String> getTitlesFromViews(Path viewFile) {
         List<String> titles=new ArrayList<>();
         
@@ -152,6 +130,45 @@ public class TitleFinder {
         
         return titles;
         
-    }        
+    }    
+         
+    
+    
+    
+    
+    /*******************************************************************************/
+    /****************************** Funciones Comunes ******************************/
+    /*******************************************************************************/    
+    
+    
+
+    private static List<EntryTitle> processFiles(List<Path> files, Function<Path, List<String>> titleExtractor) {
+        List<EntryTitle> titles = new ArrayList<>();
+        for (Path file : files) {
+            List<String> fileTitles = titleExtractor.apply(file);
+            for (String title : fileTitles) {
+                EntryTitle entryTitle=new EntryTitle(title,file);
+                titles.add(entryTitle);
+            }
+        }
+
+        return titles;
+    }     
+    
+    private static List<Path> findXMLFiles(Path directoryPath) {
+        List<Path> xmlPaths=new ArrayList<>();
+       
+        File directory = directoryPath.toFile();
+
+        File[] xmlFilesArr = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
+
+
+        for(File file:xmlFilesArr) {
+            xmlPaths.add(file.toPath());
+        }
+        
+        return xmlPaths;
+    }    
+    
             
 }
