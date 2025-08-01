@@ -36,14 +36,16 @@ public class I18nFiles {
         String messagesFallosTraduccionCastellano=updateTextos(textosTraduciblesOriginalCastellano,titles,Idioma.Castellano);
         String messagesFallosTraduccionValenciano=updateTextos(textosTraduciblesOriginalValenciano,titles,Idioma.Valenciano);
         
+        String messagesFallosTraduccionVacioCastellano=traducirVacios(textosTraduciblesOriginalCastellano,Idioma.Castellano);
+        String messagesFallosTraduccionVacioValenciano=traducirVacios(textosTraduciblesOriginalValenciano,Idioma.Valenciano);
         
-
+                
         StringBuilder messages = new StringBuilder();
-        if (messagesFallosTraduccionCastellano!=null) {
-            messages.append("\n--------Fichero "+filePathCastellano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionCastellano.toString()+"\n");
+        if ((messagesFallosTraduccionCastellano!=null) || (messagesFallosTraduccionVacioCastellano!=null)) {
+            messages.append("\n--------Fichero "+filePathCastellano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionCastellano+"\n"+messagesFallosTraduccionVacioCastellano);
         }
-        if (messagesFallosTraduccionValenciano!=null) {
-            messages.append("\n--------Fichero "+filePathValenciano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionValenciano.toString()+"\n");
+        if ((messagesFallosTraduccionValenciano!=null) || (messagesFallosTraduccionVacioValenciano!=null)){
+            messages.append("\n--------Fichero "+filePathValenciano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionValenciano+"\n"+messagesFallosTraduccionVacioValenciano);
         }
      
         
@@ -82,7 +84,7 @@ public class I18nFiles {
                     textoTraducible=createTextoTraducible(entryTitle.getTitle(),idioma);
                     textosTraducibles.add(textoTraducible);
                 } else {
-                    updateTextoTraducible(textoTraducible,idioma);
+                    updateTextoTraducibleIfBlank(textoTraducible,idioma);
                 }
             } catch (FalloTraduccionException ex) {
                 messages.append(ex.getTextoCastellano()+":"+ex.getTraduccion()+" en " + entryTitle.getPath().toString() + "\n");
@@ -106,16 +108,37 @@ public class I18nFiles {
     }
     
     
-    
-    private TextoTraducible createTextoEmpty(String title) throws FalloTraduccionException {
-        TextoTraducible textoTraducible=new TextoTraducible();
-        textoTraducible.setKey(title);
-        textoTraducible.setComment(null);
-        textoTraducible.setContext(null);
-        textoTraducible.setMessage(null);
+    public String traducirVacios(List<TextoTraducible> textosTraducibles,Idioma idioma) {
+        StringBuilder messages = new StringBuilder();        
         
-        return textoTraducible;
-    }    
+        
+        for (TextoTraducible textoTraducible:textosTraducibles) {
+            try { 
+                updateTextoTraducibleIfBlank(textoTraducible,idioma);
+            } catch (FalloTraduccionException ex) {
+                messages.append(ex.getTextoCastellano()+":"+ex.getTraduccion()+"\n");
+            }
+        }
+        
+        
+	if (messages.length()>0) {
+            return messages.toString();
+        } else {
+            if (idioma==Idioma.Castellano) {
+                textosTraduciblesCastellano=textosTraducibles;
+            } else if (idioma==Idioma.Valenciano) {
+                textosTraduciblesValenciano=textosTraducibles;
+            } else {
+                throw new RuntimeException("Idioma desconocido:"+idioma);
+            } 
+            return null;
+        }        
+        
+    }
+    
+    
+    
+   
     
     private TextoTraducible createTextoTraducible(String title,Idioma idioma) throws FalloTraduccionException {
         TextoTraducible textoTraducible=new TextoTraducible();
@@ -129,10 +152,10 @@ public class I18nFiles {
         return textoTraducible;
     }
     
-    private void updateTextoTraducible(TextoTraducible textoTraducible,Idioma idioma) throws FalloTraduccionException { 
+    private void updateTextoTraducibleIfBlank(TextoTraducible textoTraducible,Idioma idioma) throws FalloTraduccionException { 
         String title=textoTraducible.getKey();
         
-        if (textoTraducible.getMessage()==null) {
+        if ((textoTraducible.getMessage()==null) || (textoTraducible.getMessage().isBlank())) {
             String message=getMessageTraducido(title,idioma);
 
             textoTraducible.setMessage(message);
