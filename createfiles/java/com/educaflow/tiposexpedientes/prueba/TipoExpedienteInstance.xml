@@ -8,7 +8,7 @@
     <ambitoResponsable>CENTRO</ambitoResponsable>
     <states>
         <state initial="true" name="ENTRADA_DATOS" profile="CREADOR" events="DELETE,PRESENTAR" />
-        <state name="REVISION" profile="RESPONSABLE" events="SUBSANAR,ACEPTAR,RECHAZAR" />
+        <state name="REVISION" title="Revisión" profile="RESPONSABLE" events="SUBSANAR,ACEPTAR,RECHAZAR" />
         <state closed="true" name="ACEPTADO" profile="RESPONSABLE" events="SUBSANAR"/>
         <state closed="true" name="RECHAZADO" profile="RESPONSABLE" events="SUBSANAR"/>
     </states>

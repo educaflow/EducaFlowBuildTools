@@ -37,19 +37,16 @@ public class I18nFiles {
         String messagesFallosTraduccionVacioValenciano=traducirVacios(textosTraduciblesOriginalValenciano,Idioma.Valenciano);
         
         
-        if (textosTraduciblesCastellano.size()!=textosTraduciblesValenciano.size()) {
-            throw new RuntimeException("El tamaño de las listas no coincide:"+ textosTraduciblesCastellano.size()+ " y " + textosTraduciblesValenciano.size());
-        }
+
         
-        System.out.println(textosTraduciblesCastellano.size() + " --> " + directoryPath);
-        
+
                 
         StringBuilder messages = new StringBuilder();
         if ((messagesFallosTraduccionCastellano!=null) || (messagesFallosTraduccionVacioCastellano!=null)) {
-            messages.append("\n--------Fichero "+filePathCastellano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionCastellano+"\n"+messagesFallosTraduccionVacioCastellano);
+            messages.append("\n--------Fichero "+filePathCastellano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ toStringIfNullOrBlank(messagesFallosTraduccionCastellano)+"\n"+toStringIfNullOrBlank(messagesFallosTraduccionVacioCastellano));
         }
         if ((messagesFallosTraduccionValenciano!=null) || (messagesFallosTraduccionVacioValenciano!=null)){
-            messages.append("\n--------Fichero "+filePathValenciano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ messagesFallosTraduccionValenciano+"\n"+messagesFallosTraduccionVacioValenciano);
+            messages.append("\n--------Fichero "+filePathValenciano.toAbsolutePath().toString()+"\nFallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente):\n"+ toStringIfNullOrBlank(messagesFallosTraduccionValenciano)+"\n"+toStringIfNullOrBlank(messagesFallosTraduccionVacioValenciano));
         }
      
         
@@ -57,8 +54,13 @@ public class I18nFiles {
 	if (messages.length()>0) {
             return messages.toString()+"\n";
         } 
-
-
+        
+        if (textosTraduciblesCastellano.size()!=textosTraduciblesValenciano.size()) {          
+            throw new RuntimeException("El tamaño de las listas no coincide:"+ textosTraduciblesCastellano.size()+ " y " + textosTraduciblesValenciano.size()+" " + filePathCastellano.toString()+ " " + filePathValenciano.toString());
+        }
+        
+        System.out.println(textosTraduciblesCastellano.size() + " --> " + directoryPath);
+        
         if ((textosTraduciblesCastellano.size()==0) && (textosTraduciblesValenciano.size()==0)) {
             filePathCastellano.toFile().delete();
             filePathValenciano.toFile().delete();
@@ -169,8 +171,15 @@ public class I18nFiles {
     
     
     
-    private String getMessageTraducido(String title,Idioma idioma) throws FalloTraduccionException {
+    private String getMessageTraducido(String rawTitle,Idioma idioma) throws FalloTraduccionException {
         String message;
+        String title;
+        
+        if (rawTitle.startsWith("value:")) {
+            title = rawTitle.substring(rawTitle.indexOf(':') + 1);
+        } else {
+            title=rawTitle;
+        }
         
         if (idioma==Idioma.Castellano) {
             
@@ -225,7 +234,15 @@ public class I18nFiles {
     
        
     
-
+    private String toStringIfNullOrBlank(String str) {
+        if (str==null) {
+            return "";
+        } else if (str.isBlank()) {
+            return "";
+        } else {
+            return str;
+        }
+    }
     
 
     

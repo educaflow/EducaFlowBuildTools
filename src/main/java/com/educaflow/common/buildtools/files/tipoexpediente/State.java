@@ -22,6 +22,9 @@ public class State {
     private String name;
 
     @XmlAttribute
+    private String title;    
+    
+    @XmlAttribute
     private String profile;
 
     @XmlAttribute
@@ -43,6 +46,14 @@ public class State {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }    
 
     public String getProfile() {
         return profile;

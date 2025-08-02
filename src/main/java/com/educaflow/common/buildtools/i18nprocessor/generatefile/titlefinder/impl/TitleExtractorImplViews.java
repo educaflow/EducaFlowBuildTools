@@ -22,7 +22,7 @@ public class TitleExtractorImplViews implements TitleExtractor {
 
     @Override
     public List<Path> findTitlesFilesInDirectory(Path directoryPath) {
-        List<Path> xmlFiles = findXMLFiles(directoryPath);
+        List<Path> xmlFiles = TitleExtractorUtil.findFilesByExtension(directoryPath,".xml");
 
         return xmlFiles.stream().filter(file -> isViewFile(file)).collect(Collectors.toList());
     }
@@ -58,18 +58,5 @@ public class TitleExtractorImplViews implements TitleExtractor {
         }
     }
 
-    private List<Path> findXMLFiles(Path directoryPath) {
-        List<Path> xmlPaths = new ArrayList<>();
-
-        File directory = directoryPath.toFile();
-
-        File[] xmlFilesArr = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
-
-        for (File file : xmlFilesArr) {
-            xmlPaths.add(file.toPath());
-        }
-
-        return xmlPaths;
-    }
 
 }

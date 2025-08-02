@@ -1,13 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl;
 
 import com.educaflow.common.buildtools.common.XMLUtil;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.AxelorInflector;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.TitleExtractor;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +19,7 @@ public class TitleExtractorImplDomainModel implements TitleExtractor {
     
     @Override
     public List<Path> findTitlesFilesInDirectory(Path directoryPath) {
-        List<Path> xmlFiles=findXMLFiles(directoryPath);
+        List<Path> xmlFiles=TitleExtractorUtil.findFilesByExtension(directoryPath,".xml");
         
         return xmlFiles.stream().filter( file -> isDomainModelFile(file)).collect(Collectors.toList());
     }
@@ -80,17 +75,5 @@ public class TitleExtractorImplDomainModel implements TitleExtractor {
     }    
     
     
-    private  List<Path> findXMLFiles(Path directoryPath) {
-        List<Path> xmlPaths = new ArrayList<>();
 
-        File directory = directoryPath.toFile();
-
-        File[] xmlFilesArr = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
-
-        for (File file : xmlFilesArr) {
-            xmlPaths.add(file.toPath());
-        }
-
-        return xmlPaths;
-    }
 }

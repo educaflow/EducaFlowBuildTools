@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class TipoExpedienteInstanceFileFinder {
     
-    static final private String TIPO_EXPEDIENTE_XML="TipoExpedienteInstance.xml";
+    static final public String TIPO_EXPEDIENTE_XML_NAME="TipoExpedienteInstance.xml";
         
         
     public static List<TipoExpedienteInstanceFile> findTiposExpedienteFile(Path rootPath) {
@@ -72,7 +72,7 @@ public class TipoExpedienteInstanceFileFinder {
             try (Stream<Path> walk = Files.walk(rootPath)) {
                 return walk
                         .filter(Files::isRegularFile) 
-                        .filter(path -> path.getFileName().toString().equals(TIPO_EXPEDIENTE_XML)) 
+                        .filter(path -> path.getFileName().toString().equals(TIPO_EXPEDIENTE_XML_NAME)) 
                         .collect(Collectors.toList()); 
             }
         } catch (Exception ex) {
