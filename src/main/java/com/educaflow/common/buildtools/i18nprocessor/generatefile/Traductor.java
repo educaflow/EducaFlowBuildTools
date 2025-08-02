@@ -16,7 +16,7 @@ public class Traductor {
     public static String traducirDesdeCastellanoAValenciano(String textoCastellano) throws FalloTraduccionException {
         try {
 
-            Process process = new ProcessBuilder("apertium", "spa-cat")
+            Process process = new ProcessBuilder("apertium", "spa-cat_valencia")
                     .redirectErrorStream(true)
                     .start();
 
