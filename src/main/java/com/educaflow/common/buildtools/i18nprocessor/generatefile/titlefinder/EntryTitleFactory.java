@@ -2,8 +2,10 @@ package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder;
 
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplViews;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplDomainModel;
-import com.educaflow.common.buildtools.i18nprocessor.generatefile.EntryTitle;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTipoExpedienteInstance;
+import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTramites;
+import com.educaflow.common.buildtools.i18nprocessor.generatefile.EntryTitle;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,8 @@ public abstract class EntryTitleFactory {
         List<TitleExtractor> titleExtractors = List.of(
                 new TitleExtractorImplDomainModel(),
                 new TitleExtractorImplViews(),
-                new TitleExtractorImplTipoExpedienteInstance()
+                new TitleExtractorImplTipoExpedienteInstance(),
+                new TitleExtractorImplTramites()
         );
 
         

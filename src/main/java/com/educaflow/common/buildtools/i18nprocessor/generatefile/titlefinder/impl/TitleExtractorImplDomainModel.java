@@ -24,6 +24,17 @@ public class TitleExtractorImplDomainModel implements TitleExtractor {
         return xmlFiles.stream().filter( file -> isDomainModelFile(file)).collect(Collectors.toList());
     }
     
+    private boolean isDomainModelFile(Path filePath) {
+        Document document=XMLUtil.getDocument(filePath);
+        
+        if ("domain-models".equals(document.getDocumentElement().getTagName())) {
+            return true;
+        } else {
+            return false;
+        }
+        
+    }    
+    
     @Override
     public List<String> getTitlesFromFile(Path domainFile) {
         List<String> titles=new ArrayList<>();
@@ -63,16 +74,7 @@ public class TitleExtractorImplDomainModel implements TitleExtractor {
     }     
     
     
-    private boolean isDomainModelFile(Path filePath) {
-        Document document=XMLUtil.getDocument(filePath);
-        
-        if ("domain-models".equals(document.getDocumentElement().getTagName())) {
-            return true;
-        } else {
-            return false;
-        }
-        
-    }    
+    
     
     
 

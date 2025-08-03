@@ -23,7 +23,11 @@ public class TitleExtractorImplTipoExpedienteInstance implements TitleExtractor 
     public List<Path> findTitlesFilesInDirectory(Path directoryPath) {
         List<Path> xmlFiles=TitleExtractorUtil.findFilesByExtension(directoryPath,".xml");
         
-        return xmlFiles.stream().filter( path -> path.getFileName().toString().equals(TIPO_EXPEDIENTE_XML_NAME)).collect(Collectors.toList());
+        return xmlFiles.stream().filter( path -> isTipoExpedienteInstance(path)).collect(Collectors.toList());
+    }
+    
+    private boolean isTipoExpedienteInstance(Path filePath) {
+        return filePath.getFileName().toString().equals(TIPO_EXPEDIENTE_XML_NAME);
     }
     
     @Override
