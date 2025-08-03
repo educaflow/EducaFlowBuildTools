@@ -27,6 +27,16 @@ public class TitleExtractorImplViews implements TitleExtractor {
         return xmlFiles.stream().filter(file -> isViewFile(file)).collect(Collectors.toList());
     }
 
+    private boolean isViewFile(Path filePath) {
+        Document document = XMLUtil.getDocument(filePath);
+
+        if ("object-views".equals(document.getDocumentElement().getTagName())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
     
     @Override
     public List<String> getTitlesFromFile(Path viewFile) {
@@ -38,25 +48,25 @@ public class TitleExtractorImplViews implements TitleExtractor {
         List<Element> elementsWithTitle = XMLUtil.getElementsFromEvaluateXPath("//*[@title]", document.getDocumentElement(), true);
         for (Element elementWithTitle : elementsWithTitle) {
             String title = XMLUtil.getStringAttribute(elementWithTitle, "title", null);
-            if (title != null) {
+            if ((title != null) && (title.isBlank()==false)) {
                 titles.add(title);
             }
         }
 
+        List<Element> elementsWithHelp = XMLUtil.getElementsFromEvaluateXPath("//*[@help]", document.getDocumentElement(), true);
+        for (Element elementWithTitle : elementsWithHelp) {
+            String help = XMLUtil.getStringAttribute(elementWithTitle, "help", null);
+            if ((help != null) && (help.isBlank()==false)) {
+                titles.add(help);
+            }
+        }
+        
         return titles;
 
     }    
 
     
-    private boolean isViewFile(Path filePath) {
-        Document document = XMLUtil.getDocument(filePath);
 
-        if ("object-views".equals(document.getDocumentElement().getTagName())) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
 
 }
