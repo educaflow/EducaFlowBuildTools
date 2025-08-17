@@ -4,6 +4,7 @@
  */
 package com.educaflow.common.buildtools.richdomainclass;
 
+import com.educaflow.common.buildtools.common.FileUtil;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.common.XMLUtil;
 import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
@@ -45,7 +46,11 @@ public class Main {
             System.out.println("Encontrado clase de domino es:"+pathDomainClass);
             DomainClassFile domainClassFile=new DomainClassFile(pathDomainClass,tipoExpedienteInstanceFile);
             
-            domainClassFile.addExtraCodeToDomainClass();
+            try {
+                domainClassFile.addExtraCodeToDomainClass();
+            } catch (Exception ex) {
+                FileUtil.ls(pathDomainClass.getParent());
+            }
             
         }
         
