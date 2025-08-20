@@ -78,10 +78,11 @@ public class Main {
 
             
             String source = new String(Files.readAllBytes(plantUMLFilePath));
-            source = "@startuml\n" + source +"@enduml";
+            source = "@startuml\n" + source +"\n\n@enduml";
             
             SourceStringReader reader = new SourceStringReader(source);
             
+            System.out.println("Generando UML Diagram en:"+outputPath);
             try (OutputStream os = Files.newOutputStream(outputPath)) {
                 reader.outputImage(os);
             }
