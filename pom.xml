@@ -68,7 +68,22 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.9</version>
-        </dependency>                                             
+        </dependency> 
+<dependency>
+  <groupId>net.sourceforge.plantuml</groupId>
+  <artifactId>plantuml</artifactId>
+  <version>1.2025.4</version>
+</dependency>        
+        
+<!--        
+        <dependency>
+            <groupId>com.plantuml</groupId>
+            <artifactId>api</artifactId>
+            <version>1.2025.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/plantuml-1.2025.4.jar</systemPath>
+        </dependency>  
+-->                                                                   
     </dependencies>
     <build>
         <plugins>
