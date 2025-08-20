@@ -13,6 +13,7 @@
             <bind node="@name" to="name" />
             <bind node="@ambitoCreador" to="ambitoCreador" />
             <bind node="@ambitoResponsable" to="ambitoResponsable" />
+            <bind node="@ambitoAuditor" to="ambitoAuditor" />
             <bind node="@tramite" to="tramite" search="self.code = :tramite"   />
             <bind node="@fqcnEventManager" to="fqcnEventManager" />
 

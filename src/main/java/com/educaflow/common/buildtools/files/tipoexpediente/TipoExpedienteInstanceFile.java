@@ -31,7 +31,10 @@ public class TipoExpedienteInstanceFile {
     private String ambitoCreador;
 
     @XmlElement(name = "ambitoResponsable")
-    private String ambitoResponsable;    
+    private String ambitoResponsable;  
+    
+    @XmlElement(name = "ambitoAuditor")
+    private String ambitoAuditor;     
     
     @XmlTransient
     private Path path;
@@ -185,6 +188,20 @@ public class TipoExpedienteInstanceFile {
     public void setAmbitoResponsable(String ambitoResponsable) {
         this.ambitoResponsable = ambitoResponsable;
     }
+    
+    /**
+     * @return the ambitoAuditor
+     */
+    public String getAmbitoAuditor() {
+        return ambitoAuditor;
+    }
+
+    /**
+     * @param ambitoAuditor the ambitoAuditor to set
+     */
+    public void setAmbitoAuditor(String ambitoAuditor) {
+        this.ambitoAuditor = ambitoAuditor;
+    }    
     
 
     public String getPackageName() {
