@@ -20,7 +20,7 @@ import net.sourceforge.plantuml.SourceStringReader;
  */
 public class Main {
 
-    public static final  String UML_FILE_EXTENSION="uml";
+    public static final  String UML_FILE_EXTENSION="plantuml";
     
     /**
      * @param args the command line arguments
