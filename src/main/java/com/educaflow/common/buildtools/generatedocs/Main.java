@@ -78,7 +78,13 @@ public class Main {
 
             
             String source = new String(Files.readAllBytes(plantUMLFilePath));
-            source = "@startuml\n" + source +"\n\n@enduml";
+            if (source.contains("@startuml")==false) {
+                source = "@startuml\n" + source;
+            }
+             if (source.contains("@enduml")==false) {
+                source = source +"\n\n@enduml";
+            }           
+            
             
             SourceStringReader reader = new SourceStringReader(source);
             
