@@ -4,6 +4,7 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
+import com.educaflow.common.buildtools.common.TextUtil;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
@@ -12,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,7 +58,16 @@ public class TipoExpedienteInstanceFileFinder {
             checkOnlyOneInitialState(tipoExpediente);
             
             
-            List<TipoDocumentoPdf> tipoDocumentosPdf=getDocumentosPdf(expedienteXmlFile,tipoExpediente);
+            List<TipoDocumentoPdf> tipoDocumentosPdfExpecificos=getDocumentosPdf(expedienteXmlFile.getParent());
+            
+            String directorioRaiz="tiposexpedientes";
+            int indexOfRaiz=expedienteXmlFile.toString().indexOf(directorioRaiz);
+            String pathShared=expedienteXmlFile.toString().substring(0, indexOfRaiz + directorioRaiz.length()) + "/shared";
+            List<TipoDocumentoPdf> tipoDocumentosPdfShared=getDocumentosPdf(Path.of(pathShared));
+            
+            List<TipoDocumentoPdf> tipoDocumentosPdf = new ArrayList<>(tipoDocumentosPdfExpecificos);
+            tipoDocumentosPdf.addAll(tipoDocumentosPdfShared);
+            
             tipoExpediente.setTipoDocumentosPdf(tipoDocumentosPdf);
             
             return tipoExpediente;
@@ -103,9 +112,10 @@ public class TipoExpedienteInstanceFileFinder {
         
     }
 
-    private static List<TipoDocumentoPdf> getDocumentosPdf(Path expedienteXmlFile,TipoExpedienteInstanceFile tipoExpediente) {
+    private static List<TipoDocumentoPdf> getDocumentosPdf(Path carpetaBuscar) {
         try {
-            Path directorioDocumentosPdf=expedienteXmlFile.getParent().resolve("documentospdf");
+           
+            Path directorioDocumentosPdf=carpetaBuscar.resolve("documentospdf");
             
             List<TipoDocumentoPdf> lista = new ArrayList<>();
 
@@ -124,7 +134,9 @@ public class TipoExpedienteInstanceFileFinder {
                         String enumValue = nombre.substring(0, nombre.length() - 4);
 
                         
-                        String filePathName="/documentospdf/" + tipoExpediente.getPackageName().replace(".", "/") + "/documentospdf/" + nombre;
+                        String packageDocumentosPdf=TextUtil.getSubstringBetween(directorioDocumentosPdf.toString(),"java","documentospdf");
+                        
+                        String filePathName="/documentospdf" + packageDocumentosPdf + "documentospdf/" + nombre;
                         
                         TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(enumValue),filePathName);                        
                         
