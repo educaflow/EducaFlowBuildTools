@@ -83,5 +83,17 @@ public class TextUtil {
         
         return finalResult.toString().trim(); 
     }    
+        
+    public static String getSubstringBetween(String text, String start, String end) {
+        int i = text.indexOf(start);
+        if (i == -1) return null;  // no encontrada la palabra start
+        i += start.length();
+        
+        int j = text.indexOf(end, i);
+        if (j == -1) return null;  // no encontrada la palabra end
+
+        return text.substring(i, j);
+    }        
+        
     
 }
