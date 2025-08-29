@@ -13,6 +13,7 @@ import jakarta.xml.bind.annotation.XmlTransient;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @XmlRootElement(name = "TipoExpediente")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -49,6 +50,9 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "state")
     private List<State> states;
 
+    private List<TipoDocumentoPdf> tipoDocumentosPdf;
+        
+    
     // getters y setters
     public String getName() {
         return name;
@@ -202,8 +206,15 @@ public class TipoExpedienteInstanceFile {
     public void setAmbitoAuditor(String ambitoAuditor) {
         this.ambitoAuditor = ambitoAuditor;
     }    
+   
+    public void setTipoDocumentosPdf(List<TipoDocumentoPdf> tipoDocumentosPdf) {
+        this.tipoDocumentosPdf=tipoDocumentosPdf;
+    }    
     
-
+    public List<TipoDocumentoPdf> getTipoDocumentosPdf() {
+        return tipoDocumentosPdf;
+    }
+    
     public String getPackageName() {
         Path filePath = path.getParent();
         String pathString = filePath.toString();

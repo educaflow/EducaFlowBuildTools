@@ -7,10 +7,12 @@ package com.educaflow.common.buildtools.files.tipoexpediente;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +58,9 @@ public class TipoExpedienteInstanceFileFinder {
             checkOnlyOneInitialState(tipoExpediente);
             
             
+            List<TipoDocumentoPdf> tipoDocumentosPdf=getDocumentosPdf(expedienteXmlFile,tipoExpediente);
+            tipoExpediente.setTipoDocumentosPdf(tipoDocumentosPdf);
+            
             return tipoExpediente;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -97,5 +102,48 @@ public class TipoExpedienteInstanceFileFinder {
         }
         
     }
+
+    private static List<TipoDocumentoPdf> getDocumentosPdf(Path expedienteXmlFile,TipoExpedienteInstanceFile tipoExpediente) {
+        try {
+            Path directorioDocumentosPdf=expedienteXmlFile.getParent().resolve("documentospdf");
+            
+            List<TipoDocumentoPdf> lista = new ArrayList<>();
+
+
+
+            if (!Files.isDirectory(directorioDocumentosPdf)) {
+                System.out.print("No existen documentos pdf");
+                return lista; 
+            }
+
+            // 3. Buscar solo ficheros .pdf en esa carpeta
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(directorioDocumentosPdf, "*.pdf")) {
+                for (Path entry : stream) {
+                    if (Files.isRegularFile(entry)) {
+                        String nombre = entry.getFileName().toString();
+                        String enumValue = nombre.substring(0, nombre.length() - 4);
+
+                        
+                        String filePathName="/documentospdf/" + tipoExpediente.getPackageName().replace(".", "/") + "/documentospdf/" + nombre;
+                        
+                        TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(enumValue),filePathName);                        
+                        
+                        lista.add(tipoDocumentoPdf);
+                        System.out.println("Documento PDF:"+tipoDocumentoPdf.getFileName()+"-->"+tipoDocumentoPdf.getEnumValue());
+                    }
+                }
+            }
+
+            return lista;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    public static String toUpperSnakeCase(String s) {
+        String withUnderscores = s.replaceAll("(?<!^)(?=[A-Z])", "_");
+
+        return withUnderscores.toUpperCase();
+    }    
       
 }

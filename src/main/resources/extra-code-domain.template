@@ -45,7 +45,29 @@
 {% for profile in profiles %}        {{ profile }}{% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
     }
 
+{% if tipoDocumentosPdf.size()>0 %}
 
+    public enum TipoDocumentoPdf {
+    {% for tipoDocumentoPdf in tipoDocumentosPdf %}        {{ tipoDocumentoPdf.getEnumValue() }}("{{ tipoDocumentoPdf.getFileName() }}"){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
+
+    private final String fileName;
+
+        // Constructor privado del enum
+        TipoDocumentoPdf(String fileName) {
+            this.fileName = fileName;
+        }
+
+        // Getter
+        public String getFileName() {
+            return fileName;
+        }
+    }
+
+    
+    public com.educaflow.common.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
+        return getDocumentoPdf(tipoDocumentoPdf.getFileName(), this);
+    }
+{% endif %}
     public void updateState(State state) {
         super.updateState(state);
         //super.updateCurrentProfile(state.getProfile());
