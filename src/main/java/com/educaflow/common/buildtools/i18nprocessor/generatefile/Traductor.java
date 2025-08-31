@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
  */
 public class Traductor {
 
+    private static final String SUFIJO_NO_TRADUCIR="__!!";
+    
     public static String traducirDesdeCastellanoAValenciano(String textoCastellano) throws FalloTraduccionException {
         try {
 
@@ -47,9 +49,10 @@ public class Traductor {
                 throw new FalloTraduccionException(textoCastellano, traduccion);
             }
 
-            String traduccionSinAsteriscos = traduccion.replace("*", "");
+            traduccion = traduccion.replaceAll("\\*", "");
+            traduccion=traduccion.replace(SUFIJO_NO_TRADUCIR,"");
 
-            return traduccionSinAsteriscos;
+            return traduccion;
 
         } catch (FalloTraduccionException ex) {
             throw ex;
@@ -59,7 +62,7 @@ public class Traductor {
     }
 
     private static boolean isTraduccionErronea(String traduccion) {
-        Matcher matcher = Pattern.compile("\\*(\\p{L}+)").matcher(traduccion);
+        Matcher matcher = Pattern.compile("\\*([^\\s]+)").matcher(traduccion);
 
         while (matcher.find()) {
             String palabra = matcher.group(1);
@@ -68,12 +71,20 @@ public class Traductor {
             if (terminaEnPunto(traduccion, matcher.start(1), matcher.end(1))) {
                 continue;
             }
-
-            if (!palabra.equals(palabra.toUpperCase())) {
-                return true;
+            if (palabra.endsWith(SUFIJO_NO_TRADUCIR)) {
+                continue;
             }
+            
+            if (palabra.equals(palabra.toUpperCase())) {
+                continue;
+            }
+            
+
+            return false;
         }
 
+        
+        
         return false;
     }
 
