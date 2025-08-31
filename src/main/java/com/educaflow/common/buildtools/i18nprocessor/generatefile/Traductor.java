@@ -80,7 +80,7 @@ public class Traductor {
             }
             
 
-            return false;
+            return true;
         }
 
         

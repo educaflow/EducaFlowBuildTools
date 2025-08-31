@@ -122,7 +122,7 @@ public class TipoExpedienteInstanceFileFinder {
 
 
             if (!Files.isDirectory(directorioDocumentosPdf)) {
-                System.out.print("No existen documentos pdf");
+                System.out.println("No existen documentos pdf");
                 return lista; 
             }
 
