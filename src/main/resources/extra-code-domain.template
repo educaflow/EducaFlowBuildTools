@@ -64,7 +64,7 @@
     }
 
     
-    public com.educaflow.common.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
+    public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
         return getDocumentoPdf(tipoDocumentoPdf.getFileName(), this);
     }
 {% endif %}
