@@ -8,7 +8,7 @@
 
 
     <input file="{{tipoExpediente.code}}-data.xml" root="datos">
-        <bind node="tiposExpedientes/tipoExpediente" type="com.educaflow.apps.expedientes.db.TipoExpediente" search="self.code = :code"  create="true" update="true">
+        <bind node="tiposExpedientes/tipoExpediente" type="com.educaflow.shared.expedientes.db.TipoExpediente" search="self.code = :code"  create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
             <bind node="@ambitoCreador" to="ambitoCreador" />
