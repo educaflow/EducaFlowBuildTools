@@ -20,7 +20,8 @@ import net.sourceforge.plantuml.SourceStringReader;
  */
 public class Main {
 
-    public static final  String UML_FILE_EXTENSION="plantuml";
+    public static final  String UML_FILE_EXTENSION1="plantuml";
+    public static final  String UML_FILE_EXTENSION2="puml";
     
     /**
      * @param args the command line arguments
@@ -59,7 +60,7 @@ public class Main {
         try (Stream<Path> paths = Files.walk(basePath)) {
             List<Path> plantUMLFiles = paths
                     .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith("."+UML_FILE_EXTENSION))
+                    .filter(path -> path.toString().endsWith("."+UML_FILE_EXTENSION1) || path.toString().endsWith("."+UML_FILE_EXTENSION2))
                     .collect(Collectors.toList());
 
             return plantUMLFiles;
@@ -73,7 +74,7 @@ public class Main {
     private static void generaraDiagramaUML(Path plantUMLFilePath) {
         try {
             String filename = plantUMLFilePath.getFileName().toString();
-            String newFilename = filename.replaceFirst("\\." + UML_FILE_EXTENSION + "$", ".png");
+            String newFilename = filename.replaceFirst("\\." + UML_FILE_EXTENSION1 + "$", ".png").replaceFirst("\\." + UML_FILE_EXTENSION2 + "$", ".png");
             Path outputPath = plantUMLFilePath.getParent().resolve(newFilename);
 
             
