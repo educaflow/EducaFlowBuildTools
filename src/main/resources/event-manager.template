@@ -1,20 +1,22 @@
 package {{packageName}};
 
 import com.axelor.inject.Beans;
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.{{ code }};
 import com.educaflow.shared.expedientes.db.repo.{{ code }}Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-
-public class EventManagerImpl extends com.educaflow.shared.expedientes.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
+public class EventManagerImpl extends com.educaflow.shared.expedientes.services.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
 
     private final {{ code }}Repository repository;
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
     public EventManagerImpl({{ code }}Repository repository) {
