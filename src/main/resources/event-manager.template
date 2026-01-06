@@ -13,13 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.services.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
+public class {{eventManagerClassName}} extends com.educaflow.shared.expedientes.services.EventManager<{{ code }}, {{ code }}.State, {{ code }}.Event,{{ code }}.Profile> {
 
     private final {{ code }}Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    public EventManagerImpl({{ code }}Repository repository) {
+    public {{eventManagerClassName}}({{ code }}Repository repository) {
         super({{ code }}.class, {{ code }}.State.class, {{ code }}.Event.class,{{ code }}.Profile.class);
         this.repository = repository;
     }

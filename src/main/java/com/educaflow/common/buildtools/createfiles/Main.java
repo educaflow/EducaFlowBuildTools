@@ -78,11 +78,11 @@ public class Main {
     }  
 
     private static Path getPathEventManagerFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
-        return replaceFileName(tipoExpedienteFile.getPath(),"EventManagerImpl.java");
+        return replaceFileName(tipoExpedienteFile.getPath(),tipoExpedienteFile.getEventManagerClassName()+".java");
     }
     
     private static Path getPathStateEventValidatorFile(TipoExpedienteInstanceFile tipoExpedienteFile) {
-        return replaceFileName(tipoExpedienteFile.getPath(),"StateEventValidatorImpl.kt");
+        return replaceFileName(tipoExpedienteFile.getPath(),tipoExpedienteFile.getStateEventValidatorClassName()+".kt");
     } 
     
     
@@ -92,5 +92,5 @@ public class Main {
         
         return newPath;
     }    
-
+    
 }

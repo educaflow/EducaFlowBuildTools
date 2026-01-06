@@ -37,6 +37,12 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "ambitoAuditor")
     private String ambitoAuditor;     
     
+    @XmlElement(name = "fqcnEventManager")
+    private String fqcnEventManager;         
+    
+    @XmlElement(name = "fqcnStateEventValidator")
+    private String fqcnStateEventValidator;       
+    
     @XmlTransient
     private Path path;
 
@@ -240,4 +246,52 @@ public class TipoExpedienteInstanceFile {
         return packagePath.replace("/", ".");
     }
 
+    /**
+     * @return the fqcnEventManager
+     */
+    public String getFqcnEventManager() {
+        if ((fqcnEventManager==null) || (fqcnEventManager.isBlank())) {
+            return getPackageName()+".EventManagerImpl";
+        } else {
+            return fqcnEventManager;
+        }
+    }
+
+    /**
+     * @param fqcnEventManager the fqcnEventManager to set
+     */
+    public void setFqcnEventManager(String fqcnEventManager) {
+        this.fqcnEventManager = fqcnEventManager;
+    }
+
+    /**
+     * @return the fqcnStateEventValidator
+     */
+    public String getFqcnStateEventValidator() {
+        if ((fqcnStateEventValidator==null) || (fqcnStateEventValidator.isBlank())) {
+            return getPackageName()+".StateEventValidatorImpl";
+        } else {
+            return fqcnStateEventValidator;
+        }        
+
+    }
+
+    /**
+     * @param fqcnStateEventValidator the fqcnStateEventValidator to set
+     */
+    public void setFqcnStateEventValidator(String fqcnStateEventValidator) {
+        this.fqcnStateEventValidator = fqcnStateEventValidator;
+    }
+    
+    public String getEventManagerClassName() {
+        return getSimpleClassName(getFqcnEventManager());
+    }
+    
+    public String getStateEventValidatorClassName() {
+        return getSimpleClassName(getFqcnStateEventValidator());
+    }
+    
+    public static String getSimpleClassName(String fqcn) {
+        return fqcn.substring(fqcn.lastIndexOf('.') + 1);
+    }   
 }

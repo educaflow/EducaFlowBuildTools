@@ -11,7 +11,7 @@ import com.educaflow.base.infrastructure.validation.rules.*
 import java.time.LocalDate
 import com.educaflow.shared.expedientes.db.{{ code }} as model
 
-class StateEventValidatorImpl: StateEventValidator {
+class {{stateEventValidatorClassName}}: StateEventValidator {
 {% for state in states %}{% if state.events|length > 0 %}{% for eventUpperCamelCase in state.eventsUpperCamelCase %}
     @BeanValidationRulesForStateAndEvent
     public fun getForState{{ state.nameUpperCamelCase }}InEvent{{eventUpperCamelCase}}(): BeanValidationRules {

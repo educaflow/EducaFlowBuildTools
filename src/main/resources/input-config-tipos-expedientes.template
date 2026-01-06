@@ -16,6 +16,7 @@
             <bind node="@ambitoAuditor" to="ambitoAuditor" />
             <bind node="@tramite" to="tramite" search="self.code = :tramite"   />
             <bind node="@fqcnEventManager" to="fqcnEventManager" />
+            <bind node="@fqcnStateEventValidator" to="fqcnStateEventValidator" />
 
             <bind node="state" to="estados"  create="true" update="true">
                 <bind node="@codeState" to="codeState" />

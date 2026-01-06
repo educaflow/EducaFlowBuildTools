@@ -127,6 +127,7 @@ public class StateEventValidatorFile {
         context.put("code", tipoExpedienteFile.getCode());
         context.put("lowerCode", TextUtil.caseLowerFirstLetter(tipoExpedienteFile.getCode()));
         context.put("packageName", getPackageName(path.getParent()));
+        context.put("stateEventValidatorClassName", tipoExpedienteFile.getStateEventValidatorClassName());
 
         String content = TemplateUtil.evaluateTemplate("state-event-validator.template", context);
 
