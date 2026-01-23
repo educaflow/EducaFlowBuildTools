@@ -136,7 +136,7 @@ public class TipoExpedienteInstanceFileFinder {
                         
                         String packageDocumentosPdf=TextUtil.getSubstringBetween(directorioDocumentosPdf.toString(),"java","documentospdf");
                         
-                        String filePathName="/documentospdf" + packageDocumentosPdf + "documentospdf/" + nombre;
+                        String filePathName="" + packageDocumentosPdf + "documentospdf/" + nombre;
                         
                         TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(enumValue),filePathName);                        
                         
