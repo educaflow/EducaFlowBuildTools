@@ -13,12 +13,17 @@ import java.util.regex.Pattern;
  */
 public class Traductor {
 
-    private static final String SUFIJO_NO_TRADUCIR="__!!";
+    private final String SUFIJO_NO_TRADUCIR="__!!";
+    private final String procesoTraductor;
     
-    public static String traducirDesdeCastellanoAValenciano(String textoCastellano) throws FalloTraduccionException {
+    public Traductor(String procesoTraductor) {
+        this.procesoTraductor=procesoTraductor;
+    }
+    
+    public String traducirDesdeCastellanoAValenciano(String textoCastellano) throws FalloTraduccionException {
         try {
 
-            Process process = new ProcessBuilder("apertium", "spa-cat_valencia")
+            Process process = new ProcessBuilder(this.procesoTraductor, "spa-cat_valencia")
                     .redirectErrorStream(true)
                     .start();
 
@@ -61,7 +66,7 @@ public class Traductor {
         }
     }
 
-    private static boolean isTraduccionErronea(String traduccion) {
+    private boolean isTraduccionErronea(String traduccion) {
         Matcher matcher = Pattern.compile("\\*([^\\s]+)").matcher(traduccion);
 
         while (matcher.find()) {
@@ -89,7 +94,7 @@ public class Traductor {
     }
 
     // Función auxiliar que comprueba si justo después de la palabra hay un '.'
-    private static boolean terminaEnPunto(String texto, int start, int end) {
+    private boolean terminaEnPunto(String texto, int start, int end) {
         // Comprobar que no nos pasamos del límite
         if (end < texto.length() && texto.charAt(end) == '.') {
             return true;

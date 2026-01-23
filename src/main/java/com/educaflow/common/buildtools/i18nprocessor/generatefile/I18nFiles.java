@@ -13,11 +13,13 @@ import java.util.List;
 public class I18nFiles {
 
     Path directoryPath;
+    String procesoTraductor;
     
     List<TextoTraducible> textosTraduciblesCastellano;
     List<TextoTraducible> textosTraduciblesValenciano;
 
-    public I18nFiles(Path directoryPath) {
+    public I18nFiles(String procesoTraductor,Path directoryPath) {
+        this.procesoTraductor=procesoTraductor;
         this.directoryPath = directoryPath;
     }
 
@@ -197,7 +199,8 @@ public class I18nFiles {
             } else if ("Name".equals(title)) {
                 message="Nom";
             } else {
-                message=Traductor.traducirDesdeCastellanoAValenciano(title);
+                Traductor traductor=new Traductor(procesoTraductor);
+                message=traductor.traducirDesdeCastellanoAValenciano(title);
             } 
         } else {
             throw new RuntimeException("Idioma desconocido:"+idioma);

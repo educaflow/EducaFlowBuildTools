@@ -30,22 +30,23 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2) {
-            System.out.println("Uso: java Main <ruta_origen> <ruta_destino>");
+        if (args.length != 3) {
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> <rutaExecTraductor>");
             return;
         }
 
         Path pathToSearch = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]); 
+        String procesoTraductor = args[2]; 
 
         
-        generateI18nFiles(pathToSearch);
+        generateI18nFiles(procesoTraductor,pathToSearch);
 
         copyI18nFiles(pathToSearch,targetBaseDir);
 
     }
     
-    private static void generateI18nFiles(Path pathToSearch) {
+    private static void generateI18nFiles(String procesoTraductor,Path pathToSearch) {
         System.out.println("Iniciando tarea de generar ficheros i18n ....");
         
         
@@ -53,7 +54,7 @@ public class Main {
         StringBuilder messages=new StringBuilder();
         
         for(Path directory:allDirectoriesPath) {
-            I18nFiles i18nFiles=new I18nFiles(directory);
+            I18nFiles i18nFiles=new I18nFiles(procesoTraductor,directory);
             String message=i18nFiles.createOrUpdateOrDeleteI18nFiles();
             if (message!=null) {
                 messages.append(message);
