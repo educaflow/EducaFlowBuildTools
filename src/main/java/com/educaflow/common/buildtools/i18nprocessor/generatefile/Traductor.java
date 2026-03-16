@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  */
 public class Traductor {
 
-    private final String SUFIJO_NO_TRADUCIR="__!!";
+    public final static String SUFIJO_NO_TRADUCIR="__!!";
     private final String procesoTraductor;
     
     public Traductor(String procesoTraductor) {

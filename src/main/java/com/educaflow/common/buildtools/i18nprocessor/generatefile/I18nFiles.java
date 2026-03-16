@@ -190,7 +190,7 @@ public class I18nFiles {
             } else if ("Name".equals(title)) {
                 message="Nombre";
             } else {
-                message=title;
+                message=title.replaceAll(Traductor.SUFIJO_NO_TRADUCIR, "");
             }           
 
         } else if (idioma==Idioma.Valenciano) {
