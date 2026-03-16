@@ -199,7 +199,7 @@ public class StateEventValidatorFile {
     private boolean existsTrigerEvent(CtModel ctModel, String event, String modelFQCN) {
         String methodName = getMethodNameTriggerEvent(event);
 
-        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNWhenEventAnnotation(), "void",true,modelFQCN, modelFQCN, "com.educaflow.subsystem.expedientes.services.EventContext");
+        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNWhenEventAnnotation(), "void",true,modelFQCN, modelFQCN, "com.educaflow.subsystem.expedientes.services.eventmanager.EventContext");
         return exists;
     }
     
@@ -207,7 +207,7 @@ public class StateEventValidatorFile {
     private boolean existsOnEnterState(CtModel ctModel, String state, String modelFQCN) {
         String methodName = getMethodNameOnEnterEvent(state);
 
-        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNOnEnterAnnotation(), "void",true, modelFQCN, "com.educaflow.subsystem.expedientes.services.EventContext");
+        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNOnEnterAnnotation(), "void",true, modelFQCN, "com.educaflow.subsystem.expedientes.services.eventmanager.EventContext");
 
         return exists;
     }   
@@ -221,12 +221,12 @@ public class StateEventValidatorFile {
     }    
     
     private String getFQCNWhenEventAnnotation() {
-        return "com.educaflow.subsystem.expedientes.services.annotations.WhenEvent";
+        return "com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent";
     }
     
     
     private String getFQCNOnEnterAnnotation() {
-        return "com.educaflow.subsystem.expedientes.services.annotations.OnEnterState";
+        return "com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState";
     }
     
     
