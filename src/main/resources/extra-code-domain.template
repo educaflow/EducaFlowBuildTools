@@ -65,10 +65,10 @@
 
     
     public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return getDocumentoPdf(tipoDocumentoPdf.getFileName(), this);
+        return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
     }
 {% endif %}
     public void updateState(State state) {
-        super.updateState(state);
+        com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.updateState(this, state);
         //super.updateCurrentProfile(state.getProfile());
     }
