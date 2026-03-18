@@ -51,8 +51,8 @@ public class DomainXmlFile {
 try {
     String content = Files.readString(filePath, StandardCharsets.UTF_8);
 
-    String newCdata = "\t\t<![CDATA[\n" + newExtraCodeModel + "\n\t\t]]>";
-    String newExtraCodeModelTag = "\t<extra-code-model>\n" + newCdata + "\n\t\t</extra-code-model>";
+    String newCdata = "        <![CDATA[\n" + newExtraCodeModel + "\n        ]]>";
+    String newExtraCodeModelTag = "    <extra-code-model>\n" + newCdata + "\n        </extra-code-model>";
 
     // Localizar la entity con extends="Expediente" tolerando espacios
     java.util.regex.Matcher extendsMatcher = java.util.regex.Pattern
