@@ -154,6 +154,9 @@ public class EventManagerFile {
         context.put("packageName", getPackageName(path.getParent()));
         context.put("eventManagerClassName", tipoExpedienteFile.getEventManagerClassName());
 
+        context.put("profiles", tipoExpedienteFile.getProfiles());
+        context.put("tipoDocumentosPdf", tipoExpedienteFile.getTipoDocumentosPdf());        
+        
         String content = TemplateUtil.evaluateTemplate("event-manager.template", context);
 
         TemplateUtil.createFileWithContent(path, content);
@@ -167,7 +170,8 @@ public class EventManagerFile {
         context.put("code", tipoExpedienteFile.getCode());
         context.put("lowerCode", TextUtil.caseLowerFirstLetter(tipoExpedienteFile.getCode()));
         context.put("packageName", getPackageName(path.getParent()));
-
+        context.put("stateEventValidatorClassName", tipoExpedienteFile.getStateEventValidatorClassName());
+        
         String content = TemplateUtil.evaluateTemplate("event-manager-trigger-method.template", context);
         
         return content;

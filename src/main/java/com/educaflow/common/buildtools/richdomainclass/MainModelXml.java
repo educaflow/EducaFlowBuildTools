@@ -23,7 +23,7 @@ import java.nio.file.Path;
  *
  * @author logongas
  */
-public class Main {
+public class MainModelXml {
 
 
     public static void main(String[] args) {
@@ -43,15 +43,14 @@ public class Main {
             
             Path entityXmlFileName=getEntityXmlFileName(tipoExpedienteInstanceFile.getPath(),"domains.xml");
             String packageName=getPackageName(entityXmlFileName,tipoExpedienteInstanceFile.getCode());
-            Path pathDomainClass=getPathDomainClass(rootPathSrcGenJava,packageName,tipoExpedienteInstanceFile.getCode());
-            System.out.println("Encontrado clase de domino es:"+pathDomainClass);
-            DomainClassFile domainClassFile=new DomainClassFile(pathDomainClass,tipoExpedienteInstanceFile);
+
             
+            DomainXmlFile domainXmlFile=new DomainXmlFile(entityXmlFileName, tipoExpedienteInstanceFile);
             try {
-                domainClassFile.addExtraCodeToDomainClass();
+                domainXmlFile.addExtraCodeToDomainXml();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                FileUtil.ls(pathDomainClass.getParent());
+                FileUtil.ls(entityXmlFileName.getParent());
             }
             
         }
