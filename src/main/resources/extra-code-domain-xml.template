@@ -1,5 +1,4 @@
 {% if tipoDocumentosPdf.size()>0 %}
-
             public enum TipoDocumentoPdf {
 {% for tipoDocumentoPdf in tipoDocumentosPdf %}                {{ tipoDocumentoPdf.getEnumValue() }}("{{ tipoDocumentoPdf.getFileName() }}"){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
 
@@ -21,4 +20,3 @@
                 return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
             }
 {% endif %}
-
