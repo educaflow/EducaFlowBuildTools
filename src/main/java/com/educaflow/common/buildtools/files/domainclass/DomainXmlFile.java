@@ -52,7 +52,7 @@ try {
     String content = Files.readString(filePath, StandardCharsets.UTF_8);
 
     String newCdata = "        <![CDATA[\n" + newExtraCodeModel + "\n        ]]>";
-    String newExtraCodeModelTag = "    <extra-code-model>\n" + newCdata + "\n        </extra-code-model>";
+    String newExtraCodeModelTag = "        <extra-code-model>\n" + newCdata + "\n        </extra-code-model>";
 
     // Localizar la entity con extends="Expediente" tolerando espacios
     java.util.regex.Matcher extendsMatcher = java.util.regex.Pattern
@@ -74,7 +74,7 @@ try {
 
     // Buscar <extra-code-model> acotado entre la entity con Expediente y su </entity>
     java.util.regex.Matcher extraCodeModelMatcher = java.util.regex.Pattern
-            .compile("<\\s*extra-code-model\\s*>")
+            .compile("^\\s*<\\s*extra-code-model\\s*>", java.util.regex.Pattern.MULTILINE)
             .matcher(content);
     extraCodeModelMatcher.region(extendsPos, entityClosePos);
     if (extraCodeModelMatcher.find()) {

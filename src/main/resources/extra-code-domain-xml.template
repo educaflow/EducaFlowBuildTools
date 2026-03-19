@@ -1,24 +1,24 @@
 {% if tipoDocumentosPdf.size()>0 %}
 
-    public enum TipoDocumentoPdf {
-    {% for tipoDocumentoPdf in tipoDocumentosPdf %}        {{ tipoDocumentoPdf.getEnumValue() }}("{{ tipoDocumentoPdf.getFileName() }}"){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
+            public enum TipoDocumentoPdf {
+{% for tipoDocumentoPdf in tipoDocumentosPdf %}                {{ tipoDocumentoPdf.getEnumValue() }}("{{ tipoDocumentoPdf.getFileName() }}"){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %};
 
-    private final String fileName;
+                private final String fileName;
 
-        // Constructor privado del enum
-        TipoDocumentoPdf(String fileName) {
-            this.fileName = fileName;
-        }
+                // Constructor privado del enum
+                TipoDocumentoPdf(String fileName) {
+                    this.fileName = fileName;
+                }
 
-        // Getter
-        public String getFileName() {
-            return fileName;
-        }
-    }
+                // Getter
+                public String getFileName() {
+                    return fileName;
+                }
+            }
 
-    
-    public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
-    }
+
+            public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
+                return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+            }
 {% endif %}
 
