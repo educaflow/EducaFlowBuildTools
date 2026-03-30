@@ -26,7 +26,7 @@
       <button icon="fa-print" name="printBtn" onClick="A" title="Print invoices"/>
       <field icon="fa-print" name="printBtn" onClick="A" readonly="true" title="Print invoices"/>
       <panel name="botones">
-        <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+        <button name="PRESENTAR" onClick="subsysExpedientes-event-action" title="Guardar"/>
         <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
         <button icon="fa-print" name="printBtn2" onClick="A" title="Print invoices2"/>
       </panel>
@@ -39,7 +39,7 @@
         <field colSpan="3" name="fechaUltimoEstado" readonly="true"/>
       </panel>
       <panel colSpan="4" itemSpan="12" name="events">
-        <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+        <button name="PRESENTAR" onClick="subsysExpedientes-event-action" title="Guardar"/>
         <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
         <button colSpam="2" css="btn-default" icon="assignment" name="mostrar-historial-estados" onClick="action-grid-expediente-historial-estados" title="Historial Eventos.."/>
       </panel>

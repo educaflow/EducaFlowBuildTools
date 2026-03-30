@@ -32,8 +32,8 @@
       <field colSpan="12" name="motivo"/>
     </panel>
     <panel colSpan="12" itemSpan="2" name="exp-Expediente-Base-Footer-form">
-      <button colSpan="2" css="btn-danger" name="DELETE" onClick="action-event-expediente" outline="true" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
-      <button colOffset="8" colSpan="2" name="PRESENTAR" onClick="action-event-expediente" title="Siguiente"/>
+      <button colSpan="2" css="btn-danger" name="DELETE" onClick="subsysExpedientes-event-action" outline="true" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
+      <button colOffset="8" colSpan="2" name="PRESENTAR" onClick="subsysExpedientes-event-action" title="Siguiente"/>
       <field colSpan="12" name="errorMessajesField" readonly="true" showTitle="false">
         <viewer depends="errorMensajes">
           <![CDATA[
@@ -63,7 +63,7 @@
     <include readonly="true" sourceFileName="template.xml" target=".//toolbar[@name='pepe']">
       <extend target="panel[@name='botones']">
         <insert position="inside-before">
-          <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+          <button name="PRESENTAR" onClick="subsysExpedientes-event-action" title="Guardar"/>
           <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
         </insert>
       </extend>
@@ -73,7 +73,7 @@
     <include target=".//panel-related[@name='fcts-panel']"/>
     <extend target=".//button[@name='mostrar-historial-estados']">
       <insert position="before">
-        <button name="PRESENTAR" onClick="action-event-expediente" title="Guardar"/>
+        <button name="PRESENTAR" onClick="subsysExpedientes-event-action" title="Guardar"/>
         <button css="btn-danger" name="Borrar" onClick="action-event-borrar-expediente" prompt="¿Está seguro que desea borrar el expediente?" title="Borrar"/>
       </insert>
     </extend>

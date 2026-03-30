@@ -41,10 +41,10 @@
             resolucion
         </include-panels>
         <left>
-            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?"/>
+            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </left>
         <right>
-            <button name="PRESENTAR" colSpan="2" title="Siguiente" onClick="action-event-expediente" />
+            <button name="PRESENTAR" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action" />
         </right>
     </form>
 
@@ -54,7 +54,7 @@
         <include target=".//toolbar[@name='pepe']" sourceFileName="template.xml" readonly="true">
             <extend target="panel[@name='botones']">
                 <insert position="inside-before">
-                    <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
+                    <button name="PRESENTAR" title="Guardar" onClick="subsysExpedientes-event-action"/>
                     <button name="Borrar" css="btn-danger" title="Borrar" onClick="action-event-borrar-expediente"  prompt="¿Está seguro que desea borrar el expediente?"/>
                 </insert>
             </extend>
@@ -67,7 +67,7 @@
 
         <extend target=".//button[@name='mostrar-historial-estados']">
             <insert position="before">
-                <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
+                <button name="PRESENTAR" title="Guardar" onClick="subsysExpedientes-event-action"/>
                 <button name="Borrar" css="btn-danger" title="Borrar" onClick="action-event-borrar-expediente"  prompt="¿Está seguro que desea borrar el expediente?"/>
             </insert>
         </extend>
