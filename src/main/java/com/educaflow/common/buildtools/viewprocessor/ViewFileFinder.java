@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class ViewFileFinder {
 
     private final String templateViewFileName="template-views.xml";
-    private final String formTemplateName="exp-Expediente-Templates";
+    private final String formTemplateName="subsysExpedientes-templates-form";
     
     private final DocumentBuilderFactory documentBuilderFactory;
 

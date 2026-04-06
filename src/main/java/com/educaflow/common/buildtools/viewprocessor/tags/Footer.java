@@ -35,7 +35,7 @@ public class Footer {
             childButtonsRightElements = XMLUtil.importElements(XMLUtil.getChilds(buttonsRightElements),ownerDocument);
         }
         
-        Element footerPanel = panelFinder.findAndImport("exp-Expediente-footer",ownerDocument);
+        Element footerPanel = panelFinder.findAndImport("subsysExpedientes-template-footer-panel",ownerDocument);
 
         
         int sumColSpam = 0;

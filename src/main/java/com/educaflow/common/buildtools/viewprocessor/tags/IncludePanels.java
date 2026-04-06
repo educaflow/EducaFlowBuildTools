@@ -30,7 +30,7 @@ public class IncludePanels {
         
         
         if (includeHeader) {
-            panels.put("exp-Expediente-header",false);
+            panels.put("subsysExpedientes-template-header-panel",false);
         }
         
         for (String line : lines) {
