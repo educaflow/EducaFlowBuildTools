@@ -6,7 +6,7 @@ import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
 import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.{{ code }};
 import com.educaflow.subsystem.expedientes.db.repo.{{ code }}Repository;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.axelor.db.modelservice.businessmessage.BusinessException;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
