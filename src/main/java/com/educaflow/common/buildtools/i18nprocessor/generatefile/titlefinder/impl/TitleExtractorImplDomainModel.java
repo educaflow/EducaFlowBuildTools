@@ -44,7 +44,7 @@ public class TitleExtractorImplDomainModel implements TitleExtractor {
         
         
         //Campos del dominio
-        List<Element> fields=XMLUtil.getElementsFromEvaluateXPath("//entity/*[@name]", document.getDocumentElement(),true);
+        List<Element> fields=XMLUtil.getElementsFromEvaluateXPath("//entity/*[@name][local-name()!='finder-method'][local-name()!='entity-listener'][local-name()!='index']", document.getDocumentElement(),true);
         for(Element fieldElement:fields) {
             String name=fieldElement.getAttribute("name");
             String title=XMLUtil.getStringAttribute(fieldElement, "title", null);
