@@ -1,9 +1,0 @@
-class Persona {
-  - String nombre
-  - int edad
-  + void saludar()
-}
-
-class Profesor extends Persona {
-  + void ensenar()
-}
