@@ -60,7 +60,7 @@ public class TipoExpedienteInstanceFileFinder {
             
             List<TipoDocumentoPdf> tipoDocumentosPdfExpecificos=getDocumentosPdf(expedienteXmlFile.getParent());
             
-            String directorioRaiz="tiposexpedientes";
+            String directorioRaiz="tramites";
             int indexOfRaiz=expedienteXmlFile.toString().indexOf(directorioRaiz);
             String pathShared=expedienteXmlFile.toString().substring(0, indexOfRaiz + directorioRaiz.length()) + "/shared";
             List<TipoDocumentoPdf> tipoDocumentosPdfShared=getDocumentosPdf(Path.of(pathShared));
