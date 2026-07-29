@@ -10,6 +10,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,9 @@ public class TipoExpedienteInstanceFile {
     private Path path;
 
     @XmlTransient
+    private TramiteInstanceXmlParser tramiteInstanceParent;
+
+    @XmlTransient
     private List<String> events;
 
     @XmlTransient
@@ -61,7 +65,11 @@ public class TipoExpedienteInstanceFile {
     
     // getters y setters
     public String getName() {
-        return name;
+        if ((name == null) || (name.isBlank())) {
+            return getTramiteInstanceParent().getName() + " " + getVersion();
+        } else {
+            return name;
+        }
     }
 
     public void setName(String name) {
@@ -69,11 +77,36 @@ public class TipoExpedienteInstanceFile {
     }
 
     public String getCode() {
-        return code;
+        if ((code == null) || (code.isBlank())) {
+            return getTramiteInstanceParent().getCode() + getVersion();
+        } else {
+            return code;
+        }
     }
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    /**
+     * La versión del tipo de expediente derivada del nombre de su carpeta: "v1" → "V1"
+     */
+    private String getVersion() {
+        return path.getParent().getFileName().toString().toUpperCase();
+    }
+
+    private TramiteInstanceXmlParser getTramiteInstanceParent() {
+        if (tramiteInstanceParent == null) {
+            Path tramiteInstanceXmlFile = path.getParent().getParent().resolve(TramiteInstanceXmlParser.TRAMITE_XML_NAME);
+
+            if (Files.exists(tramiteInstanceXmlFile) == false) {
+                throw new RuntimeException("No existe el fichero " + tramiteInstanceXmlFile + " del trámite padre para derivar los datos del tipo de expediente:" + path);
+            }
+
+            tramiteInstanceParent = TramiteInstanceXmlParser.parse(tramiteInstanceXmlFile);
+        }
+
+        return tramiteInstanceParent;
     }
 
     public List<State> getStates() {
@@ -160,7 +193,11 @@ public class TipoExpedienteInstanceFile {
      * @return the tramite
      */
     public String getTramite() {
-        return tramite;
+        if ((tramite == null) || (tramite.isBlank())) {
+            return getTramiteInstanceParent().getCode();
+        } else {
+            return tramite;
+        }
     }
 
     /**

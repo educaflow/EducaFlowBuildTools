@@ -3,6 +3,7 @@ package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplViews;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplDomainModel;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTipoExpedienteInstance;
+import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTramiteInstance;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTramites;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.EntryTitle;
 
@@ -25,7 +26,8 @@ public abstract class EntryTitleFactory {
                 new TitleExtractorImplDomainModel(),
                 new TitleExtractorImplViews(),
                 new TitleExtractorImplTipoExpedienteInstance(),
-                new TitleExtractorImplTramites()
+                new TitleExtractorImplTramites(),
+                new TitleExtractorImplTramiteInstance()
         );
 
         
