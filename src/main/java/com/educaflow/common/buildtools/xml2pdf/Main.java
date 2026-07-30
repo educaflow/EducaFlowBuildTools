@@ -4,10 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Genera los PDF de los documentos de los trámites en tiempo de compilación.
@@ -53,7 +59,7 @@ public class Main {
             Path pdf = targetBaseDir.resolve(relativePath).resolveSibling(pdfName);
             try {
                 if (Files.exists(pdf)
-                        && Files.getLastModifiedTime(pdf).compareTo(Files.getLastModifiedTime(xml)) >= 0) {
+                        && Files.getLastModifiedTime(pdf).compareTo(latestModified(xml, new HashSet<>())) >= 0) {
                     continue;
                 }
                 Files.createDirectories(pdf.getParent());
@@ -80,9 +86,37 @@ public class Main {
     }
 
     static boolean isDocumento(Path xml) {
+        return parse(xml).getDocumentElement().getTagName().equals("documento");
+    }
+
+    /** Última modificación del XML o del más reciente de sus fragmentos
+     * incluidos (transitivamente): un cambio en un _*.xml debe regenerar los
+     * PDF de los documentos que lo incluyen. Un fragmento inexistente fuerza
+     * la regeneración para que Xml2Pdf dé su error con la ruta. */
+    static FileTime latestModified(Path xml, Set<Path> visitados) throws IOException {
+        xml = xml.toAbsolutePath().normalize();
+        if (!visitados.add(xml)) {
+            return FileTime.fromMillis(0);
+        }
+        FileTime latest = Files.getLastModifiedTime(xml);
+        NodeList includes = parse(xml).getElementsByTagName("include");
+        for (int i = 0; i < includes.getLength(); i++) {
+            String href = ((Element) includes.item(i)).getAttribute("href");
+            Path fragmento = xml.getParent().resolve(href).normalize();
+            if (!Files.isRegularFile(fragmento)) {
+                return FileTime.fromMillis(Long.MAX_VALUE);
+            }
+            FileTime t = latestModified(fragmento, visitados);
+            if (t.compareTo(latest) > 0) {
+                latest = t;
+            }
+        }
+        return latest;
+    }
+
+    static Document parse(Path xml) {
         try {
-            return DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                    .parse(xml.toFile()).getDocumentElement().getTagName().equals("documento");
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.toFile());
         } catch (Exception ex) {
             throw new RuntimeException("Fallo al parsear el XML: " + xml, ex);
         }

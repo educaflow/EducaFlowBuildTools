@@ -26,6 +26,8 @@ import org.apache.fop.pdf.PDFStream;
 import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import java.awt.Color;
@@ -47,6 +49,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.Deflater;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -500,12 +503,7 @@ public class Xml2Pdf {
     }
 
     void run(String in, String out) throws Exception {
-        validate(new File(in));
-        Element root = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().parse(new File(in)).getDocumentElement();
-        if (!root.getTagName().equals("documento")) {
-            throw new RuntimeException("ERROR: el elemento raíz debe ser <documento>");
-        }
+        Element root = loadDocumento(new File(in));
 
         doc = new PDFDocument("secretaria-virtual/xml2pdf (Apache FOP PDF library)");
         res = doc.getResources();
@@ -558,20 +556,82 @@ public class Xml2Pdf {
         System.out.println("Generado " + out);
     }
 
-    /** Valida el XML contra el esquema documento.xsd incluido en el jar (el
+    /** Carga el XML de un documento: valida el fichero contra el esquema,
+     * expande recursivamente sus <include href="_x.xml"/> y valida también el
+     * documento resultante de la expansión (p.ej. un segundo <titulo>
+     * aportado por un fragmento). */
+    static Element loadDocumento(File in) {
+        Document dom = parseValidated(in, "documento");
+        expandIncludes(dom.getDocumentElement(),
+                in.getAbsoluteFile().toPath().normalize(), new ArrayList<>());
+        validate(new DOMSource(dom), in + " (expandido con sus includes)");
+        return dom.getDocumentElement();
+    }
+
+    /** Valida el fichero contra documento.xsd y lo parsea comprobando el
+     * elemento raíz: "documento" para los documentos, "fragmento" para los
+     * fragmentos _*.xml incluibles. */
+    static Document parseValidated(File xml, String raiz) {
+        validate(new StreamSource(xml), xml.toString());
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            Document dom = dbf.newDocumentBuilder().parse(xml);
+            if (!dom.getDocumentElement().getTagName().equals(raiz)) {
+                throw new RuntimeException("ERROR: el elemento raíz de " + xml
+                        + " debe ser <" + raiz + ">");
+            }
+            return dom;
+        } catch (RuntimeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new RuntimeException("Fallo al parsear el XML: " + xml, ex);
+        }
+    }
+
+    /** Sustituye cada <include href="..."/> (hijo directo de <documento> o de
+     * <fragmento>) por los hijos de la raíz <fragmento> del fichero incluido,
+     * recursivamente si el fragmento tiene a su vez otros <include>. El href
+     * se resuelve relativo al fichero que lo incluye. */
+    static void expandIncludes(Element raiz, Path fichero, List<Path> cadena) {
+        cadena.add(fichero);
+        for (Element e : children(raiz)) {
+            if (!e.getTagName().equals("include")) {
+                continue;
+            }
+            Path fragmento = fichero.getParent().resolve(e.getAttribute("href")).normalize();
+            if (cadena.contains(fragmento)) {
+                throw new RuntimeException("ERROR: ciclo de includes: " + cadena
+                        + " -> " + fragmento);
+            }
+            if (!fragmento.toFile().isFile()) {
+                throw new RuntimeException("ERROR: " + fichero
+                        + " incluye un fragmento que no existe: " + fragmento);
+            }
+            Document dom = parseValidated(fragmento.toFile(), "fragmento");
+            expandIncludes(dom.getDocumentElement(), fragmento, cadena);
+            for (Element hijo : children(dom.getDocumentElement())) {
+                raiz.insertBefore(raiz.getOwnerDocument().importNode(hijo, true), e);
+            }
+            raiz.removeChild(e);
+        }
+        cadena.remove(cadena.size() - 1);
+    }
+
+    /** Valida contra el esquema documento.xsd incluido en el jar (el
      * xsi:noNamespaceSchemaLocation del documento no se usa: la validación es
      * siempre contra el esquema local, sin acceso a red). */
-    static void validate(File xml) {
+    static void validate(Source xml, String descripcion) {
         try (InputStream xsd = Xml2Pdf.class.getResourceAsStream("documento.xsd")) {
             if (xsd == null) {
                 throw new RuntimeException("ERROR: falta el recurso documento.xsd en el jar");
             }
             SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
                     .newSchema(new StreamSource(xsd))
-                    .newValidator().validate(new StreamSource(xml));
+                    .newValidator().validate(xml);
         } catch (Exception ex) {
             throw new RuntimeException("ERROR: el XML no valida contra documento.xsd: "
-                    + xml + ": " + ex.getMessage(), ex);
+                    + descripcion + ": " + ex.getMessage(), ex);
         }
     }
 

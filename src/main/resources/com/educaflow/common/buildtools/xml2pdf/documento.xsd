@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Esquema del XML de definición de los documentos PDF de los trámites de la
-     secretaría virtual. Xml2Pdf valida cada XML contra este esquema al cargarlo.
+     secretaría virtual: los documentos (raíz <documento>) y los fragmentos
+     reutilizables _*.xml (raíz <fragmento>) que aquellos incluyen con
+     <include href="..."/>. Xml2Pdf valida cada fichero contra este esquema al
+     cargarlo, y también el documento resultante de expandir los includes.
      El formato está documentado en el skill k-documentos de secretaria-virtual. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
@@ -47,35 +50,63 @@
         <xs:attribute name="rowSpan" type="rowSpanType"/>
     </xs:complexType>
 
-    <xs:element name="documento">
-        <xs:complexType>
+    <!-- href de un <include>: ruta relativa a un fragmento cuyo nombre de
+         fichero empieza por "_" (convención de fragmentos). -->
+    <xs:simpleType name="hrefFragmentoType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([^/]+/)*_[^/]+\.xml"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Contenido común de <documento> y <fragmento>: como máximo un <titulo>
+         (siempre primero) seguido de secciones e includes de fragmentos en
+         cualquier orden. Los <include> solo pueden aparecer a este nivel,
+         nunca dentro de una <seccion>. Como el documento expandido también se
+         valida, un título duplicado que venga de un fragmento da ERROR. -->
+    <xs:complexType name="contenidoDocumentoType">
+        <xs:sequence>
+
+            <xs:element name="titulo" minOccurs="0">
+                <xs:complexType>
+                    <xs:group ref="textosBilingues"/>
+                </xs:complexType>
+            </xs:element>
+
             <xs:choice minOccurs="0" maxOccurs="unbounded">
 
-                <xs:element name="titulo">
-                    <xs:complexType>
+            <xs:element name="seccion">
+                <xs:complexType>
+                    <xs:sequence>
                         <xs:group ref="textosBilingues"/>
-                    </xs:complexType>
-                </xs:element>
+                        <xs:element name="fila" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:choice minOccurs="1" maxOccurs="unbounded">
+                                    <xs:element name="campo" type="campoType"/>
+                                    <xs:element name="check" type="campoType"/>
+                                    <xs:element name="texto" type="textoType"/>
+                                </xs:choice>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
 
-                <xs:element name="seccion">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:group ref="textosBilingues"/>
-                            <xs:element name="fila" minOccurs="0" maxOccurs="unbounded">
-                                <xs:complexType>
-                                    <xs:choice minOccurs="1" maxOccurs="unbounded">
-                                        <xs:element name="campo" type="campoType"/>
-                                        <xs:element name="check" type="campoType"/>
-                                        <xs:element name="texto" type="textoType"/>
-                                    </xs:choice>
-                                </xs:complexType>
-                            </xs:element>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
+            <xs:element name="include">
+                <xs:complexType>
+                    <xs:attribute name="href" type="hrefFragmentoType" use="required"/>
+                </xs:complexType>
+            </xs:element>
 
             </xs:choice>
-        </xs:complexType>
-    </xs:element>
+
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="documento" type="contenidoDocumentoType"/>
+
+    <!-- Raíz de los fragmentos _*.xml. Xml2Pdf sustituye cada <include> por
+         los hijos de esta raíz, recursivamente si el fragmento tiene a su vez
+         otros <include>. -->
+    <xs:element name="fragmento" type="contenidoDocumentoType"/>
 
 </xs:schema>
