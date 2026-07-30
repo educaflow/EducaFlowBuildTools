@@ -33,6 +33,9 @@ Cada paquete bajo `com.educaflow.common.buildtools` es una herramienta con su `M
 - `richdomainclass.MainModelXml` — enriquece el **XML** de dominio antes de que Axelor lo lea (`addExtraCodeToDomainXml`), usando `extra-code-domain-xml.template`.
 - `richdomainclass.Main` — enriquece la **clase Java** de dominio generada (`addExtraCodeToDomainClass`), inyectando enums para los estados/eventos/perfiles del expediente vía Spoon + `extra-code-domain.template`. Escribe en `build/src-gen/main/java`.
 
+**Integradas en `processResources` (`dependsOn`, se ejecutan *antes* de copiar los recursos):**
+- `xml2pdf.Main` — genera los **PDF rellenables de los documentos de los trámites** directamente desde su XML de definición (raíz `<documento>`, en carpetas `documentospdf`/`documentos`, sin prefijo `_`) usando la librería PDF de Apache FOP, escribiendo en `build/src-gen/main/resources` con la misma ruta de paquete del XML (así el PDF queda en el classpath sin versionarse en git). Al cargar cada XML lo valida contra el esquema `documento.xsd` (recurso del JAR junto a `Xml2Pdf`; los XML lo referencian en su `xsi:noNamespaceSchemaLocation` con la URL raw de GitHub de este repo en master, pero la validación usa siempre la copia del JAR, sin red) y aborta si no valida. Falla si junto al XML existe un `.pdf` versionado con el mismo nombre (ambigüedad). Las fuentes Roboto, el logo GVA y `documento.xsd` van como recursos dentro del JAR.
+
 **Integradas en `processResources` (`finalizedBy`, se ejecutan *después* de copiar los recursos):**
 - `viewprocessor.Main` — preprocesa el XML de vistas de Axelor: expande los paneles reutilizables `<template-form>` en vistas concretas, y luego escribe el XML depurado en `build/resources/main/views`.
 - `i18nprocessor.Main` — genera/actualiza los CSV de i18n por directorio (invocando un **proceso traductor externo**, `apertium`, pasado como 3.er argumento), y luego copia `i18n_es.csv`/`i18n_ca.csv` → `custom_es.csv`/`custom_ca.csv` bajo `build/resources/main/i18n`.
@@ -55,6 +58,15 @@ Un `TipoExpediente` lleva: `code`, `name`, `tramite`, los ámbitos (`ambitoCread
 - **`common/XMLUtil`, `FileUtil`, `TextUtil`** — utilidades de DOM, recorrido del sistema de ficheros, y utilidades de cadenas/nomenclatura (p. ej. inflexión de Axelor).
 - **`src/main/resources/*.template`** — plantillas Pebble, el origen de todo el código generado. Cada una se corresponde con un generador (p. ej. `domain-model.template` → `DomainModelFile`, `event-manager.template` → `EventManagerFile`, `views.template` → `ViewsFile`, `state-event-validator.template` → `StateEventValidatorFile`). Edita estas para cambiar la salida generada.
 - **`files/*`** — un subpaquete por cada tipo de artefacto generado/validado (`domainclass`, `domainmodel`, `views`, `eventmanagerfile`, `stateeventvalidator`, `tipoexpediente`, `i18n`). Las clases `*File` gestionan tanto la creación (`create...IfNotExists`) como la validación (`check()`).
+
+## `scripts-antiguos/` — la forma vieja de generar el PDF desde el XML
+
+La carpeta `scripts-antiguos/` contiene los dos scripts Python que eran la **forma vieja** de generar el PDF rellenable a partir del XML de definición de un documento, en dos pasos y necesitando LibreOffice:
+
+- `xml2odt.py` — convierte el XML de definición en un `.odt` de LibreOffice Writer con controles de formulario (usa `assets/logo-gva.png` y `assets/styles-template.xml`).
+- `odt2pdf.py` — convierte ese `.odt` en PDF rellenable con LibreOffice headless, conservando los campos AcroForm y fusionando los duplicados `_2`, `_3`…
+
+La forma **actual** es la herramienta Java `xml2pdf.Main` de este JAR (XML → PDF directo con Apache FOP, sin `.odt` intermedio ni LibreOffice), integrada en el build de `secretaria-virtual`. Los scripts se conservan aquí solo como referencia/respaldo — estas son las únicas copias canónicas; el skill `k-documentos` de `secretaria-virtual` ya solo documenta el **formato del XML**, no la generación.
 
 ## Convenciones y detalles a tener en cuenta
 

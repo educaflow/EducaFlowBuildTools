@@ -12,9 +12,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  *
@@ -126,6 +129,8 @@ public class TipoExpedienteInstanceFileFinder {
                 return lista; 
             }
 
+            Set<String> nombresBase = new HashSet<>();
+
             // 3. Buscar solo ficheros .pdf en esa carpeta
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(directorioDocumentosPdf, "*.pdf")) {
                 for (Path entry : stream) {
@@ -133,16 +138,54 @@ public class TipoExpedienteInstanceFileFinder {
                         String nombre = entry.getFileName().toString();
                         String enumValue = nombre.substring(0, nombre.length() - 4);
 
-                        
+
                         String packageDocumentosPdf=TextUtil.getSubstringBetween(directorioDocumentosPdf.toString(),"java","documentospdf");
-                        
+
                         String filePathName="" + packageDocumentosPdf + "documentospdf/" + nombre;
-                        
-                        TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(enumValue),filePathName);                        
-                        
+
+                        TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(enumValue),filePathName);
+
                         lista.add(tipoDocumentoPdf);
+                        nombresBase.add(enumValue);
                         System.out.println("Documento PDF:"+tipoDocumentoPdf.getFileName()+"-->"+tipoDocumentoPdf.getEnumValue());
                     }
+                }
+            }
+
+            // 4. Buscar los .xml de definición de documentos: su .pdf se genera en
+            // tiempo de compilación (tarea generatePdfDocuments) y puede no estar
+            // versionado, pero el TipoDocumentoPdf debe existir igualmente.
+            // Cuentan los que tienen raíz <documento> y no empiezan por "_"
+            // (los _*.xml son fragmentos incluidos desde otros documentos).
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(directorioDocumentosPdf, "*.xml")) {
+                for (Path entry : stream) {
+                    if (!Files.isRegularFile(entry)) {
+                        continue;
+                    }
+                    String nombre = entry.getFileName().toString();
+                    if (nombre.startsWith("_")) {
+                        continue;
+                    }
+                    String nombreBase = nombre.substring(0, nombre.length() - 4);
+                    if (!isDocumento(entry)) {
+                        continue;
+                    }
+                    if (nombresBase.contains(nombreBase)) {
+                        throw new RuntimeException("Existen a la vez " + nombreBase + ".pdf y "
+                                + nombre + " (con raíz <documento>) en " + directorioDocumentosPdf
+                                + ": no se sabría si usar el " + nombreBase + ".pdf existente o el que"
+                                + " generaría el " + nombre + ". Borra uno de los dos.");
+                    }
+
+                    String packageDocumentosPdf=TextUtil.getSubstringBetween(directorioDocumentosPdf.toString(),"java","documentospdf");
+
+                    String filePathName="" + packageDocumentosPdf + "documentospdf/" + nombreBase + ".pdf";
+
+                    TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(nombreBase),filePathName);
+
+                    lista.add(tipoDocumentoPdf);
+                    nombresBase.add(nombreBase);
+                    System.out.println("Documento PDF (desde XML):"+tipoDocumentoPdf.getFileName()+"-->"+tipoDocumentoPdf.getEnumValue());
                 }
             }
 
@@ -152,6 +195,15 @@ public class TipoExpedienteInstanceFileFinder {
         }
     }
     
+    private static boolean isDocumento(Path xml) {
+        try {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                    .parse(xml.toFile()).getDocumentElement().getTagName().equals("documento");
+        } catch (Exception ex) {
+            throw new RuntimeException("Fallo al parsear el XML: " + xml, ex);
+        }
+    }
+
     public static String toUpperSnakeCase(String s) {
         String withUnderscores = s.replaceAll("(?<!^)(?=[A-Z])", "_");
 
