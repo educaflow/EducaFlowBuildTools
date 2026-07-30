@@ -1,4 +1,4 @@
-package com.educaflow.common.buildtools.i18nprocessor.generatefile;
+package com.educaflow.common.buildtools.common;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -76,7 +76,9 @@ public class Traductor {
             if (terminaEnPunto(traduccion, matcher.start(1), matcher.end(1))) {
                 continue;
             }
-            if (palabra.endsWith(SUFIJO_NO_TRADUCIR)) {
+            //contains y no endsWith porque la palabra puede llevar pegada la
+            //puntuación que la sigue: "(RATs__!!)"
+            if (palabra.contains(SUFIJO_NO_TRADUCIR)) {
                 continue;
             }
             

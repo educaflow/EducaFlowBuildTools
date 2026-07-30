@@ -28,8 +28,11 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Textos bilingües como elementos hijos. Un hijo omitido o vacío omite
-         ese idioma. Admiten campos inline ${nombre;n}. -->
+    <!-- Textos bilingües como elementos hijos. Admiten campos inline
+         ${nombre;n}. Un <castellano> omitido o vacío omite el castellano. Un
+         <valenciano> OMITIDO se calcula traduciendo el <castellano> con el
+         traductor externo (apertium); para que un texto no lleve valenciano
+         hay que poner el <valenciano> vacío. -->
     <xs:group name="textosBilingues">
         <xs:sequence>
             <xs:element name="valenciano" type="xs:string" minOccurs="0"/>

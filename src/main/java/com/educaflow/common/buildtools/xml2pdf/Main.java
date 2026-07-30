@@ -25,6 +25,10 @@ import org.w3c.dom.NodeList;
  * PDF de cada uno en &lt;ruta_destino&gt; replicando la ruta relativa a
  * &lt;ruta_origen&gt;, de forma que el PDF queda en el classpath con la misma
  * ruta de paquete que el XML.
+ *
+ * El tercer argumento (opcional) es el ejecutable del proceso traductor con el
+ * que se calcula el &lt;valenciano&gt; de los textos que solo llevan
+ * &lt;castellano&gt;; por omisión "apertium", el mismo que usa i18nprocessor.
  */
 public class Main {
 
@@ -32,13 +36,14 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2) {
-            System.out.println("Uso: java Main <ruta_origen> <ruta_destino>");
+        if (args.length != 2 && args.length != 3) {
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> [rutaExecTraductor]");
             return;
         }
 
         Path sourceRoot = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]);
+        String procesoTraductor = args.length == 3 ? args[2] : Xml2Pdf.TRADUCTOR_POR_DEFECTO;
 
         Path tramitesDir = sourceRoot.resolve(TRAMITES);
         if (!Files.isDirectory(tramitesDir)) {
@@ -59,11 +64,11 @@ public class Main {
             Path pdf = targetBaseDir.resolve(relativePath).resolveSibling(pdfName);
             try {
                 if (Files.exists(pdf)
-                        && Files.getLastModifiedTime(pdf).compareTo(latestModified(xml, new HashSet<>())) >= 0) {
+                        && Files.getLastModifiedTime(pdf).compareTo(latestModifiedConTramite(xml)) >= 0) {
                     continue;
                 }
                 Files.createDirectories(pdf.getParent());
-                new Xml2Pdf().run(xml.toString(), pdf.toString());
+                new Xml2Pdf(procesoTraductor).run(xml.toString(), pdf.toString());
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al generar el PDF de: " + xml, ex);
             }
@@ -87,6 +92,21 @@ public class Main {
 
     static boolean isDocumento(Path xml) {
         return parse(xml).getDocumentElement().getTagName().equals("documento");
+    }
+
+    /** Última modificación del XML, de sus fragmentos o del TramiteInstance.xml
+     * de su trámite: su <name> es el título de los documentos que no llevan
+     * <titulo>, así que cambiarlo también debe regenerar el PDF. */
+    static FileTime latestModifiedConTramite(Path xml) throws IOException {
+        FileTime latest = latestModified(xml, new HashSet<>());
+        Path tramiteInstance = TramiteInstanceFile.buscarDesde(xml);
+        if (tramiteInstance != null) {
+            FileTime t = Files.getLastModifiedTime(tramiteInstance);
+            if (t.compareTo(latest) > 0) {
+                latest = t;
+            }
+        }
+        return latest;
     }
 
     /** Última modificación del XML o del más reciente de sus fragmentos

@@ -1,5 +1,6 @@
 package com.educaflow.common.buildtools.xml2pdf;
 
+import com.educaflow.common.buildtools.common.Traductor;
 import org.apache.fop.apps.io.InternalResourceResolver;
 import org.apache.fop.apps.io.ResourceResolverFactory;
 import org.apache.fop.fonts.base14.Helvetica;
@@ -88,6 +89,7 @@ public class Xml2Pdf {
 
     static final Pattern INLINE = Pattern.compile("\\$\\{([^;{}]+);([0-9]+(?:\\.[0-9]+)?)\\}");
     static final Locale ES = new Locale("es", "ES");
+    static final String TRADUCTOR_POR_DEFECTO = "apertium";
 
     // 0=regular, 1=cursiva, 2=seminegrita, 3=seminegrita cursiva
     final Typeface[] faces = new Typeface[4];
@@ -107,6 +109,18 @@ public class Xml2Pdf {
     PDFStream apOff;
     PDFStream apYes;
     byte[] logoPng;
+
+    /** Proceso traductor externo con el que se calcula el &lt;valenciano&gt; de
+     * los textos que solo llevan &lt;castellano&gt;. */
+    final String procesoTraductor;
+
+    Xml2Pdf() {
+        this(TRADUCTOR_POR_DEFECTO);
+    }
+
+    Xml2Pdf(String procesoTraductor) {
+        this.procesoTraductor = procesoTraductor;
+    }
 
     // ------------------------------------------------------------- utilidades
 
@@ -448,11 +462,15 @@ public class Xml2Pdf {
         return out;
     }
 
+    /** Texto de un hijo <valenciano>/<castellano>. El sufijo con el que se
+     * marcan las palabras que el traductor no debe traducir (siglas, nombres
+     * propios…) no se dibuja: solo sirve para calcular el valenciano. */
     static String childText(Element e, String name) {
         for (Element c : children(e)) {
             if (c.getTagName().equals(name)) {
                 Node t = c.getFirstChild();
-                return t == null ? "" : t.getTextContent().trim();
+                return t == null ? "" : t.getTextContent().trim()
+                        .replace(Traductor.SUFIJO_NO_TRADUCIR, "");
             }
         }
         if (!e.getAttribute(name).isEmpty()) {
@@ -496,10 +514,10 @@ public class Xml2Pdf {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.err.println("Uso: Xml2Pdf entrada.xml salida.pdf");
+            System.err.println("Uso: Xml2Pdf entrada.xml salida.pdf [rutaExecTraductor]");
             System.exit(1);
         }
-        new Xml2Pdf().run(args[0], args[1]);
+        new Xml2Pdf(args.length >= 3 ? args[2] : TRADUCTOR_POR_DEFECTO).run(args[0], args[1]);
     }
 
     void run(String in, String out) throws Exception {
@@ -557,15 +575,45 @@ public class Xml2Pdf {
     }
 
     /** Carga el XML de un documento: valida el fichero contra el esquema,
-     * expande recursivamente sus <include href="_x.xml"/> y valida también el
+     * expande recursivamente sus <include href="_x.xml"/>, valida también el
      * documento resultante de la expansión (p.ej. un segundo <titulo>
-     * aportado por un fragmento). */
-    static Element loadDocumento(File in) {
+     * aportado por un fragmento), le pone el <titulo> del trámite si no trae
+     * ninguno y completa con el traductor los <valenciano> que falten. */
+    Element loadDocumento(File in) {
         Document dom = parseValidated(in, "documento");
         expandIncludes(dom.getDocumentElement(),
                 in.getAbsoluteFile().toPath().normalize(), new ArrayList<>());
         validate(new DOMSource(dom), in + " (expandido con sus includes)");
+        addTituloDelTramiteIfNotExists(dom.getDocumentElement(), in);
+        new TraductorValenciano(procesoTraductor, in.toString())
+                .completarValenciano(dom.getDocumentElement());
         return dom.getDocumentElement();
+    }
+
+    /** Si el documento (ya expandido) no trae <titulo>, se le pone uno al
+     * principio del todo con el <name> del TramiteInstance.xml del trámite al
+     * que pertenece. Solo se pone el castellano: el valenciano lo calcula
+     * después el traductor, como el de cualquier otro texto. */
+    static void addTituloDelTramiteIfNotExists(Element raiz, File in) {
+        for (Element e : children(raiz)) {
+            if (e.getTagName().equals("titulo")) {
+                return;
+            }
+        }
+
+        Path tramiteInstance = TramiteInstanceFile.buscarDesde(in.toPath());
+        if (tramiteInstance == null) {
+            throw new RuntimeException("ERROR: " + in + " no lleva <titulo> y no hay ningún "
+                    + TramiteInstanceFile.NOMBRE_FICHERO + " en ninguna carpeta por encima de él:"
+                    + " el título de un documento sin <titulo> es el <name> del trámite al que"
+                    + " pertenece.");
+        }
+
+        Element titulo = raiz.getOwnerDocument().createElement("titulo");
+        Element castellano = raiz.getOwnerDocument().createElement("castellano");
+        castellano.setTextContent(TramiteInstanceFile.getName(tramiteInstance));
+        titulo.appendChild(castellano);
+        raiz.insertBefore(titulo, raiz.getFirstChild());
     }
 
     /** Valida el fichero contra documento.xsd y lo parsea comprobando el

@@ -1,5 +1,7 @@
 package com.educaflow.common.buildtools.i18nprocessor.generatefile;
 
+import com.educaflow.common.buildtools.common.FalloTraduccionException;
+import com.educaflow.common.buildtools.common.Traductor;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.EntryTitleFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
