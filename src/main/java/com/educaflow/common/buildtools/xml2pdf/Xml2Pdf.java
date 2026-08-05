@@ -91,7 +91,7 @@ public class Xml2Pdf {
     static final double LOGO_H = 1.939 * CM;
 
     static final Pattern INLINE = Pattern.compile("\\$\\{([^;{}]+);([0-9]+(?:\\.[0-9]+)?)\\}");
-    static final Locale ES = new Locale("es", "ES");
+    static final Locale ES = Locale.of("es", "ES");
     static final String TRADUCTOR_POR_DEFECTO = "apertium";
 
     // 0=regular, 1=cursiva, 2=seminegrita, 3=seminegrita cursiva
@@ -780,7 +780,8 @@ public class Xml2Pdf {
 
         // --- primera pasada: altura de la fila y layouts por celda
         double rowH = 0;
-        Map<Hoja, List<Line>[]> parrafos = new LinkedHashMap<>();
+        // por celda: [0]=valenciano (o la etiqueta única de un campo), [1]=castellano
+        Map<Hoja, List<List<Line>>> parrafos = new LinkedHashMap<>();
         for (Hoja h : line) {
             double cellW = (h.endUnits - h.startUnits) * TABLE_W / FULL;
             double extra = (h.rowSpan - 1) * EXTRA_H;
@@ -793,7 +794,7 @@ public class Xml2Pdf {
                         toks.addAll(tokenize(h.cast, 1, 7, true));
                     }
                     List<Line> label = layout(toks, cellW - 2 * PAD);
-                    parrafos.put(h, new List[]{label});
+                    parrafos.put(h, List.of(label));
                     double labelH = LABEL_PAD_TOP + label.size() * 7 * 0.9 + 0.03 * CM;
                     rowH = Math.max(rowH, labelH + ctlH + 0.03 * CM);
                 } else {
@@ -803,7 +804,7 @@ public class Xml2Pdf {
                 double base = soloChecks ? ROW_CHECK : ROW_CHECK;
                 List<Line> lv = layout(tokenize(h.val, 0, 7, false), cellW - CHECK_COL_W - CHECK_LABEL_GAP - PAD);
                 List<Line> lc = layout(tokenize(h.cast, 1, 7, false), cellW - CHECK_COL_W - CHECK_LABEL_GAP - PAD);
-                parrafos.put(h, new List[]{lv, lc});
+                parrafos.put(h, List.of(lv, lc));
                 double textH = (h.val.isEmpty() ? 0 : lv.size() * lineH7)
                         + (h.cast.isEmpty() ? 0 : lc.size() * lineH7)
                         + (!h.val.isEmpty() && !h.cast.isEmpty() ? gapIdiomas(h) : 0);
@@ -811,7 +812,7 @@ public class Xml2Pdf {
             } else {
                 List<Line> lv = layout(tokenize(h.val, 0, 7, false), cellW - 2 * PAD);
                 List<Line> lc = layout(tokenize(h.cast, 1, 7, false), cellW - 2 * PAD);
-                parrafos.put(h, new List[]{lv, lc});
+                parrafos.put(h, List.of(lv, lc));
                 double textH = (h.val.isEmpty() ? 0 : lv.size() * lineH7)
                         + (h.cast.isEmpty() ? 0 : lc.size() * lineH7);
                 double min = h.rowSpan > 1 ? 0.5 * CM * h.rowSpan : 0;
@@ -833,7 +834,7 @@ public class Xml2Pdf {
                 double fx = x + PAD;
                 double fw = cellW - 0.28 * CM;
                 if (parrafos.containsKey(h)) {
-                    List<Line> label = parrafos.get(h)[0];
+                    List<Line> label = parrafos.get(h).get(0);
                     drawLines(label, x + PAD, top - LABEL_PAD_TOP, 7 * 0.9, cellW - 2 * PAD, 'l');
                     addWidget(h.nombreCampo, new PDFName("Tx"), fx, top - rowH + 0.03 * CM, fw, ctlH);
                 } else {
@@ -845,30 +846,30 @@ public class Xml2Pdf {
                 addWidget(h.nombreCampo, new PDFName("Btn"), bx,
                         top - rowH / 2 - CHECK_SIDE / 2, CHECK_SIDE, CHECK_SIDE);
                 if (h.endUnits - h.startUnits > 100) {
-                    List<Line>[] ps = parrafos.get(h);
-                    double textH = (h.val.isEmpty() ? 0 : ps[0].size() * lineH7)
-                            + (h.cast.isEmpty() ? 0 : ps[1].size() * lineH7)
+                    List<List<Line>> ps = parrafos.get(h);
+                    double textH = (h.val.isEmpty() ? 0 : ps.get(0).size() * lineH7)
+                            + (h.cast.isEmpty() ? 0 : ps.get(1).size() * lineH7)
                             + (!h.val.isEmpty() && !h.cast.isEmpty() ? gapIdiomas(h) : 0);
                     double ty = top - (rowH - textH) / 2;
                     if (!h.val.isEmpty()) {
-                        drawLines(ps[0], x + CHECK_COL_W + CHECK_LABEL_GAP, ty, lineH7,
+                        drawLines(ps.get(0), x + CHECK_COL_W + CHECK_LABEL_GAP, ty, lineH7,
                                 cellW - CHECK_COL_W - CHECK_LABEL_GAP - PAD, 'l');
-                        ty -= ps[0].size() * lineH7 + gapIdiomas(h);
+                        ty -= ps.get(0).size() * lineH7 + gapIdiomas(h);
                     }
                     if (!h.cast.isEmpty()) {
-                        drawLines(ps[1], x + CHECK_COL_W + CHECK_LABEL_GAP, ty, lineH7,
+                        drawLines(ps.get(1), x + CHECK_COL_W + CHECK_LABEL_GAP, ty, lineH7,
                                 cellW - CHECK_COL_W - CHECK_LABEL_GAP - PAD, 'l');
                     }
                 }
             } else {
-                List<Line>[] ps = parrafos.get(h);
+                List<List<Line>> ps = parrafos.get(h);
                 double ty = top - PAD;
                 if (!h.val.isEmpty()) {
-                    drawLines(ps[0], x + PAD, ty, lineH7, cellW - 2 * PAD, 'l');
-                    ty -= ps[0].size() * lineH7;
+                    drawLines(ps.get(0), x + PAD, ty, lineH7, cellW - 2 * PAD, 'l');
+                    ty -= ps.get(0).size() * lineH7;
                 }
                 if (!h.cast.isEmpty()) {
-                    drawLines(ps[1], x + PAD, ty, lineH7, cellW - 2 * PAD, 'l');
+                    drawLines(ps.get(1), x + PAD, ty, lineH7, cellW - 2 * PAD, 'l');
                 }
             }
         }

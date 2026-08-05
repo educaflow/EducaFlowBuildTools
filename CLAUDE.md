@@ -17,7 +17,7 @@ mvn clean install          # compila + instala el JAR en el repositorio Maven lo
 
 Tras cambiar cualquier herramienta de aquí, debes ejecutar `mvn install` para que el build de Gradle de `secretaria-virtual` recoja el nuevo JAR del repositorio Maven local. No hay ningún otro paso de publicación.
 
-- El source/target del compilador Maven es **Java 11** (`pom.xml`), pero el consumidor (`secretaria-virtual`) se ejecuta sobre **Java 21** — mantén el código compatible con Java 11.
+- El compilador Maven usa `release` **21** (`pom.xml`), igual que el consumidor (`secretaria-virtual`), que se ejecuta sobre **Java 21**. Puedes usar sintaxis y API de Java 21 (records, `switch` con patrones, text blocks…).
 - `-parameters` está activado (se conservan los nombres de parámetros; algunas herramientas dependen de reflexión).
 
 ### Ejecutar una única herramienta a mano
