@@ -4,6 +4,7 @@
  */
 package com.educaflow.common.buildtools.i18nprocessor;
 
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.I18nFiles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,23 +31,24 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 3) {
-            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> <rutaExecTraductor>");
+        if (args.length != 3 && args.length != 4) {
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> <rutaExecTraductor> [paqueteRaiz]");
             return;
         }
 
         Path pathToSearch = Paths.get(args[0]);
-        Path targetBaseDir = Paths.get(args[1]); 
-        String procesoTraductor = args[2]; 
+        Path targetBaseDir = Paths.get(args[1]);
+        String procesoTraductor = args[2];
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 3);
 
-        
-        generateI18nFiles(procesoTraductor,pathToSearch);
+
+        generateI18nFiles(procesoTraductor,pathToSearch,new TramitesLayout(pathToSearch, paqueteRaizTramites));
 
         copyI18nFiles(pathToSearch,targetBaseDir);
 
     }
     
-    private static void generateI18nFiles(String procesoTraductor,Path pathToSearch) {
+    private static void generateI18nFiles(String procesoTraductor,Path pathToSearch,TramitesLayout tramitesLayout) {
         System.out.println("Iniciando tarea de generar ficheros i18n ....");
         
         
@@ -54,7 +56,7 @@ public class Main {
         StringBuilder messages=new StringBuilder();
         
         for(Path directory:allDirectoriesPath) {
-            I18nFiles i18nFiles=new I18nFiles(procesoTraductor,directory);
+            I18nFiles i18nFiles=new I18nFiles(procesoTraductor,directory,tramitesLayout);
             String message=i18nFiles.createOrUpdateOrDeleteI18nFiles();
             if (message!=null) {
                 messages.append(message);

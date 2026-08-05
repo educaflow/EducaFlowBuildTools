@@ -5,6 +5,7 @@ import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.im
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTipoExpedienteInstance;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTramiteInstance;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl.TitleExtractorImplTramites;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.EntryTitle;
 
 import java.nio.file.Path;
@@ -18,14 +19,14 @@ import java.util.function.Function;
  */
 public abstract class EntryTitleFactory {
     
-    public static List<EntryTitle> getEntryTitles(Path directoryPath) { 
+    public static List<EntryTitle> getEntryTitles(Path directoryPath,TramitesLayout tramitesLayout) {
         List<EntryTitle> titles=new ArrayList<>();
 
-        
+
         List<TitleExtractor> titleExtractors = List.of(
                 new TitleExtractorImplDomainModel(),
                 new TitleExtractorImplViews(),
-                new TitleExtractorImplTipoExpedienteInstance(),
+                new TitleExtractorImplTipoExpedienteInstance(tramitesLayout),
                 new TitleExtractorImplTramites(),
                 new TitleExtractorImplTramiteInstance()
         );

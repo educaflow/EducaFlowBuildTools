@@ -10,6 +10,7 @@ import com.educaflow.common.buildtools.common.XMLUtil;
 import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
 import com.educaflow.common.buildtools.files.domainclass.DomainXmlFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -29,14 +30,16 @@ public class MainModelXml {
     public static void main(String[] args) {
         Path rootPathSourceFiles = Paths.get(args[0]);
         Path rootPathSrcGenJava = Paths.get(args[1]);
-        
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 2);
+
         System.out.println("Iniciando tarea de enriquecer las clases de dominio....");
         System.out.println("rootPathSourceFiles="+rootPathSourceFiles);
         System.out.println("rootPathSrcGenJava="+rootPathSrcGenJava);
-        
-        
-        
-        List<TipoExpedienteInstanceFile> tipoExpedienteInstanceFiles=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+
+
+
+        TramitesLayout tramitesLayout=new TramitesLayout(rootPathSourceFiles, paqueteRaizTramites);
+        List<TipoExpedienteInstanceFile> tipoExpedienteInstanceFiles=new TipoExpedienteInstanceFileFinder(tramitesLayout).findTiposExpedienteFile();
         
         for (TipoExpedienteInstanceFile tipoExpedienteInstanceFile : tipoExpedienteInstanceFiles) {
             System.out.println("Encontrado Tipo de expediente instancia:"+tipoExpedienteInstanceFile.getName()+ " en " + tipoExpedienteInstanceFile.getPath());

@@ -4,13 +4,15 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
+import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFile;
+import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFileFinder;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,10 @@ public class TipoExpedienteInstanceFile {
     private Path path;
 
     @XmlTransient
-    private TramiteInstanceXmlParser tramiteInstanceParent;
+    private TramitesLayout tramitesLayout;
+
+    @XmlTransient
+    private TramiteInstanceFile tramiteInstanceParent;
 
     @XmlTransient
     private List<String> events;
@@ -95,18 +100,23 @@ public class TipoExpedienteInstanceFile {
         return path.getParent().getFileName().toString().toUpperCase();
     }
 
-    private TramiteInstanceXmlParser getTramiteInstanceParent() {
+    /**
+     * El trámite al que pertenece el tipo de expediente: el del
+     * TramiteInstance.xml que hay en la carpeta del propio tipo o en cualquiera
+     * de sus carpetas padre hasta el paquete raíz de los trámites.
+     */
+    private TramiteInstanceFile getTramiteInstanceParent() {
         if (tramiteInstanceParent == null) {
-            Path tramiteInstanceXmlFile = path.getParent().getParent().resolve(TramiteInstanceXmlParser.TRAMITE_XML_NAME);
+            Path tramiteInstanceXmlFile = tramitesLayout.getTramiteInstanceDelTipo(path);
 
-            if (Files.exists(tramiteInstanceXmlFile) == false) {
-                throw new RuntimeException("No existe el fichero " + tramiteInstanceXmlFile + " del trámite padre para derivar los datos del tipo de expediente:" + path);
-            }
-
-            tramiteInstanceParent = TramiteInstanceXmlParser.parse(tramiteInstanceXmlFile);
+            tramiteInstanceParent = new TramiteInstanceFileFinder(tramitesLayout).parse(tramiteInstanceXmlFile);
         }
 
         return tramiteInstanceParent;
+    }
+
+    public void setTramitesLayout(TramitesLayout tramitesLayout) {
+        this.tramitesLayout = tramitesLayout;
     }
 
     public List<State> getStates() {

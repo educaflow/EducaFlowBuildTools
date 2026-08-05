@@ -5,6 +5,7 @@
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
 import com.educaflow.common.buildtools.common.TextUtil;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
@@ -13,7 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,15 +27,31 @@ import javax.xml.parsers.DocumentBuilderFactory;
  * @author logongas
  */
 public class TipoExpedienteInstanceFileFinder {
-    
+
     static final public String TIPO_EXPEDIENTE_XML_NAME="TipoExpedienteInstance.xml";
-        
-        
-    public static List<TipoExpedienteInstanceFile> findTiposExpedienteFile(Path rootPath) {
+
+    private final TramitesLayout tramitesLayout;
+
+    public TipoExpedienteInstanceFileFinder(TramitesLayout tramitesLayout) {
+        this.tramitesLayout = tramitesLayout;
+    }
+
+    public List<TipoExpedienteInstanceFile> findTiposExpedienteFile() {
         List<TipoExpedienteInstanceFile> tipoExpedienteInstanceFiles=new ArrayList<>();
-        
-        
-        List<Path> expedienteXmlFiles = findTiposExpedienteXmlFiles(rootPath);
+
+        Path origen=tramitesLayout.getOrigen();
+        if (!Files.exists(origen) || !Files.isDirectory(origen)) {
+            throw new RuntimeException("El directorio no existe o no es un directorio:"+origen);
+        }
+
+        if (tramitesLayout.existeRaiz()==false) {
+            System.out.println("No existe "+tramitesLayout.getRootPackagePath()+"; no hay ningún trámite ni tipo de expediente");
+            return tipoExpedienteInstanceFiles;
+        }
+
+        tramitesLayout.checkTramitesNoAnidados();
+
+        List<Path> expedienteXmlFiles = findTiposExpedienteXmlFiles();
         for (Path expedienteXmlFile : expedienteXmlFiles) {
             try {
                 TipoExpedienteInstanceFile tipoExpedienteInstanceFile=parseTipoExpedienteXml(expedienteXmlFile);
@@ -42,13 +61,15 @@ public class TipoExpedienteInstanceFileFinder {
             }
 
         }
-        
+
+        checkCodesNoDuplicados(tipoExpedienteInstanceFiles);
+
         return tipoExpedienteInstanceFiles;
     }
-    
-    
 
-    public static TipoExpedienteInstanceFile parseTipoExpedienteXml(Path expedienteXmlFile) {
+
+
+    public TipoExpedienteInstanceFile parseTipoExpedienteXml(Path expedienteXmlFile) {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(TipoExpedienteInstanceFile.class, State.class);
 
@@ -57,29 +78,34 @@ public class TipoExpedienteInstanceFileFinder {
             File xmlFile = expedienteXmlFile.toFile();
             TipoExpedienteInstanceFile tipoExpediente=(TipoExpedienteInstanceFile) unmarshaller.unmarshal(xmlFile);
             tipoExpediente.setPath(expedienteXmlFile);
-            
+            tipoExpediente.setTramitesLayout(tramitesLayout);
+
+            //Se valida ya aquí (aunque el XML declare todos sus campos y no
+            //necesite heredar nada del trámite) para que un tipo de expediente
+            //huérfano o fuera del paquete raíz aborte cuanto antes.
+            tramitesLayout.getTramiteInstanceDelTipo(expedienteXmlFile);
+
             checkOnlyOneInitialState(tipoExpediente);
-            
-            
+
+
             List<TipoDocumentoPdf> tipoDocumentosPdfExpecificos=getDocumentosPdf(expedienteXmlFile.getParent());
-            
-            String directorioRaiz="tramites";
-            int indexOfRaiz=expedienteXmlFile.toString().indexOf(directorioRaiz);
-            String pathShared=expedienteXmlFile.toString().substring(0, indexOfRaiz + directorioRaiz.length()) + "/shared";
-            List<TipoDocumentoPdf> tipoDocumentosPdfShared=getDocumentosPdf(Path.of(pathShared));
-            
+
+            List<TipoDocumentoPdf> tipoDocumentosPdfShared=getDocumentosPdf(tramitesLayout.getSharedPath());
+
             List<TipoDocumentoPdf> tipoDocumentosPdf = new ArrayList<>(tipoDocumentosPdfExpecificos);
             tipoDocumentosPdf.addAll(tipoDocumentosPdfShared);
-            
+
             tipoExpediente.setTipoDocumentosPdf(tipoDocumentosPdf);
-            
+
             return tipoExpediente;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public static List<Path> findTiposExpedienteXmlFiles(Path rootPath) {
+    public List<Path> findTiposExpedienteXmlFiles() {
+        Path rootPath=tramitesLayout.getRootPackagePath();
+
         try {
 
             if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
@@ -88,14 +114,40 @@ public class TipoExpedienteInstanceFileFinder {
 
             try (Stream<Path> walk = Files.walk(rootPath)) {
                 return walk
-                        .filter(Files::isRegularFile) 
-                        .filter(path -> path.getFileName().toString().equals(TIPO_EXPEDIENTE_XML_NAME)) 
-                        .collect(Collectors.toList()); 
+                        .filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().equals(TIPO_EXPEDIENTE_XML_NAME))
+                        .collect(Collectors.toList());
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }    
+    }
+
+    /**
+     * Al admitir tipos de expediente a cualquier profundidad, dos carpetas con
+     * el mismo nombre bajo el mismo trámite (grupoA/v1 y grupoB/v1) derivarían
+     * el mismo code y el mismo name. Como el code identifica al tipo de
+     * expediente, eso es siempre un error.
+     */
+    private static void checkCodesNoDuplicados(List<TipoExpedienteInstanceFile> tiposExpedientes) {
+        Map<String,List<Path>> pathsPorCode=new LinkedHashMap<>();
+
+        for(TipoExpedienteInstanceFile tipoExpediente:tiposExpedientes) {
+            pathsPorCode.computeIfAbsent(tipoExpediente.getCode(), code -> new ArrayList<>()).add(tipoExpediente.getPath());
+        }
+
+        StringBuilder messages=new StringBuilder();
+        for(Map.Entry<String,List<Path>> entry:pathsPorCode.entrySet()) {
+            if (entry.getValue().size()>1) {
+                messages.append("El code '"+entry.getKey()+"' lo tienen a la vez estos tipos de expediente:"
+                        +entry.getValue().stream().map(Path::toString).collect(Collectors.joining(", "))+"\n");
+            }
+        }
+
+        if (messages.length()>0) {
+            throw new RuntimeException("Hay tipos de expediente con el mismo code:\n"+messages.toString());
+        }
+    }
 
     private static void checkOnlyOneInitialState(TipoExpedienteInstanceFile tipoExpediente) {
         List<String> initialStates=new ArrayList<>();

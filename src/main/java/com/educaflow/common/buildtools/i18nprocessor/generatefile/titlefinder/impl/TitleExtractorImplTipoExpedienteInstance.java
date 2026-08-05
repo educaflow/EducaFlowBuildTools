@@ -5,6 +5,7 @@ import com.educaflow.common.buildtools.files.tipoexpediente.State;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import static com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder.TIPO_EXPEDIENTE_XML_NAME;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.AxelorInflector;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.TitleExtractor;
 import java.nio.file.Path;
@@ -17,8 +18,13 @@ import java.util.stream.Collectors;
  * @author logongas
  */
 public class TitleExtractorImplTipoExpedienteInstance implements TitleExtractor {
-    
-    
+
+    private final TramitesLayout tramitesLayout;
+
+    public TitleExtractorImplTipoExpedienteInstance(TramitesLayout tramitesLayout) {
+        this.tramitesLayout = tramitesLayout;
+    }
+
     @Override
     public List<Path> findTitlesFilesInDirectory(Path directoryPath) {
         List<Path> xmlFiles=TitleExtractorUtil.findFilesByExtension(directoryPath,".xml");
@@ -34,7 +40,7 @@ public class TitleExtractorImplTipoExpedienteInstance implements TitleExtractor 
     public List<String> getTitlesFromFile(Path tipoExpedienteInstanceFilePath) {
         List<String> titles=new ArrayList<>();
         
-        TipoExpedienteInstanceFile tipoExpedienteInstanceFile=TipoExpedienteInstanceFileFinder.parseTipoExpedienteXml(tipoExpedienteInstanceFilePath);
+        TipoExpedienteInstanceFile tipoExpedienteInstanceFile=new TipoExpedienteInstanceFileFinder(tramitesLayout).parseTipoExpedienteXml(tipoExpedienteInstanceFilePath);
 
         
         titles.add("value:"+tipoExpedienteInstanceFile.getName());

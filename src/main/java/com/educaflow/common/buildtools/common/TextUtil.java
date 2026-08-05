@@ -93,7 +93,17 @@ public class TextUtil {
         if (j == -1) return null;  // no encontrada la palabra end
 
         return text.substring(i, j);
-    }        
-        
-    
+    }
+
+    /**
+     * Escapa el texto para que pueda ir como valor de un atributo XML.
+     */
+    public static String escapeXmlAttribute(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
 }

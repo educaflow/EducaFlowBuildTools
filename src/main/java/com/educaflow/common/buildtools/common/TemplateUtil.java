@@ -41,6 +41,7 @@ public class TemplateUtil {
                 public Map<String, Function> getFunctions() {
                     Map<String, Function> functions = new HashMap<>();
                     functions.put("asterisks", new AsteriskFunction());
+                    functions.put("escapeXml", new EscapeXmlFunction());
                     return functions;
                 }
             };
@@ -83,6 +84,30 @@ public class TemplateUtil {
                     return "";
                 }
                 return "*".repeat(input.length());
+            }
+            return "";
+        }
+
+        @Override
+        public List<String> getArgumentNames() {
+            return Collections.singletonList("input");
+        }
+    }
+
+    /**
+     * Escapa el texto para que pueda ir como valor de un atributo XML. Hace
+     * falta porque el motor de plantillas va con el auto-escaping desactivado.
+     */
+    public static class EscapeXmlFunction implements Function {
+
+        @Override
+        public Object execute(Map<String, Object> args, PebbleTemplate self, EvaluationContext context, int lineNumber) {
+            if (args.containsKey("input")) {
+                Object input = args.get("input");
+                if (input == null) {
+                    return "";
+                }
+                return TextUtil.escapeXmlAttribute(input.toString());
             }
             return "";
         }

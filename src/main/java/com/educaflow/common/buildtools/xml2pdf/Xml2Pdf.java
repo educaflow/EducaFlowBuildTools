@@ -1,6 +1,9 @@
 package com.educaflow.common.buildtools.xml2pdf;
 
 import com.educaflow.common.buildtools.common.Traductor;
+import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFile;
+import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFileFinder;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import org.apache.fop.apps.io.InternalResourceResolver;
 import org.apache.fop.apps.io.ResourceResolverFactory;
 import org.apache.fop.fonts.base14.Helvetica;
@@ -114,12 +117,20 @@ public class Xml2Pdf {
      * los textos que solo llevan &lt;castellano&gt;. */
     final String procesoTraductor;
 
-    Xml2Pdf() {
-        this(TRADUCTOR_POR_DEFECTO);
-    }
+    /** La estructura de carpetas de los trámites, con la que se busca el
+     * TramiteInstance.xml del trámite al que pertenece el documento sin subir
+     * nunca por encima del paquete raíz. Es null cuando se invoca a mano
+     * (Xml2Pdf.main): ahí no se sabe cuál es la raíz de fuentes y la búsqueda
+     * se hace sin tope. */
+    final TramitesLayout tramitesLayout;
 
     Xml2Pdf(String procesoTraductor) {
+        this(procesoTraductor, null);
+    }
+
+    Xml2Pdf(String procesoTraductor, TramitesLayout tramitesLayout) {
         this.procesoTraductor = procesoTraductor;
+        this.tramitesLayout = tramitesLayout;
     }
 
     // ------------------------------------------------------------- utilidades
@@ -594,24 +605,26 @@ public class Xml2Pdf {
      * principio del todo con el <name> del TramiteInstance.xml del trámite al
      * que pertenece. Solo se pone el castellano: el valenciano lo calcula
      * después el traductor, como el de cualquier otro texto. */
-    static void addTituloDelTramiteIfNotExists(Element raiz, File in) {
+    void addTituloDelTramiteIfNotExists(Element raiz, File in) {
         for (Element e : children(raiz)) {
             if (e.getTagName().equals("titulo")) {
                 return;
             }
         }
 
-        Path tramiteInstance = TramiteInstanceFile.buscarDesde(in.toPath());
+        Path tramiteInstance = tramitesLayout != null
+                ? tramitesLayout.findTramiteInstanceAncestro(in.toPath())
+                : TramitesLayout.buscarTramiteInstanceAncestroSinTope(in.toPath());
         if (tramiteInstance == null) {
             throw new RuntimeException("ERROR: " + in + " no lleva <titulo> y no hay ningún "
-                    + TramiteInstanceFile.NOMBRE_FICHERO + " en ninguna carpeta por encima de él:"
+                    + TramiteInstanceFile.TRAMITE_XML_NAME + " en ninguna carpeta por encima de él:"
                     + " el título de un documento sin <titulo> es el <name> del trámite al que"
                     + " pertenece.");
         }
 
         Element titulo = raiz.getOwnerDocument().createElement("titulo");
         Element castellano = raiz.getOwnerDocument().createElement("castellano");
-        castellano.setTextContent(TramiteInstanceFile.getName(tramiteInstance));
+        castellano.setTextContent(new TramiteInstanceFileFinder(tramitesLayout).parse(tramiteInstance).getName());
         titulo.appendChild(castellano);
         raiz.insertBefore(titulo, raiz.getFirstChild());
     }

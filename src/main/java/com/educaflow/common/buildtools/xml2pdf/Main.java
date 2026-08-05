@@ -1,5 +1,6 @@
 package com.educaflow.common.buildtools.xml2pdf;
 
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,38 +19,42 @@ import org.w3c.dom.NodeList;
 /**
  * Genera los PDF de los documentos de los trámites en tiempo de compilación.
  *
- * Busca bajo &lt;ruta_origen&gt;/com/educaflow/tramites los XML que están en una
- * carpeta llamada "documentospdf" o "documentos", cuyo nombre no empieza por "_"
- * (convención tipo SASS: los _*.xml son fragmentos incluidos desde otros
- * documentos) y cuyo elemento raíz es &lt;documento&gt;, y genera con Xml2Pdf el
- * PDF de cada uno en &lt;ruta_destino&gt; replicando la ruta relativa a
- * &lt;ruta_origen&gt;, de forma que el PDF queda en el classpath con la misma
- * ruta de paquete que el XML.
+ * Busca bajo el paquete raíz de los trámites de &lt;ruta_origen&gt; los XML que
+ * están en una carpeta llamada "documentospdf" o "documentos", cuyo nombre no
+ * empieza por "_" (convención tipo SASS: los _*.xml son fragmentos incluidos
+ * desde otros documentos) y cuyo elemento raíz es &lt;documento&gt;, y genera
+ * con Xml2Pdf el PDF de cada uno en &lt;ruta_destino&gt; replicando la ruta
+ * relativa a &lt;ruta_origen&gt;, de forma que el PDF queda en el classpath con
+ * la misma ruta de paquete que el XML.
  *
  * El tercer argumento (opcional) es el ejecutable del proceso traductor con el
  * que se calcula el &lt;valenciano&gt; de los textos que solo llevan
  * &lt;castellano&gt;; por omisión "apertium", el mismo que usa i18nprocessor.
+ * El cuarto (opcional) es el paquete raíz de los trámites.
  */
 public class Main {
 
-    static final String TRAMITES = "com/educaflow/tramites";
-
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2 && args.length != 3) {
-            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> [rutaExecTraductor]");
+        if (args.length < 2 || args.length > 4) {
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> [rutaExecTraductor] [paqueteRaiz]");
             return;
         }
 
         Path sourceRoot = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]);
-        String procesoTraductor = args.length == 3 ? args[2] : Xml2Pdf.TRADUCTOR_POR_DEFECTO;
+        String procesoTraductor = args.length >= 3 ? args[2] : Xml2Pdf.TRADUCTOR_POR_DEFECTO;
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 3);
 
-        Path tramitesDir = sourceRoot.resolve(TRAMITES);
+        TramitesLayout tramitesLayout = new TramitesLayout(sourceRoot, paqueteRaizTramites);
+
+        Path tramitesDir = tramitesLayout.getRootPackagePath();
         if (!Files.isDirectory(tramitesDir)) {
             System.out.println("No existe " + tramitesDir + "; nada que generar");
             return;
         }
+
+        tramitesLayout.checkTramitesNoAnidados();
 
         List<Path> xmls = findDocumentoXmls(tramitesDir);
         for (Path xml : xmls) {
@@ -64,11 +69,11 @@ public class Main {
             Path pdf = targetBaseDir.resolve(relativePath).resolveSibling(pdfName);
             try {
                 if (Files.exists(pdf)
-                        && Files.getLastModifiedTime(pdf).compareTo(latestModifiedConTramite(xml)) >= 0) {
+                        && Files.getLastModifiedTime(pdf).compareTo(latestModifiedConTramite(xml, tramitesLayout)) >= 0) {
                     continue;
                 }
                 Files.createDirectories(pdf.getParent());
-                new Xml2Pdf(procesoTraductor).run(xml.toString(), pdf.toString());
+                new Xml2Pdf(procesoTraductor, tramitesLayout).run(xml.toString(), pdf.toString());
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al generar el PDF de: " + xml, ex);
             }
@@ -97,9 +102,9 @@ public class Main {
     /** Última modificación del XML, de sus fragmentos o del TramiteInstance.xml
      * de su trámite: su <name> es el título de los documentos que no llevan
      * <titulo>, así que cambiarlo también debe regenerar el PDF. */
-    static FileTime latestModifiedConTramite(Path xml) throws IOException {
+    static FileTime latestModifiedConTramite(Path xml, TramitesLayout tramitesLayout) throws IOException {
         FileTime latest = latestModified(xml, new HashSet<>());
-        Path tramiteInstance = TramiteInstanceFile.buscarDesde(xml);
+        Path tramiteInstance = tramitesLayout.findTramiteInstanceAncestro(xml);
         if (tramiteInstance != null) {
             FileTime t = Files.getLastModifiedTime(tramiteInstance);
             if (t.compareTo(latest) > 0) {

@@ -10,6 +10,7 @@ import com.educaflow.common.buildtools.files.eventmanagerfile.EventManagerFile;
 import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.files.views.ViewsFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,8 +25,10 @@ public class Main {
     
     public static void main(String[] args) {
         Path rootPathSourceFiles = Paths.get(args[0]);
-        
-        List<TipoExpedienteInstanceFile> tipoExpedienteFiles=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 1);
+
+        TramitesLayout tramitesLayout=new TramitesLayout(rootPathSourceFiles, paqueteRaizTramites);
+        List<TipoExpedienteInstanceFile> tipoExpedienteFiles=new TipoExpedienteInstanceFileFinder(tramitesLayout).findTiposExpedienteFile();
         
         StringBuilder messages=new StringBuilder();
         

@@ -2,6 +2,7 @@ package com.educaflow.common.buildtools.i18nprocessor.generatefile;
 
 import com.educaflow.common.buildtools.common.FalloTraduccionException;
 import com.educaflow.common.buildtools.common.Traductor;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.EntryTitleFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,13 +17,15 @@ public class I18nFiles {
 
     Path directoryPath;
     String procesoTraductor;
-    
+    TramitesLayout tramitesLayout;
+
     List<TextoTraducible> textosTraduciblesCastellano;
     List<TextoTraducible> textosTraduciblesValenciano;
 
-    public I18nFiles(String procesoTraductor,Path directoryPath) {
+    public I18nFiles(String procesoTraductor,Path directoryPath,TramitesLayout tramitesLayout) {
         this.procesoTraductor=procesoTraductor;
         this.directoryPath = directoryPath;
+        this.tramitesLayout = tramitesLayout;
     }
 
     public String createOrUpdateOrDeleteI18nFiles() {  
@@ -33,7 +36,7 @@ public class I18nFiles {
         List<TextoTraducible> textosTraduciblesOriginalCastellano=getTextosTraduciblesFromI18NFilePath(filePathCastellano);
         List<TextoTraducible> textosTraduciblesOriginalValenciano=getTextosTraduciblesFromI18NFilePath(filePathValenciano);
 
-        List<EntryTitle> entryTitles=EntryTitleFactory.getEntryTitles(directoryPath);
+        List<EntryTitle> entryTitles=EntryTitleFactory.getEntryTitles(directoryPath,tramitesLayout);
         String messagesFallosTraduccionCastellano=updateTextos(textosTraduciblesOriginalCastellano,entryTitles,Idioma.Castellano);
         String messagesFallosTraduccionValenciano=updateTextos(textosTraduciblesOriginalValenciano,entryTitles,Idioma.Valenciano);
         

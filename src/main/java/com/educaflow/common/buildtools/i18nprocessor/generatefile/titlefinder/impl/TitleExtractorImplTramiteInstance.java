@@ -1,6 +1,7 @@
 package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl;
 
 import com.educaflow.common.buildtools.common.XMLUtil;
+import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFile;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.TitleExtractor;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,8 +16,6 @@ import org.w3c.dom.Element;
  */
 public class TitleExtractorImplTramiteInstance implements TitleExtractor {
 
-    static final public String TRAMITE_XML_NAME="TramiteInstance.xml";
-
     @Override
     public List<Path> findTitlesFilesInDirectory(Path directoryPath) {
         List<Path> xmlFiles=TitleExtractorUtil.findFilesByExtension(directoryPath,".xml");
@@ -25,7 +24,7 @@ public class TitleExtractorImplTramiteInstance implements TitleExtractor {
     }
 
     private boolean isTramiteInstance(Path filePath) {
-        return filePath.getFileName().toString().equals(TRAMITE_XML_NAME);
+        return filePath.getFileName().toString().equals(TramiteInstanceFile.TRAMITE_XML_NAME);
     }
 
     @Override

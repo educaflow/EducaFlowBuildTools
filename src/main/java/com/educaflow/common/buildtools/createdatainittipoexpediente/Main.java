@@ -7,6 +7,7 @@ package com.educaflow.common.buildtools.createdatainittipoexpediente;
 import com.educaflow.common.buildtools.files.domainclass.DomainClassFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,14 +22,16 @@ public class Main {
     public static void main(String[] args) {
         Path rootPathSourceFiles = Paths.get(args[0]);
         Path rootPathBuildResources = Paths.get(args[1]);
-        
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 2);
+
         System.out.println("Iniciando tarea de generar los data-init de los tipos de expedientes....");
         System.out.println("rootPathSourceFiles="+rootPathSourceFiles);
         System.out.println("rootPathBuildResources="+rootPathBuildResources);
-        
-        
-        
-        List<TipoExpedienteInstanceFile> tiposExpedientes=TipoExpedienteInstanceFileFinder.findTiposExpedienteFile(rootPathSourceFiles);
+
+
+
+        TramitesLayout tramitesLayout=new TramitesLayout(rootPathSourceFiles, paqueteRaizTramites);
+        List<TipoExpedienteInstanceFile> tiposExpedientes=new TipoExpedienteInstanceFileFinder(tramitesLayout).findTiposExpedienteFile();
         
         for (TipoExpedienteInstanceFile tipoExpediente : tiposExpedientes) {
             System.out.println("Encontrado Tipo de expediente instancia:"+tipoExpediente.getName()+ " en " + tipoExpediente.getPath());

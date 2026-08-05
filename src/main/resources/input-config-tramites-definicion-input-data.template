@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<datos>
+    <tramites>
+        <tramite code="{{ escapeXml(input=tramite.code) }}" name="{{ escapeXml(input=tramite.name) }}" {% if tramite.publico is not null %}publico="{{ escapeXml(input=tramite.publico) }}" {% endif %}{% if tramite.privado is not null %}privado="{{ escapeXml(input=tramite.privado) }}" {% endif %}tipoTramite="{{ escapeXml(input=tramite.tipoTramite) }}"><![CDATA[{{ tramite.help }}]]></tramite>
+    </tramites>
+</datos>

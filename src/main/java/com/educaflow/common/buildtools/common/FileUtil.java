@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  *
@@ -26,5 +28,22 @@ public class FileUtil {
             System.out.println("No existe la carpeta o no es un directorio");
         }
     }
-    
+
+    /**
+     * Borra la carpeta y todo su contenido. Si no existe no hace nada.
+     */
+    public static void borrarDirectorioRecursivo(Path path) {
+        if (Files.exists(path) == false) {
+            return;
+        }
+
+        try (Stream<Path> walk = Files.walk(path)) {
+            for (Path entry : walk.sorted(Comparator.reverseOrder()).toArray(Path[]::new)) {
+                Files.delete(entry);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("Fallo al borrar la carpeta:" + path, ex);
+        }
+    }
+
 }
