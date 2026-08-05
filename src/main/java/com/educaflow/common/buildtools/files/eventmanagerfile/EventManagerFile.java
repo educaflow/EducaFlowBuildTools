@@ -4,23 +4,24 @@
  */
 package com.educaflow.common.buildtools.files.eventmanagerfile;
 
-import com.educaflow.common.buildtools.common.SpoonUtil;
 import com.educaflow.common.buildtools.common.TemplateUtil;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
-import com.google.common.base.CaseFormat;
 import com.educaflow.common.buildtools.common.TextUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import spoon.reflect.CtModel;
-import spoon.reflect.declaration.CtMethod;
 
 /**
+ * Generador del fichero fuente del {@code EventManager} de un tipo de expediente.
+ *
+ * <p>Esta clase <b>solo genera</b>. La comprobación de que el {@code EventManager} escrito a mano
+ * concuerda con la máquina de estados del XML vive en los tests de {@code secretaria-virtual}
+ * ({@code src/test/java/com/educaflow/tiposexpedientes}), que leen bytecode en vez de código fuente.
+ * Esos tests reutilizan de aquí el convenio de nombres ({@link #getMethodNameTriggerEvent},
+ * {@link #getMethodNameOnEnterEvent}, {@link #getModelFQCN}) y los renderizadores de código fuente
+ * ({@link #getSourceCodeTriggerMethod}, {@link #getSourceCodeOnEnterMethod}), para que el método que
+ * el test dice que falta sea literalmente el que este generador habría escrito.
  *
  * @author logongas
  */
@@ -35,110 +36,17 @@ public class EventManagerFile {
 
     }
 
-    public void createEventManagerFileIfNotExists() {
+    /**
+     * Crea el fichero solo si no existe (nunca pisa fuentes editadas a mano).
+     *
+     * @return true si lo ha creado, false si ya existía.
+     */
+    public boolean createEventManagerFileIfNotExists() {
         if (Files.exists(path) == false) {
             createEventManagerFile(path, tipoExpedienteFile);
+            return true;
         }
-    }
-
-    
-    public String check() {
-        StringBuilder messagesFaltanMetodosEventos = new StringBuilder();
-        StringBuilder messagesSobranMetodosEventos = new StringBuilder();
-        StringBuilder messagesFaltanMetodosEstados = new StringBuilder();
-        StringBuilder messagesSobranMetodosEstados = new StringBuilder();
-
-        String modelFQCN = getModelFQCN();
-        CtModel ctModel = SpoonUtil.getCtModel(path);
-        
-        List<String> allEvents = new ArrayList<>(TextUtil.getUpperCamelCase(tipoExpedienteFile.getEvents()));  
-        Set<String> allMethodNamesTriggerEvent = allEvents.stream().map(event -> getMethodNameTriggerEvent(event)).collect(Collectors.toSet());
-        
-        
-        
-
-        
-        for (String event : allEvents) {
-                boolean hasMethod = existsTrigerEvent(ctModel, event, modelFQCN);
-
-            if (hasMethod==false) {
-                messagesFaltanMetodosEventos.append(getSourceCodeTriggerMethod(event));
-            }
-        }
-
-        for (CtMethod method : SpoonUtil.getMethods(ctModel, null,getFQCNWhenEventAnnotation(), null, false)) {
-            String methodName=method.getSimpleName();
-            if (allMethodNamesTriggerEvent.contains(methodName)==false) {
-                messagesSobranMetodosEventos.append("@WhenEvent "+method.getSimpleName()+"\n");
-            }
-
-        }
-
-        List<String> allStates=TextUtil.getUpperCamelCase(tipoExpedienteFile.getStates());
-        Set<String> allMethodNamesOnEnter = allStates.stream().map(state -> getMethodNameOnEnterEvent(state)).collect(Collectors.toSet());
-        for (String state : allStates) {
-                boolean hasMethod = existsOnEnterState(ctModel, state, modelFQCN);
-
-            if (hasMethod==false) {
-                messagesFaltanMetodosEstados.append(getSourceCodeOnEnterMethod(state));
-            }
-        }
-
-        for (CtMethod method : SpoonUtil.getMethods(ctModel, null,getFQCNOnEnterAnnotation(), null, false)) {
-            
-            if (allMethodNamesOnEnter.contains(method.getSimpleName())==false) {
-                messagesSobranMetodosEstados.append("@OnEnter "+method.getSimpleName()+"\n");
-            }
-
-        }
-        
-        
-
-
-
-        StringBuilder messages = new StringBuilder();
-        if (messagesFaltanMetodosEventos.length()>0) {
-            messages.append("\nFaltan métodos para los eventos:\n"+ messagesFaltanMetodosEventos.toString());
-        }
-        if (messagesSobranMetodosEventos.length()>0) {
-            messages.append("\nSobran métodos para los eventos:\n"+ messagesSobranMetodosEventos.toString());
-        }
-        if (messagesFaltanMetodosEstados.length()>0) {
-            messages.append("\nFaltan métodos para los estados:\n"+ messagesFaltanMetodosEstados.toString());
-        }
-        if (messagesSobranMetodosEstados.length()>0) {
-            messages.append("\nSobran métodos para los estados:\n"+ messagesSobranMetodosEstados.toString());
-        }
-
-        if (messages.length()>0) {
-            return "--------Fichero "+path.toAbsolutePath().toString()+"\n"+messages.toString()+"\n";
-        } else {
-            return null;
-        }
-    }
-    
-    
-
-
-    public void checkStates() {
-        if (Files.exists(path) == false) {
-            throw new RuntimeException("No existe el fichero con la clase java:" + path);
-
-        }
-
-        String modelFQCN = getModelFQCN();
-
-        CtModel ctModel = SpoonUtil.getCtModel(path);
-
-        for (String state : TextUtil.getUpperCamelCase(tipoExpedienteFile.getStates())) {
-
-            boolean exists = existsOnEnterState(ctModel, state, modelFQCN);
-            if (exists == false) {
-                throw new RuntimeException("No existe el método:" + getMethodNameOnEnterEvent(state) + " en el fichero " + path+"\n"+getSourceCodeOnEnterMethod(state));
-            }
-
-        }
-
+        return false;
     }
 
     private void createEventManagerFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
@@ -162,7 +70,12 @@ public class EventManagerFile {
         TemplateUtil.createFileWithContent(path, content);
     }
 
-    private String getSourceCodeTriggerMethod(String event) {
+    /**
+     * Código fuente del método {@code trigger<Evento>}, tal cual lo escribiría el generador.
+     *
+     * @param event nombre del evento en UpperCamelCase (p.ej. {@code PresentarDocumentosFirmados}).
+     */
+    public String getSourceCodeTriggerMethod(String event) {
         Map<String, Object> context = new HashMap<>();
         context.put("event", event);
         context.put("newLine", "\n");
@@ -178,7 +91,12 @@ public class EventManagerFile {
     }
 
     
-    private String getSourceCodeOnEnterMethod(String state) {
+    /**
+     * Código fuente del método {@code onEnter<Estado>}, tal cual lo escribiría el generador.
+     *
+     * @param state nombre del estado en UpperCamelCase (p.ej. {@code PendienteResolucion}).
+     */
+    public String getSourceCodeOnEnterMethod(String state) {
         Map<String, Object> context = new HashMap<>();
         context.put("state", state);
         context.put("newLine", "\n");
@@ -220,44 +138,19 @@ public class EventManagerFile {
         return packagePath.replace("/", ".");
     }
 
-    
-    private String getModelFQCN() {
+    /** FQCN de la entidad del tipo de expediente, que es el tipo de los parámetros del modelo. */
+    public String getModelFQCN() {
         return "com.educaflow.subsystem.expedientes.db." + tipoExpedienteFile.getCode();
     }
-    
-    private boolean existsTrigerEvent(CtModel ctModel, String event, String modelFQCN) {
-        String methodName = getMethodNameTriggerEvent(event);
 
-        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNWhenEventAnnotation(), "void",true,modelFQCN, modelFQCN, "com.educaflow.subsystem.expedientes.services.eventmanager.EventContext");
-        return exists;
-    }
-    
-    
-    private boolean existsOnEnterState(CtModel ctModel, String state, String modelFQCN) {
-        String methodName = getMethodNameOnEnterEvent(state);
-
-        boolean exists = SpoonUtil.hasOnlyMethod(ctModel, methodName, getFQCNOnEnterAnnotation(), "void",true, modelFQCN, "com.educaflow.subsystem.expedientes.services.eventmanager.EventContext");
-
-        return exists;
-    }   
-    
-    private String getMethodNameTriggerEvent(String event) {
+    /** Convenio de nombre del método de un evento: {@code trigger<Evento>}. */
+    public static String getMethodNameTriggerEvent(String event) {
         return "trigger" + event;
     }
-    
-    private String getMethodNameOnEnterEvent(String state) {
+
+    /** Convenio de nombre del método de un estado: {@code onEnter<Estado>}. */
+    public static String getMethodNameOnEnterEvent(String state) {
         return "onEnter" + state;
-    }    
-    
-    private String getFQCNWhenEventAnnotation() {
-        return "com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent";
     }
-    
-    
-    private String getFQCNOnEnterAnnotation() {
-        return "com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState";
-    }
-    
-    
 
 }

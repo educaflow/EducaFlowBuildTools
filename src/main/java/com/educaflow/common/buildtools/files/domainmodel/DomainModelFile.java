@@ -30,10 +30,17 @@ public class DomainModelFile {
         
     }
     
-    public void createDomainModelIfNotExists() {
+    /**
+     * Crea el fichero solo si no existe (nunca pisa fuentes editadas a mano).
+     *
+     * @return true si lo ha creado, false si ya existía.
+     */
+    public boolean createDomainModelIfNotExists() {
         if (Files.exists(path)==false) {
             createDomainModel(path,tipoExpedienteFile.getCode());
+            return true;
         }
+        return false;
     }
     
 

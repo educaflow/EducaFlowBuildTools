@@ -26,10 +26,17 @@ public class ViewsFile {
 
     }
 
-    public void createViewsFileIfNotExists() {
+    /**
+     * Crea el fichero solo si no existe (nunca pisa fuentes editadas a mano).
+     *
+     * @return true si lo ha creado, false si ya existía.
+     */
+    public boolean createViewsFileIfNotExists() {
         if (Files.exists(path) == false) {
             createDomainModel(path, tipoExpedienteFile);
+            return true;
         }
+        return false;
     }
     
     public Path getPath() {

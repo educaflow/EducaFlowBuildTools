@@ -1,0 +1,7 @@
+
+    @BeanValidationRulesForStateAndEvent
+    public fun getForState{{stateUpperCamelCase}}InEvent{{eventUpperCamelCase}}(): BeanValidationRules {
+        return rules {
+
+        }
+    }

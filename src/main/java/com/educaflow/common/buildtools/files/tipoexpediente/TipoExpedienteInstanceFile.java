@@ -65,6 +65,11 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "state")
     private List<State> states;
 
+    // No viene del XML: lo rellena el finder escaneando la carpeta documentospdf del tipo y la
+    // compartida. Sin @XmlTransient, TipoDocumentoPdf entra en el JAXBContext y hay implementaciones
+    // de JAXB (EclipseLink MOXy, que es la que gana en el classpath de test de secretaria-virtual)
+    // que entonces exigen que tenga constructor sin argumentos y abortan el parseo.
+    @XmlTransient
     private List<TipoDocumentoPdf> tipoDocumentosPdf;
         
     
