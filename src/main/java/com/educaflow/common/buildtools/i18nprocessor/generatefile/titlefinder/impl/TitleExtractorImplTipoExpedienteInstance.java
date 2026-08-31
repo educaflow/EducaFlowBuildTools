@@ -1,12 +1,13 @@
 package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl;
 
 import com.educaflow.common.buildtools.common.XMLUtil;
+import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import static com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder.TIPO_EXPEDIENTE_XML_NAME;
 import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
-import com.educaflow.common.buildtools.i18nprocessor.generatefile.AxelorInflector;
+import com.educaflow.common.buildtools.common.AxelorInflector;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.TitleExtractor;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,17 +45,29 @@ public class TitleExtractorImplTipoExpedienteInstance implements TitleExtractor 
 
         
         titles.add("value:"+tipoExpedienteInstanceFile.getName());
-        
-        
+
+        //Los títulos de las FASES también son texto de interfaz: acaban en el namePhase del
+        //expediente, que es translatable y se pinta en la cabecera de todos los formularios de
+        //estado, en los listados transversales y en el historial. Sin esto no existe la clave
+        //"value:Recepción" en ningún CSV y un usuario en catalán ve las fases sin traducir.
+        for(Fase fase:tipoExpedienteInstanceFile.getFases()) {
+            String title=fase.getTitle();
+
+            if ((title==null) || (title.isBlank())){
+                title=AxelorInflector.humanize(fase.getName());
+            }
+
+            titles.add("value:"+title);
+        }
 
         for(State state:tipoExpedienteInstanceFile.getStates()) {
             String title=state.getTitle();
-            
+
             if ((title==null) || (title.isBlank())){
                 title=AxelorInflector.humanize(state.getName());
             }
-            
-            
+
+
             titles.add("value:"+title);
         }
         

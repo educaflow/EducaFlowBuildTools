@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 @XmlRootElement(name = "TipoExpediente")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -40,12 +41,6 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "ambitoAuditor")
     private String ambitoAuditor;     
     
-    @XmlElement(name = "fqcnEventManager")
-    private String fqcnEventManager;         
-    
-    @XmlElement(name = "fqcnStateEventValidator")
-    private String fqcnStateEventValidator;       
-    
     @XmlTransient
     private Path path;
 
@@ -61,9 +56,18 @@ public class TipoExpedienteInstanceFile {
     @XmlTransient
     private List<String> profiles;
 
+    @XmlElementWrapper(name = "fases")
+    @XmlElement(name = "fase")
+    private List<Fase> fases;
+
+    /**
+     * Solo para detectar el formato antiguo. Un {@code <states>} en la raíz ya no es válido: los
+     * estados van dentro de su {@code <fase>}. Se deserializa para poder dar un error explícito en
+     * vez de un críptico "no hay ningún estado".
+     */
     @XmlElementWrapper(name = "states")
     @XmlElement(name = "state")
-    private List<State> states;
+    private List<State> statesFormatoAntiguo;
 
     // No viene del XML: lo rellena el finder escaneando la carpeta documentospdf del tipo y la
     // compartida. Sin @XmlTransient, TipoDocumentoPdf entra en el JAXBContext y hay implementaciones
@@ -102,7 +106,8 @@ public class TipoExpedienteInstanceFile {
      * La versión del tipo de expediente derivada del nombre de su carpeta: "v1" → "V1"
      */
     private String getVersion() {
-        return path.getParent().getFileName().toString().toUpperCase();
+        // Locale.ROOT a propósito: la versión entra en el code del tipo y en los nombres de vista.
+        return path.getParent().getFileName().toString().toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -124,12 +129,58 @@ public class TipoExpedienteInstanceFile {
         this.tramitesLayout = tramitesLayout;
     }
 
-    public List<State> getStates() {
-        return states;
+    /**
+     * Las fases del tipo de expediente, en orden de declaración. Siempre hay al menos una: las
+     * fases son obligatorias y todo estado pertenece a exactamente una.
+     */
+    public List<Fase> getFases() {
+        return fases;
     }
 
-    public void setStates(List<State> states) {
-        this.states = states;
+    public void setFases(List<Fase> fases) {
+        this.fases = fases;
+    }
+
+    /** La fase que se llama así, o null si no existe. */
+    public Fase getFase(String name) {
+        for (Fase fase : fases) {
+            if (fase.getName().equals(name)) {
+                return fase;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * <b>Todos</b> los estados del tipo de expediente, de todas las fases y en orden de
+     * declaración. Es lo que necesitan el enum {@code State} (que según el diseño de las fases es
+     * idéntico en las clases de todas ellas), el data-init y el i18n.
+     */
+    public List<State> getStates() {
+        List<State> todos = new ArrayList<>();
+
+        for (Fase fase : fases) {
+            todos.addAll(fase.getStates());
+        }
+
+        return todos;
+    }
+
+    /** Solo para el chequeo de formato antiguo del finder. */
+    List<State> getStatesFormatoAntiguo() {
+        return statesFormatoAntiguo;
+    }
+
+    /** El estado inicial del tipo de expediente. El finder garantiza que hay exactamente uno. */
+    public State getInitialState() {
+        for (State state : getStates()) {
+            if (state.isInitial()) {
+                return state;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -177,10 +228,12 @@ public class TipoExpedienteInstanceFile {
     }
 
     /**
-     * @return the events
+     * Todos los eventos del tipo de expediente, de todas las fases. Es lo que lleva el enum
+     * {@code Event}, que igual que {@code State} es idéntico en las clases de todas las fases.
+     * Los eventos que atiende una fase en concreto son {@link Fase#getEvents()}.
      */
     public List<String> getEvents() {
-        return getEventsFromStates(states);
+        return getEventsFromStates(getStates());
     }
 
     /**
@@ -194,7 +247,7 @@ public class TipoExpedienteInstanceFile {
      * @return the profiles
      */
     public List<String> getProfiles() {
-        return getProfilesFromStates(states);
+        return getProfilesFromStates(getStates());
     }
 
     /**
@@ -273,7 +326,18 @@ public class TipoExpedienteInstanceFile {
         return tipoDocumentosPdf;
     }
     
-    public String getPackageName() {
+    /**
+     * El paquete de la carpeta de versión del tipo de expediente, del que cuelgan los paquetes de
+     * sus fases. Es el único dato que se guarda en la base de datos para poder localizar en runtime
+     * el {@code PhaseEventManager} y el {@code StateEventValidator} de un estado: con la fase que sale
+     * del propio {@code codeState} basta para componer el FQCN, y el data-init lo reescribe en cada
+     * arranque, así que mover la carpeta del tipo se corrige solo.
+     */
+    public String getBasePackageName() {
+        return getPackageName();
+    }
+
+    private String getPackageName() {
         Path filePath = path.getParent();
         String pathString = filePath.toString();
 
@@ -299,51 +363,33 @@ public class TipoExpedienteInstanceFile {
     }
 
     /**
-     * @return the fqcnEventManager
+     * El nombre de la clase del {@code PhaseEventManager}, igual en todas las fases: lo que las
+     * distingue es el paquete, no el nombre.
      */
-    public String getFqcnEventManager() {
-        if ((fqcnEventManager==null) || (fqcnEventManager.isBlank())) {
-            return getPackageName()+".EventManagerImpl";
-        } else {
-            return fqcnEventManager;
-        }
+    public String getPhaseEventManagerClassName() {
+        return "PhaseEventManagerImpl";
     }
 
-    /**
-     * @param fqcnEventManager the fqcnEventManager to set
-     */
-    public void setFqcnEventManager(String fqcnEventManager) {
-        this.fqcnEventManager = fqcnEventManager;
-    }
-
-    /**
-     * @return the fqcnStateEventValidator
-     */
-    public String getFqcnStateEventValidator() {
-        if ((fqcnStateEventValidator==null) || (fqcnStateEventValidator.isBlank())) {
-            return getPackageName()+".StateEventValidatorImpl";
-        } else {
-            return fqcnStateEventValidator;
-        }        
-
-    }
-
-    /**
-     * @param fqcnStateEventValidator the fqcnStateEventValidator to set
-     */
-    public void setFqcnStateEventValidator(String fqcnStateEventValidator) {
-        this.fqcnStateEventValidator = fqcnStateEventValidator;
-    }
-    
-    public String getEventManagerClassName() {
-        return getSimpleClassName(getFqcnEventManager());
-    }
-    
+    /** El nombre de la clase del {@code StateEventValidator}, igual en todas las fases. */
     public String getStateEventValidatorClassName() {
-        return getSimpleClassName(getFqcnStateEventValidator());
+        return "StateEventValidatorImpl";
     }
-    
+
+    /**
+     * El nombre de la clase del {@code InitialEventManager}, que a diferencia de las dos anteriores
+     * es <b>una sola por tipo de expediente</b> y vive en la raíz de la versión: el evento inicial
+     * se dispara cuando todavía no hay estado del que partir, así que no es de ninguna fase.
+     */
+    public String getInitialEventManagerClassName() {
+        return "InitialEventManagerImpl";
+    }
+
+    /** FQCN del {@code InitialEventManager} del tipo: cuelga del paquete base, no del de una fase. */
+    public String getFqcnInitialEventManager() {
+        return getBasePackageName() + "." + getInitialEventManagerClassName();
+    }
+
     public static String getSimpleClassName(String fqcn) {
         return fqcn.substring(fqcn.lastIndexOf('.') + 1);
-    }   
+    }
 }

@@ -12,6 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Generador del {@code views.xml} de la <b>raíz de la versión</b> de un tipo de expediente, que
+ * contiene únicamente el form de plantilla {@code exp-<Code>-Templates}: el catálogo de paneles del
+ * que tiran los {@code <include-panels>} de todas las fases.
+ *
+ * <p>Vive en la raíz y no en cada fase porque los paneles se comparten entre fases (los datos del
+ * interesado, el visor del PDF de la solicitud…) y duplicarlos en cada subcarpeta obligaría a
+ * mantenerlos sincronizados a mano. Los {@code <form state="...">} sí van repartidos, uno por fase,
+ * y los genera {@link ViewsFaseFile}.
  *
  * @author logongas
  */
@@ -33,26 +41,22 @@ public class ViewsFile {
      */
     public boolean createViewsFileIfNotExists() {
         if (Files.exists(path) == false) {
-            createDomainModel(path, tipoExpedienteFile);
+            createViewsFile(path, tipoExpedienteFile);
             return true;
         }
         return false;
     }
-    
+
     public Path getPath() {
         return path;
     }
 
-    private void createDomainModel(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
+    private void createViewsFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
         Map<String, Object> context = new HashMap<>();
-        context.put("states", tipoExpedienteFile.getStates());
-        context.put("profiles", tipoExpedienteFile.getProfiles());
-        context.put("newLine", "\n");
-        context.put("tab", "\t");
         context.put("code", tipoExpedienteFile.getCode());
         context.put("name", tipoExpedienteFile.getName());
 
-        String content = TemplateUtil.evaluateTemplate("views.template", context);
+        String content = TemplateUtil.evaluateTemplate("views-templates.template", context);
 
         TemplateUtil.createFileWithContent(path, content);
     }

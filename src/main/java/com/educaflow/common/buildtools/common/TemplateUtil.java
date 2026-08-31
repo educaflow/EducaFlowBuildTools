@@ -31,10 +31,14 @@ public class TemplateUtil {
     public static String evaluateTemplate(String templateName, Map<String, Object> context) {
 
         try {
-            EscapingStrategy escapingStrategy = (input) -> {
-                String escaped = input.replace("\\n", "\n");
-                return escaped;
-            };
+            // La identidad, que es lo que promete su nombre. Existe porque "none" NO es una estrategia
+            // nativa de Pebble (las nativas son html/js/css/url_param/json): registrarla es lo que
+            // permite poner defaultEscapingStrategy("none") sin que un `| escape` reviente con
+            // "Unknown escaping strategy", y sin que el default vuelva a ser `html`.
+            // MUST NOT sustituir texto aquí: EscapeFilter.apply la usa con independencia del flag
+            // autoEscaping, así que cualquier `| escape`, `{% autoescape %}` o `{{ … }}` que la
+            // atraviese vería el texto corrompido (esta hacía `\n` literal -> salto de línea real).
+            EscapingStrategy escapingStrategy = (input) -> input;
 
             AbstractExtension customExtension = new AbstractExtension() {
                 @Override
@@ -42,6 +46,7 @@ public class TemplateUtil {
                     Map<String, Function> functions = new HashMap<>();
                     functions.put("asterisks", new AsteriskFunction());
                     functions.put("escapeXml", new EscapeXmlFunction());
+                    functions.put("escapeJava", new EscapeJavaFunction());
                     return functions;
                 }
             };
@@ -108,6 +113,31 @@ public class TemplateUtil {
                     return "";
                 }
                 return TextUtil.escapeXmlAttribute(input.toString());
+            }
+            return "";
+        }
+
+        @Override
+        public List<String> getArgumentNames() {
+            return Collections.singletonList("input");
+        }
+    }
+
+    /**
+     * Escapa el texto para que pueda ir dentro de un literal de cadena Java. Hace falta por lo
+     * mismo que {@link EscapeXmlFunction}: el motor de plantillas va con el auto-escaping
+     * desactivado.
+     */
+    public static class EscapeJavaFunction implements Function {
+
+        @Override
+        public Object execute(Map<String, Object> args, PebbleTemplate self, EvaluationContext context, int lineNumber) {
+            if (args.containsKey("input")) {
+                Object input = args.get("input");
+                if (input == null) {
+                    return "";
+                }
+                return TextUtil.escapeJavaString(input.toString());
             }
             return "";
         }

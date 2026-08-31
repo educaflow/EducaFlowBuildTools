@@ -11,17 +11,15 @@
         <bind node="tiposExpedientes/tipoExpediente" type="com.educaflow.subsystem.expedientes.db.TipoExpediente" search="self.code = :code"  create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
-            <bind node="@ambitoCreador" to="ambitoCreador" />
-            <bind node="@ambitoResponsable" to="ambitoResponsable" />
-            <bind node="@ambitoAuditor" to="ambitoAuditor" />
             <bind node="@tramite" to="tramite" search="self.code = :tramite"   />
-            <bind node="@fqcnEventManager" to="fqcnEventManager" />
-            <bind node="@fqcnStateEventValidator" to="fqcnStateEventValidator" />
-
-            <bind node="state" to="estados"  create="true" update="true">
-                <bind node="@codeState" to="codeState" />
-                <bind node="@profile" to="profile" search="self.code = :profile"  />
-            </bind>
+            <!--
+                El paquete de la carpeta de versión del tipo de expediente. De él cuelga un paquete
+                por fase, así que con el codePhase del expediente basta para localizar en runtime el
+                PhaseEventManager y el StateEventValidator, y de él cuelga también la clase States que
+                genera el build. Se reescribe en cada arranque, de modo que mover la carpeta del tipo
+                se corrige solo.
+            -->
+            <bind node="@basePackageName" to="basePackageName" />
 
         </bind>
 

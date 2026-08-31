@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!--
+        Formularios de los estados de la fase {{fase.name}}. En "state" va el nombre corto del
+        estado: el viewprocessor deduce la fase de esta carpeta y compone el nombre real de la
+        vista. Los paneles de <include-panels> salen del views.xml de la raíz de la versión.
+
+        <include-panels> antepone por defecto la cabecera global de expedientes. Para quitarla se
+        escribe <include-panels header="false">. El atributo es "header": NO existe includeHeader,
+        y el preprocesador lo ignora en silencio.
+    -->
+
+{% for state in states %}
+    <!-- ****************************************{{ asterisks(state.name) }}****************************************  -->
+    <!-- *************************************** {{ state.name }} ***************************************  -->
+    <!-- ****************************************{{ asterisks(state.name) }}****************************************  -->
+{% if state.profile is not empty %}
+    <form state="{{state.name}}" profile="{{state.profile}}">
+        <include-panels>
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="subsysExpedientes-event-action" />
+            </buttons-right>
+        </footer>
+
+    </form>
+{% endif %}
+    <form state="{{state.name}}" >
+        <include-panels>
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="subsysExpedientes-event-action" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+{% endfor %}
+
+</object-views>

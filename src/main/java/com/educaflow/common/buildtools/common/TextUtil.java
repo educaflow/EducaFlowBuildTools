@@ -106,4 +106,61 @@ public class TextUtil {
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
+    /**
+     * Escapa el texto para que pueda ir dentro de un literal de cadena Java.
+     * Hace falta porque el motor de plantillas va con el auto-escaping desactivado y hay literales
+     * (el {@code name} del tipo de expediente, los {@code title} de fases y estados) que son texto
+     * libre escrito a mano en un XML.
+     */
+    public static String escapeJavaString(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        StringBuilder escapado = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            switch (c) {
+                case '\\' -> escapado.append("\\\\");
+                case '"' -> escapado.append("\\\"");
+                case '\n' -> escapado.append("\\n");
+                case '\r' -> escapado.append("\\r");
+                case '\t' -> escapado.append("\\t");
+                case '\b' -> escapado.append("\\b");
+                case '\f' -> escapado.append("\\f");
+                default -> escapado.append(c);
+            }
+        }
+
+        return escapado.toString();
+    }
+
+    /**
+     * El texto que ve el usuario a partir de un identificador en UPPER_SNAKE_CASE:
+     * {@code ENTRADA_DATOS} → {@code "Entrada datos"}.
+     *
+     * <p>Es el nombre por omisión de una fase o de un estado que no declara {@code title}, así que
+     * <b>debe dar exactamente lo mismo</b> que el {@code humanize} del {@code Inflector} de Axelor,
+     * que es lo que hasta ahora calculaba el runtime para el {@code nameState}.
+     *
+     * <p><b>Delega en {@link AxelorInflector}</b>, que es la copia fiel del {@code Inflector} que ya
+     * vive en este repo, y no reimplementa el algoritmo: el <b>mismo</b> nombre de estado lo
+     * humanizan dos consumidores del build —el título por omisión que acaba en la clase {@code States}
+     * y la clave que el extractor de i18n mete en el CSV—, así que dos implementaciones distintas
+     * producen entradas de traducción que nunca casan. Con un nombre legal como {@code ANEXO_2A} la
+     * versión anterior daba {@code "Anexo 2a"} aquí y {@code "Anexo 2 a"} en el CSV.
+     *
+     * <p><b>Sin locale a propósito</b>, pese a ser el patrón habitual de {@code toLowerCase()}: el
+     * contrato es ser bug-compatible con el {@code Inflector} de Axelor, que también es locale-less.
+     * Ponerle {@code Locale.ROOT} solo aquí <b>crearía</b> la divergencia con las claves de i18n que
+     * esta delegación viene a eliminar.
+     */
+    public static String humanize(String upperSnakeCase) {
+        if ((upperSnakeCase == null) || (upperSnakeCase.isEmpty())) {
+            return "";
+        }
+
+        return AxelorInflector.humanize(upperSnakeCase);
+    }
+
 }

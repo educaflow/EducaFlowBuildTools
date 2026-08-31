@@ -106,7 +106,6 @@ try {
 
         Map<String, Object> context = new HashMap<>();
         context.put("states", tipoExpedienteFile.getStates());
-        context.put("events", tipoExpedienteFile.getEvents());
         context.put("profiles", tipoExpedienteFile.getProfiles());
         context.put("tipoDocumentosPdf", tipoExpedienteFile.getTipoDocumentosPdf());
         context.put("newLine", "\n");

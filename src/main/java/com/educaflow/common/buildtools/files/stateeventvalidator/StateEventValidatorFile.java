@@ -6,6 +6,7 @@ package com.educaflow.common.buildtools.files.stateeventvalidator;
 
 import com.educaflow.common.buildtools.common.TemplateUtil;
 import com.educaflow.common.buildtools.common.TextUtil;
+import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Generador del fichero fuente Kotlin del {@code StateEventValidator} de un tipo de expediente.
+ * Generador del fichero fuente Kotlin del {@code StateEventValidator} de <b>una fase</b> de un tipo
+ * de expediente, que vive en {@code <vN>/<fase en minúsculas>/StateEventValidatorImpl.kt}.
  *
  * <p>Esta clase <b>solo genera</b>. La comprobación de que el validator escrito a mano tiene un
  * método por cada pareja (estado, evento) vive en los tests de {@code secretaria-virtual}
@@ -34,12 +36,14 @@ public class StateEventValidatorFile {
      */
     private static final String EVENTO_SIN_VALIDACION = "Delete";
 
+    private final Fase fase;
     private final TipoExpedienteInstanceFile tipoExpedienteFile;
     private final Path path;
 
-    public StateEventValidatorFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
+    public StateEventValidatorFile(Path path, Fase fase) {
         this.path = path;
-        this.tipoExpedienteFile = tipoExpedienteFile;
+        this.fase = fase;
+        this.tipoExpedienteFile = fase.getTipoExpediente();
 
     }
 
@@ -50,23 +54,27 @@ public class StateEventValidatorFile {
      */
     public boolean createStateEventValidatorFileIfNotExists() {
         if (Files.exists(path) == false) {
-            createStateEventValidatorFile(path, tipoExpedienteFile);
+            createStateEventValidatorFile(path);
             return true;
         }
         return false;
     }
 
-    private void createStateEventValidatorFile(Path path, TipoExpedienteInstanceFile tipoExpedienteFile) {
+    /**
+     * Solo los estados de <b>esta</b> fase: cada validator atiende las parejas (estado, evento) de
+     * su propia fase, igual que el {@code PhaseEventManager}.
+     */
+    private void createStateEventValidatorFile(Path path) {
         Map<String, Object> context = new HashMap<>();
-        context.put("states", tipoExpedienteFile.getStates());
-        context.put("caseStates", TextUtil.getUpperCamelCase(tipoExpedienteFile.getStates()));
-        context.put("events", tipoExpedienteFile.getEvents());
-        context.put("caseEvents", TextUtil.getUpperCamelCase(tipoExpedienteFile.getEvents()));
+        context.put("states", fase.getStates());
+        context.put("caseStates", TextUtil.getUpperCamelCase(fase.getStates()));
+        context.put("events", fase.getEvents());
+        context.put("caseEvents", TextUtil.getUpperCamelCase(fase.getEvents()));
         context.put("newLine", "\n");
         context.put("tab", "\t");
         context.put("code", tipoExpedienteFile.getCode());
         context.put("lowerCode", TextUtil.caseLowerFirstLetter(tipoExpedienteFile.getCode()));
-        context.put("packageName", getPackageName(path.getParent()));
+        context.put("packageName", fase.getPackageName());
         context.put("stateEventValidatorClassName", tipoExpedienteFile.getStateEventValidatorClassName());
         context.put("eventoSinValidacion", EVENTO_SIN_VALIDACION);
 
@@ -92,11 +100,15 @@ public class StateEventValidatorFile {
         context.put("tab", "\t");
         context.put("code", tipoExpedienteFile.getCode());
         context.put("lowerCode", TextUtil.caseLowerFirstLetter(tipoExpedienteFile.getCode()));
-        context.put("packageName", getPackageName(path.getParent()));
+        context.put("packageName", fase.getPackageName());
 
         String content = TemplateUtil.evaluateTemplate("state-event-validator-method.template", context);
 
         return content;
+    }
+
+    public Fase getFase() {
+        return fase;
     }
 
     /**
@@ -109,30 +121,6 @@ public class StateEventValidatorFile {
      */
     public static String getMethodNameBeanValidationRules(String state, String event) {
         return "getForState" + state + "InEvent" + event;
-    }
-
-    private String getPackageName(Path filePath) {
-        String pathString = filePath.toString();
-
-        pathString = pathString.replace("\\", "/");
-
-        int javaIndex = pathString.indexOf("/java/");
-        if (javaIndex == -1) {
-            if (pathString.endsWith("/java")) {
-                javaIndex = pathString.length() - "/java".length();
-            } else {
-                return "";
-            }
-        }
-
-        String packagePath = pathString.substring(javaIndex + "/java/".length());
-
-        int dotIndex = packagePath.lastIndexOf(".");
-        if (dotIndex != -1) {
-            packagePath = packagePath.substring(0, dotIndex);
-        }
-
-        return packagePath.replace("/", ".");
     }
 
 }

@@ -1,4 +1,0 @@
-    @OnEnterState
-    public void onEnter{{state}}({{ code }} {{ lowerCode }}, EventContext<Profile,State> eventContext) {
-
-    }

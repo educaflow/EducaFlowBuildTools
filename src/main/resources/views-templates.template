@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!--
+        Catálogo de paneles del tipo de expediente. Los <form state="..."> de cada fase los traen
+        por nombre con <include-panels>, y están en este fichero de la raíz de la versión para que
+        varias fases puedan compartir el mismo panel sin duplicarlo.
+    -->
+    <form name="exp-{{code}}-Templates" title="{{name}}"  width="large"  model="com.educaflow.subsystem.expedientes.db.{{code}}" groups="admins,users">
+
+
+    </form>
+
+</object-views>

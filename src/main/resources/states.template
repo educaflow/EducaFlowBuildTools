@@ -1,0 +1,163 @@
+package {{ packageName }};
+
+import com.educaflow.subsystem.expedientes.db.Profile;
+import com.educaflow.subsystem.expedientes.services.eventmanager.Phase;
+import com.educaflow.subsystem.expedientes.services.eventmanager.State;
+import com.educaflow.subsystem.expedientes.services.eventmanager.TipoExpedienteStates;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * GENERADO a partir de TipoExpedienteInstance.xml — NO EDITAR.
+ * Cualquier cambio se pierde en el siguiente build.
+ */
+public final class {{ className }} implements TipoExpedienteStates {
+
+    /** El code del tipo de expediente. No toca la base de datos. */
+    public static final String CODE = "{{ escapeJava(input=tipoExpediente.code) }}";
+
+    /** El name del tipo de expediente. No toca la base de datos. */
+    public static final String NAME = "{{ escapeJava(input=tipoExpediente.name) }}";
+
+    /** Único ejemplar: la única implementación de los métodos de búsqueda. */
+    public static final {{ className }} INSTANCE = new {{ className }}();
+
+    // Alias públicos de fase — la API con la que se referencia una fase desde fuera.
+{% for fase in tipoExpediente.fases %}    public static final Phase {{ fase.name }} = PhaseInternal.{{ fase.name }};
+{% endfor %}
+    private {{ className }}() {
+    }
+
+    // =====================================================================
+    // FASES — enum privado: detalle de implementación, nunca se nombra fuera
+    // =====================================================================
+    private enum PhaseInternal implements Phase {
+
+{% for fase in tipoExpediente.fases %}        {{ fase.name }}("{{ escapeJava(input=fase.titleOrHumanizedName) }}"){% if loop.last %};{% else %},{{ newLine }}{% endif %}{% endfor %}
+
+        private final String name;
+
+        PhaseInternal(String name) {
+            this.name = name;
+        }
+
+        @Override public String getCode() { return name(); }
+        @Override public String getName() { return name; }
+        @Override public List<State> getStates() { return statesByPhase.get(name()); }
+    }
+{% for fase in tipoExpediente.fases %}
+    // =====================================================================
+    // FASE: {{ fase.name }}
+    // =====================================================================
+    public enum {{ fase.nameUpperCamelCase }} implements State {
+
+{% for state in fase.states %}        {{ state.name }}("{{ escapeJava(input=state.titleOrHumanizedName) }}", {% if state.profile is not empty %}Profile.{{ state.profile }}{% else %}null{% endif %}, {{ state.initial }}, {{ state.closed }}{% if state.events is not empty %}{% for event in state.events %}, "{{ escapeJava(input=event) }}"{% endfor %}{% endif %}){% if loop.last %};{% else %},{{ newLine }}{% endif %}{% endfor %}
+
+        private final String name;
+        private final Profile profile;
+        private final boolean initial;
+        private final boolean closed;
+        private final Set<String> events;
+
+        {{ fase.nameUpperCamelCase }}(String name, Profile profile, boolean initial, boolean closed, String... events) {
+            this.name = name;
+            this.profile = profile;
+            this.initial = initial;
+            this.closed = closed;
+            // LinkedHashSet inmodificable: conserva el orden de declaración del XML.
+            this.events = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(events)));
+        }
+
+        @Override public Phase getPhase() { return PhaseInternal.{{ fase.name }}; }
+        @Override public String getCode() { return name(); }
+        @Override public String getName() { return name; }
+        @Override public Profile getProfile() { return profile; }
+        @Override public Set<String> getEvents() { return events; }
+        @Override public boolean isInitial() { return initial; }
+        @Override public boolean isFinal() { return closed; }
+    }
+{% endfor %}
+    // =====================================================================
+    // BÚSQUEDA (BD -> jerarquía tipada)
+    // =====================================================================
+    // Los campos privados van en camelCase a propósito: los alias de fase son campos
+    // UPPER_SNAKE_CASE de esta misma clase, así que con minúsculas por medio ningún name de
+    // fase puede colisionar con ellos.
+
+    private static final List<Phase> phases = List.of(PhaseInternal.values());
+
+    private static final Map<String, List<State>> statesByPhase = Map.ofEntries(
+{% for fase in tipoExpediente.fases %}        Map.entry("{{ fase.name }}", List.<State>of({{ fase.nameUpperCamelCase }}.values())){% if not loop.last %},{{ newLine }}{% endif %}{% endfor %}
+
+    );
+
+    // TODOS los estados del tipo, en orden de declaración. Se recorre phases, no statesByPhase,
+    // porque Map.ofEntries no especifica su orden de iteración.
+    private static final List<State> allStates;
+
+    static {
+        List<State> todos = new ArrayList<>();
+        for (Phase phase : phases) {
+            todos.addAll(phase.getStates());
+        }
+
+        allStates = Collections.unmodifiableList(todos);
+    }
+
+    @Override
+    public Optional<Phase> getPhase(String phaseCode) {
+        for (Phase phase : phases) {
+            if (phase.getCode().equals(phaseCode)) {
+                return Optional.of(phase);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<State> getState(String phaseCode, String stateCode) {
+        // Los mapas inmutables de Map.ofEntries lanzan NPE con clave null.
+        if (phaseCode == null) {
+            return Optional.empty();
+        }
+
+        List<State> statesOfPhase = statesByPhase.get(phaseCode);
+        if (statesOfPhase == null) {
+            return Optional.empty();
+        }
+
+        for (State state : statesOfPhase) {
+            if (state.getCode().equals(stateCode)) {
+                return Optional.of(state);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /** Las fases, en orden de declaración en el XML. */
+    @Override
+    public List<Phase> getPhases() {
+        return phases;
+    }
+
+    /** TODOS los estados del tipo, de todas las fases, en orden de declaración. */
+    @Override
+    public List<State> getStates() {
+        return allStates;
+    }
+
+    /** El estado inicial. Está resuelto en generación: hay exactamente uno. */
+    @Override
+    public State getInitialState() {
+        return {{ tipoExpediente.initialState.fase.nameUpperCamelCase }}.{{ tipoExpediente.initialState.name }};
+    }
+}

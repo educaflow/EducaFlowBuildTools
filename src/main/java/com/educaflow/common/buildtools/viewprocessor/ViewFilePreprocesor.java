@@ -1,24 +1,15 @@
 package com.educaflow.common.buildtools.viewprocessor;
 
-import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.common.XMLUtil;
+import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.viewprocessor.tags.Footer;
 import com.educaflow.common.buildtools.viewprocessor.tags.Form;
 import com.educaflow.common.buildtools.viewprocessor.tags.IncludePanels;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  *
@@ -26,79 +17,52 @@ import org.w3c.dom.NodeList;
  */
 public class ViewFilePreprocesor {
 
-
-    public static Document process(Document document, List<Element> templateForms) {
+    /**
+     * @param filePath ruta del fichero de vistas que se está procesando. Hace falta porque el
+     *        {@code views.xml} de una fase no es autosuficiente: su fase y sus paneles se resuelven
+     *        a partir de dónde está (ver {@link TipoExpedienteViewsContext}).
+     */
+    public static Document process(Document document, Path filePath, List<Element> templateForms, TramitesLayout tramitesLayout) {
         Document newDocument = XMLUtil.cloneDocument(document);
 
-        Element formTipoExpedienteTemplate=getTemplateForm(newDocument);
+        List<Element> formElements = TipoExpedienteViewsContext.getFormElementsWithStateAttribute(newDocument.getDocumentElement());
+        Element formTipoExpedienteTemplate = TipoExpedienteViewsContext.findTemplateFormEnDocumento(newDocument, filePath);
 
-        PanelFinder panelFinder=new PanelFinder(formTipoExpedienteTemplate,templateForms);
+        if (formElements.isEmpty() && (formTipoExpedienteTemplate == null)) {
+            //No tiene nada de un tipo de expediente: es la inmensa mayoría de las vistas del
+            //proyecto, que se copian tal cual.
+            return newDocument;
+        }
 
+        Fase fase = null;
+        if (formElements.isEmpty() == false) {
+            //Es el views.xml de una fase: su fase sale de la carpeta y, si no trae plantilla propia
+            //(que es lo normal), sus paneles salen del views.xml de la raíz de la versión.
+            TipoExpedienteViewsContext contexto = TipoExpedienteViewsContext.of(filePath, tramitesLayout);
+            fase = contexto.getFase();
 
+            if (formTipoExpedienteTemplate == null) {
+                formTipoExpedienteTemplate = contexto.getTemplateForm();
+            }
+        }
 
-        List<Element> includePanelsList=XMLUtil.getElementsFromEvaluateXPath(".//include-panels", newDocument.getDocumentElement());
-        for(Element element:includePanelsList) {
+        PanelFinder panelFinder = new PanelFinder(formTipoExpedienteTemplate, templateForms);
+
+        List<Element> includePanelsList = XMLUtil.getElementsFromEvaluateXPath(".//include-panels", newDocument.getDocumentElement());
+        for (Element element : includePanelsList) {
             IncludePanels.doIncludePanels(element, panelFinder);
         }
 
-        List<Element> footerList=XMLUtil.getElementsFromEvaluateXPath(".//footer", newDocument.getDocumentElement());
-        for(Element element:footerList) {
+        List<Element> footerList = XMLUtil.getElementsFromEvaluateXPath(".//footer", newDocument.getDocumentElement());
+        for (Element element : footerList) {
             Footer.doFooter(element, panelFinder);
         }
 
-        List<Element> formElements = getFormElementsWithProfileStateAttributes(newDocument.getDocumentElement());
         for (Element formElement : formElements) {
-
-            Form.doForm(formElement);
-
+            Form.doForm(formElement, formTipoExpedienteTemplate, fase);
         }
 
         return newDocument;
     }
-
-
-
-
-
-    
-    private static List<Element> getFormElementsWithProfileStateAttributes(Element parentElement) {
-        List<Element> childs = XMLUtil.getChildsFilterByTagName(parentElement, "form");
-        List<Element> filter = new ArrayList<>();
-
-        for (Element formElement : childs) {
-            if (formElement.hasAttribute("state")) {
-                filter.add((Element) formElement);
-            }
-        }
-
-        return filter;
-
-    }
-
-
-    private static Element getTemplateForm(Document document) {
-        Element templateForm=null;
-
-        List<Element> elements = XMLUtil.getChildsFilterByTagName(document.getDocumentElement(), "form");
-
-        Pattern pattern = Pattern.compile("exp-([a-zA-Z0-9]+)-Templates");
-
-        for (Element element : elements) {
-            Matcher matcher = pattern.matcher(element.getAttribute("name"));
-            if (matcher.find()) {
-
-                if (templateForm == null) {
-                    templateForm = element;
-                } else {
-                    throw new RuntimeException("Existen al menos 2 nodos de plantilla:" + element.getAttribute("name"));
-                }
-            }
-        }
-
-        return templateForm;
-    }
-    
-
-
 
 }

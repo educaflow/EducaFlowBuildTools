@@ -3,6 +3,7 @@
  */
 package com.educaflow.common.buildtools.viewprocessor;
 
+import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,17 +27,19 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2) {
-            System.out.println("Uso: java Main <ruta_origen> <ruta_destino>");
+        if (args.length < 2) {
+            System.out.println("Uso: java Main <ruta_origen> <ruta_destino> [paqueteRaizTramites]");
             return;
         }
 
         Path pathToSearch = Paths.get(args[0]);
-        Path targetBaseDir = Paths.get(args[1]); 
+        Path targetBaseDir = Paths.get(args[1]);
+        String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 2);
 
-        
-        
-        
+        //Hace falta para poder resolver, desde el views.xml de una fase, su fase y el form de
+        //plantilla que tiene los paneles, que está en la raíz de la versión.
+        TramitesLayout tramitesLayout = new TramitesLayout(pathToSearch, paqueteRaizTramites);
+
         ViewFileFinder finder = new ViewFileFinder();
         List<Element> templateForms=finder.findTemplateViews(pathToSearch);
         Map<Document, Path> views = finder.findViews(pathToSearch);
@@ -51,7 +54,7 @@ public class Main {
                 Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
                 Files.createDirectories(newFilePathInTarget.getParent());                
                 
-                Document newDocument = ViewFilePreprocesor.process(document,templateForms);
+                Document newDocument = ViewFilePreprocesor.process(document, filePath, templateForms, tramitesLayout);
                 guardarXML(newDocument, newFilePathInTarget);
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al prerocesar el fichero: " + filePath,ex);

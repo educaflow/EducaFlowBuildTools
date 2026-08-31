@@ -1,7 +1,7 @@
 package com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.impl;
 
 import com.educaflow.common.buildtools.common.XMLUtil;
-import com.educaflow.common.buildtools.i18nprocessor.generatefile.AxelorInflector;
+import com.educaflow.common.buildtools.common.AxelorInflector;
 import com.educaflow.common.buildtools.i18nprocessor.generatefile.titlefinder.TitleExtractor;
 import java.nio.file.Path;
 import java.util.ArrayList;
