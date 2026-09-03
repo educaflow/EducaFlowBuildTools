@@ -23,9 +23,16 @@ public class Traductor {
     public String traducirDesdeCastellanoAValenciano(String textoCastellano) throws FalloTraduccionException {
         try {
 
+            // La salida de errores NO se mezcla con la traducción: si se mezcla,
+            // un fallo del traductor se acaba colando como si fuera valenciano.
             Process process = new ProcessBuilder(this.procesoTraductor, "spa-cat_valencia")
-                    .redirectErrorStream(true)
                     .start();
+
+            // En un hilo aparte porque leer los dos flujos uno detrás de otro se
+            // bloquea si el proceso llena el buffer del que todavía no se lee.
+            StringBuilder errores = new StringBuilder();
+            Thread lectorErrores = new Thread(() -> leerFlujo(process.getErrorStream(), errores));
+            lectorErrores.start();
 
             // Enviar el texto a Apertium
             try (BufferedWriter writer = new BufferedWriter(
@@ -34,21 +41,14 @@ public class Traductor {
             }
 
             StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
+            leerFlujo(process.getInputStream(), sb);
 
-                    if (sb.length() == 0) {
-                        sb.append(line);
-                    } else {
-                        sb.append("\n").append(line);
-                    }
-
-                }
-            }
+            int codigoSalida = process.waitFor();
+            lectorErrores.join();
 
             String traduccion = sb.toString();
+
+            comprobarQueElTraductorHaFuncionado(textoCastellano, traduccion, errores.toString(), codigoSalida);
 
             if (isTraduccionErronea(traduccion)) {
                 throw new FalloTraduccionException(textoCastellano, traduccion);
@@ -61,8 +61,53 @@ public class Traductor {
 
         } catch (FalloTraduccionException ex) {
             throw ex;
+        } catch (RuntimeException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Comprueba que el proceso traductor ha traducido de verdad.
+     *
+     * No basta con mirar el código de salida: si a apertium le falta alguna de
+     * las piezas de la tubería de su modo (cg-proc, de cg3, o lrx-proc, de
+     * apertium-lex-tools) NO traduce nada y aun así termina con código 0,
+     * dejando el error solo en la salida de errores y la traducción vacía. Como
+     * ese texto no lleva ninguna palabra marcada con '*', isTraduccionErronea lo
+     * da por bueno, así que si no se comprueba aquí se cuela como valenciano.
+     */
+    private void comprobarQueElTraductorHaFuncionado(String textoCastellano, String traduccion,
+            String errores, int codigoSalida) {
+        if (codigoSalida == 0 && errores.isEmpty()
+                && !(traduccion.isBlank() && !textoCastellano.isBlank())) {
+            return;
+        }
+
+        throw new RuntimeException("ERROR: el proceso traductor '" + procesoTraductor
+                + " spa-cat_valencia' no tradujo el texto \"" + textoCastellano
+                + "\": terminó con código de salida " + codigoSalida + ", devolvió \""
+                + traduccion + "\" y escribió en la salida de errores \"" + errores + "\"."
+                + " Comprueba que están instalados apertium, el par de idiomas"
+                + " (apertium-spa-cat) y las herramientas que usa la tubería de su modo:"
+                + " cg3 (aporta cg-proc) y apertium-lex-tools (aporta lrx-proc).");
+    }
+
+    /** Vuelca un flujo del proceso en {@code destino}, línea a línea. */
+    private static void leerFlujo(java.io.InputStream flujo, StringBuilder destino) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(flujo))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (destino.length() == 0) {
+                    destino.append(line);
+                } else {
+                    destino.append("\n").append(line);
+                }
+            }
+        } catch (java.io.IOException ex) {
+            // El proceso murió mientras se leía: lo diagnostica quien comprueba
+            // el código de salida.
         }
     }
 
