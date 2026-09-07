@@ -130,7 +130,7 @@ public class PhaseEventManagerFile {
 
     /** FQCN de la entidad del tipo de expediente, que es el tipo de los parámetros del modelo. */
     public String getModelFQCN() {
-        return "com.educaflow.subsystem.expedientes.db." + tipoExpedienteFile.getCode();
+        return tipoExpedienteFile.getFqcnExpediente();
     }
 
     public Fase getFase() {

@@ -26,5 +26,30 @@
 
     </input>
 
+    <!-- Permisos del tipo de expediente. Van aquí, y no en el auth-expedientes.xml del subsistema,
+         para que dar de alta un tipo de expediente no obligue a tocar a mano ningún fichero de
+         permisos: se generan con su data-init. Los grupos "admins" y "users" ya existen cuando se
+         cargan los datos iniciales (ModuleManager.createDefault los crea antes de instalar los
+         módulos), y el binding de una colección AÑADE (Property.addAll), no reemplaza, así que
+         cada tipo suma su permiso sin pisar los que conceda auth.xml. -->
+    <input file="auth-{{tipoExpediente.code}}.xml" root="auth">
+        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
+            <bind node="@name" to="name"/>
+            <bind node="@object" to="object"/>
+            <bind node="can/@create" to="canCreate"/>
+            <bind node="can/@read" to="canRead"/>
+            <bind node="can/@write" to="canWrite"/>
+            <bind node="can/@remove" to="canRemove"/>
+            <bind node="can/@export" to="canExport"/>
+        </bind>
+
+        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code" create="false" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="permission" to="permissions" search="self.name = :name">
+                <bind node="@name" to="name"/>
+            </bind>
+        </bind>
+    </input>
+
 </xml-inputs>
 

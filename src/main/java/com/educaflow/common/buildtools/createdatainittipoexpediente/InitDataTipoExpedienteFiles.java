@@ -35,8 +35,9 @@ public class InitDataTipoExpedienteFiles {
             
             Path inputPath=dataInitPath.resolve("input");
             Files.createDirectories(inputPath);
-            createTipoExpedienteDataFile(inputPath);            
-            
+            createTipoExpedienteDataFile(inputPath);
+            createAuthFile(inputPath);
+
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -60,8 +61,24 @@ public class InitDataTipoExpedienteFiles {
 
         String content = TemplateUtil.evaluateTemplate("input-config-tipos-expedientes-input-data.template", context);
 
-        TemplateUtil.createFileWithContent(path.resolve(tipoExpedienteInstanceFile.getCode()+ "-data.xml"), content);        
-    }    
+        TemplateUtil.createFileWithContent(path.resolve(tipoExpedienteInstanceFile.getCode()+ "-data.xml"), content);
+    }
+
+    /**
+     * Los permisos de la subclase de {@code Expediente} del tipo. Se generan con su data-init en
+     * vez de escribirse a mano en el {@code auth-expedientes.xml} del subsistema, porque son
+     * mecánicos (siempre el mismo permiso sobre la entidad del tipo) y olvidarlos deja el trámite
+     * en solo lectura para todo el mundo.
+     */
+    private void createAuthFile(Path path) {
+        Map<String, Object> context = new HashMap<>();
+        context.put("tipoExpediente", tipoExpedienteInstanceFile);
+
+
+        String content = TemplateUtil.evaluateTemplate("input-config-tipos-expedientes-input-auth.template", context);
+
+        TemplateUtil.createFileWithContent(path.resolve("auth-" + tipoExpedienteInstanceFile.getCode() + ".xml"), content);
+    }
     
     
     

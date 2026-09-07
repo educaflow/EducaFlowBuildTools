@@ -65,7 +65,7 @@ public class InitialEventManagerFile {
 
     /** FQCN de la entidad del tipo de expediente, que es el tipo del parámetro del modelo. */
     public String getModelFQCN() {
-        return "com.educaflow.subsystem.expedientes.db." + tipoExpedienteFile.getCode();
+        return tipoExpedienteFile.getFqcnExpediente();
     }
 
     /** El nombre del único método del {@code InitialEventManager}. */
