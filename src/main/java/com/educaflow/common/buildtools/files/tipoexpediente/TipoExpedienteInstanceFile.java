@@ -363,6 +363,16 @@ public class TipoExpedienteInstanceFile {
     }
 
     /**
+     * FQCN de la entidad del tipo de expediente: la subclase de {@code Expediente} que su
+     * {@code domains.xml} declara, siempre con el nombre del code del tipo y en el paquete del
+     * módulo de expedientes. Lo necesitan tanto el código generado (que la importa) como el
+     * data-init de permisos (que la nombra como objeto del permiso).
+     */
+    public String getFqcnExpediente() {
+        return "com.educaflow.subsystem.expedientes.db." + getCode();
+    }
+
+    /**
      * El nombre de la clase del {@code PhaseEventManager}, igual en todas las fases: lo que las
      * distingue es el paquete, no el nombre.
      */
