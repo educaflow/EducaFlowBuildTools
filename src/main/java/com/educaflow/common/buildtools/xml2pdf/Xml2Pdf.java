@@ -30,8 +30,13 @@ import org.apache.fop.pdf.PDFStream;
 import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import java.awt.Color;
@@ -43,6 +48,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -57,6 +63,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.Locator;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Genera el formulario PDF rellenable directamente desde el XML de definición
@@ -432,7 +441,8 @@ public class Xml2Pdf {
         for (Element e : children(fila)) {
             String tag = e.getTagName();
             if (!tag.equals("campo") && !tag.equals("check") && !tag.equals("texto")) {
-                throw new RuntimeException("ERROR: elemento <" + tag + "> desconocido dentro de <fila>");
+                throw new RuntimeException("ERROR: elemento <" + tag + "> desconocido dentro de <fila>"
+                        + ubicacion(e) + ":\n" + toXml(fila));
             }
             Hoja h = new Hoja();
             h.tag = tag;
@@ -444,7 +454,10 @@ public class Xml2Pdf {
             h.cast = childText(e, "castellano");
             int units = (int) Math.round(Double.parseDouble(e.getAttribute("colspan")) * 100);
             if (cursor + units > FULL) {
-                throw new RuntimeException("ERROR: un <" + tag + "> cruza el límite de 12 columnas");
+                throw new RuntimeException("ERROR: un <" + tag + "> cruza el límite de 12 columnas"
+                        + ubicacion(e) + ": su colspan es " + enColumnas(units)
+                        + " y antes de él la línea ya lleva " + enColumnas(cursor)
+                        + " de las 12 columnas:\n" + toXml(fila));
             }
             h.startUnits = cursor;
             h.endUnits = cursor + units;
@@ -457,9 +470,17 @@ public class Xml2Pdf {
             }
         }
         if (!line.isEmpty()) {
-            throw new RuntimeException("ERROR: los colspan de una <fila> no suman un múltiplo de 12");
+            throw new RuntimeException("ERROR: los colspan de una <fila> no suman un múltiplo de 12"
+                    + ubicacion(fila) + ": la última línea suma " + enColumnas(cursor)
+                    + " de las 12 columnas:\n" + toXml(fila));
         }
         return lines;
+    }
+
+    /** Cuántas columnas de la rejilla de 12 son esas unidades, tal como se
+     * escriben en el atributo colspan (1200 unidades = 12 columnas). */
+    static String enColumnas(int units) {
+        return units % 100 == 0 ? String.valueOf(units / 100) : String.valueOf(units / 100.0);
     }
 
     static List<Element> children(Element e) {
@@ -638,6 +659,7 @@ public class Xml2Pdf {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             Document dom = dbf.newDocumentBuilder().parse(xml);
+            anotarUbicaciones(dom, xml);
             if (!dom.getDocumentElement().getTagName().equals(raiz)) {
                 throw new RuntimeException("ERROR: el elemento raíz de " + xml
                         + " debe ser <" + raiz + ">");
@@ -647,6 +669,88 @@ public class Xml2Pdf {
             throw ex;
         } catch (Exception ex) {
             throw new RuntimeException("Fallo al parsear el XML: " + xml, ex);
+        }
+    }
+
+    /** Clave con la que se guarda en cada Element, como userData, el
+     * "fichero:línea" del que salió. El DOM no conserva la posición y sin ella
+     * un error de estructura no se sabe dónde hay que arreglarlo. */
+    static final String UBICACION = "ubicacion";
+
+    /** El " (fichero:línea)" de un elemento, para los mensajes de error, o ""
+     * si no se pudo averiguar (elementos que no vienen de ningún fichero, como
+     * el &lt;titulo&gt; que se le pone al documento con el nombre del trámite). */
+    static String ubicacion(Element e) {
+        Object ubicacion = e.getUserData(UBICACION);
+        return ubicacion == null ? "" : " (" + ubicacion + ")";
+    }
+
+    /** Anota en cada Element el fichero y la línea de los que viene. El DOM no
+     * guarda la posición, así que se hace una segunda pasada con SAX (que sí
+     * tiene Locator) y se emparejan los elementos: SAX los abre exactamente en
+     * el mismo orden en el que los visita el recorrido en preorden del DOM. Si
+     * algo no cuadra se deja sin anotar: esto es solo para los mensajes de
+     * error, nunca debe romper la generación del PDF. */
+    static void anotarUbicaciones(Document dom, File xml) {
+        List<Integer> lineas = new ArrayList<>();
+        try {
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setNamespaceAware(true);
+            spf.newSAXParser().parse(xml, new DefaultHandler() {
+                private Locator locator;
+
+                @Override
+                public void setDocumentLocator(Locator locator) {
+                    this.locator = locator;
+                }
+
+                @Override
+                public void startElement(String uri, String localName, String qName, Attributes attrs) {
+                    lineas.add(locator == null ? -1 : locator.getLineNumber());
+                }
+            });
+        } catch (Exception ex) {
+            return;
+        }
+        List<Element> elementos = new ArrayList<>();
+        recogerEnPreorden(dom.getDocumentElement(), elementos);
+        if (elementos.size() != lineas.size()) {
+            return;
+        }
+        for (int i = 0; i < elementos.size(); i++) {
+            elementos.get(i).setUserData(UBICACION, xml + ":" + lineas.get(i), null);
+        }
+    }
+
+    static void recogerEnPreorden(Element e, List<Element> out) {
+        out.add(e);
+        for (Element hijo : children(e)) {
+            recogerEnPreorden(hijo, out);
+        }
+    }
+
+    /** importNode no copia el userData, así que la ubicación de los elementos
+     * que vienen de un fragmento hay que arrastrarla a mano al importarlos. */
+    static void copiarUbicaciones(Element origen, Element destino) {
+        destino.setUserData(UBICACION, origen.getUserData(UBICACION), null);
+        List<Element> hijosOrigen = children(origen);
+        List<Element> hijosDestino = children(destino);
+        for (int i = 0; i < hijosOrigen.size() && i < hijosDestino.size(); i++) {
+            copiarUbicaciones(hijosOrigen.get(i), hijosDestino.get(i));
+        }
+    }
+
+    /** El XML de un elemento, tal cual, para enseñar en un mensaje de error
+     * qué trozo del documento es el que está mal. */
+    static String toXml(Element e) {
+        try {
+            Transformer t = TransformerFactory.newInstance().newTransformer();
+            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter out = new StringWriter();
+            t.transform(new DOMSource(e), new StreamResult(out));
+            return out.toString().trim();
+        } catch (Exception ex) {
+            return "<" + e.getTagName() + "> (no se pudo serializar: " + ex.getMessage() + ")";
         }
     }
 
@@ -672,7 +776,9 @@ public class Xml2Pdf {
             Document dom = parseValidated(fragmento.toFile(), "fragmento");
             expandIncludes(dom.getDocumentElement(), fragmento, cadena);
             for (Element hijo : children(dom.getDocumentElement())) {
-                raiz.insertBefore(raiz.getOwnerDocument().importNode(hijo, true), e);
+                Element importado = (Element) raiz.getOwnerDocument().importNode(hijo, true);
+                copiarUbicaciones(hijo, importado);
+                raiz.insertBefore(importado, e);
             }
             raiz.removeChild(e);
         }
