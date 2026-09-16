@@ -65,6 +65,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -507,7 +508,8 @@ public class Xml2Pdf {
         }
         if (!e.getAttribute(name).isEmpty()) {
             throw new RuntimeException("ERROR: <" + e.getTagName() + "> lleva '" + name
-                    + "' como atributo (formato antiguo); usa el elemento hijo <" + name + ">");
+                    + "' como atributo (formato antiguo)" + ubicacion(e)
+                    + "; usa el elemento hijo <" + name + ">:\n" + toXml(e));
         }
         return "";
     }
@@ -581,7 +583,7 @@ public class Xml2Pdf {
                         }
                         if (!fila.getTagName().equals("fila")) {
                             throw new RuntimeException("ERROR: <" + fila.getTagName()
-                                    + "> desconocido dentro de <seccion>");
+                                    + "> desconocido dentro de <seccion>" + ubicacion(fila));
                         }
                         List<List<Hoja>> lines = partition(fila);
                         for (int i = 0; i < lines.size(); i++) {
@@ -591,7 +593,7 @@ public class Xml2Pdf {
                     break;
                 default:
                     throw new RuntimeException("ERROR: <" + e.getTagName()
-                            + "> desconocido dentro de <documento>");
+                            + "> desconocido dentro de <documento>" + ubicacion(e));
             }
         }
         finishPage();
@@ -681,8 +683,15 @@ public class Xml2Pdf {
      * si no se pudo averiguar (elementos que no vienen de ningún fichero, como
      * el &lt;titulo&gt; que se le pone al documento con el nombre del trámite). */
     static String ubicacion(Element e) {
-        Object ubicacion = e.getUserData(UBICACION);
+        String ubicacion = ubicacionO(e, null);
         return ubicacion == null ? "" : " (" + ubicacion + ")";
+    }
+
+    /** El "fichero:línea" pelado de un elemento, o {@code alternativa} si no
+     * se sabe de dónde viene. */
+    static String ubicacionO(Element e, String alternativa) {
+        Object ubicacion = e.getUserData(UBICACION);
+        return ubicacion == null ? alternativa : ubicacion.toString();
     }
 
     /** Anota en cada Element el fichero y la línea de los que viene. El DOM no
@@ -718,7 +727,8 @@ public class Xml2Pdf {
             return;
         }
         for (int i = 0; i < elementos.size(); i++) {
-            elementos.get(i).setUserData(UBICACION, xml + ":" + lineas.get(i), null);
+            elementos.get(i).setUserData(UBICACION,
+                    xml.getAbsoluteFile().toPath().normalize() + ":" + lineas.get(i), null);
         }
     }
 
@@ -766,12 +776,12 @@ public class Xml2Pdf {
             }
             Path fragmento = fichero.getParent().resolve(e.getAttribute("href")).normalize();
             if (cadena.contains(fragmento)) {
-                throw new RuntimeException("ERROR: ciclo de includes: " + cadena
-                        + " -> " + fragmento);
+                throw new RuntimeException("ERROR: ciclo de includes" + ubicacion(e) + ": "
+                        + cadena + " -> " + fragmento);
             }
             if (!fragmento.toFile().isFile()) {
                 throw new RuntimeException("ERROR: " + fichero
-                        + " incluye un fragmento que no existe: " + fragmento);
+                        + " incluye un fragmento que no existe" + ubicacion(e) + ": " + fragmento);
             }
             Document dom = parseValidated(fragmento.toFile(), "fragmento");
             expandIncludes(dom.getDocumentElement(), fragmento, cadena);
@@ -798,8 +808,19 @@ public class Xml2Pdf {
                     .newValidator().validate(xml);
         } catch (Exception ex) {
             throw new RuntimeException("ERROR: el XML no valida contra documento.xsd: "
-                    + descripcion + ": " + ex.getMessage(), ex);
+                    + descripcion + lineaYColumna(ex) + ": " + ex.getMessage(), ex);
         }
+    }
+
+    /** La ":línea:columna" que trae el error del validador, si la trae. Al
+     * validar el documento ya expandido se valida un DOM, que no tiene
+     * posiciones, y entonces no hay nada que añadir. */
+    static String lineaYColumna(Exception ex) {
+        if (!(ex instanceof SAXParseException spe) || spe.getLineNumber() <= 0) {
+            return "";
+        }
+        return ":" + spe.getLineNumber()
+                + (spe.getColumnNumber() > 0 ? ":" + spe.getColumnNumber() : "");
     }
 
     // ------------------------------------------------------------------ filas

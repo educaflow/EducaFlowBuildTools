@@ -75,12 +75,17 @@ class TraductorValenciano {
             return;
         }
         Element valenciano = elemento.getOwnerDocument().createElement("valenciano");
-        valenciano.setTextContent(traducir(texto));
+        valenciano.setTextContent(traducir(texto, castellano));
         // el esquema exige <valenciano> antes de <castellano>
         elemento.insertBefore(valenciano, castellano);
     }
 
-    private String traducir(String castellano) {
+    /** El &lt;castellano&gt; del que sale el texto se pasa solo para poder
+     * decir en qué fichero y línea está el texto que no se supo traducir: con
+     * los fragmentos _*.xml compartidos, el fichero del documento que se está
+     * generando no es el fichero que hay que arreglar. */
+    private String traducir(String castellano, Element origen) {
+        String donde = Xml2Pdf.ubicacionO(origen, descripcion);
         String cacheado = traducciones.get(castellano);
         if (cacheado != null) {
             return cacheado;
@@ -102,7 +107,7 @@ class TraductorValenciano {
             valenciano = traductor.traducirDesdeCastellanoAValenciano(protegido.toString());
         } catch (FalloTraduccionException ex) {
             throw new RuntimeException("ERROR: no se pudo traducir al valenciano el texto \""
-                    + castellano + "\" de " + descripcion + " (el traductor devolvió \""
+                    + castellano + "\" de " + donde + " (el traductor devolvió \""
                     + ex.getTraduccion() + "\", las palabras que no supo traducir van con '*'):"
                     + " añade el elemento <valenciano> con la traducción, o marca en el"
                     + " <castellano> las palabras que no se deben traducir (siglas, nombres"
@@ -111,7 +116,7 @@ class TraductorValenciano {
         } catch (RuntimeException ex) {
             throw new RuntimeException("ERROR: fallo al ejecutar el proceso traductor '"
                     + procesoTraductor + "' para traducir al valenciano el texto \"" + castellano
-                    + "\" de " + descripcion + ": o lo instalas, o añades el elemento <valenciano>"
+                    + "\" de " + donde + ": o lo instalas, o añades el elemento <valenciano>"
                     + " con la traducción.", ex);
         }
 
@@ -120,7 +125,7 @@ class TraductorValenciano {
             if (!valenciano.contains(marcador(i))) {
                 throw new RuntimeException("ERROR: el traductor perdió \"" + literales.get(i)
                         + "\" al traducir al valenciano el texto \"" + castellano
-                        + "\" de " + descripcion + ": añade el elemento <valenciano> con la traducción.");
+                        + "\" de " + donde + ": añade el elemento <valenciano> con la traducción.");
             }
             valenciano = valenciano.replace(marcador(i), literales.get(i));
         }
