@@ -2,6 +2,7 @@ package com.educaflow.common.buildtools.files.initialeventmanagerfile;
 
 import com.educaflow.common.buildtools.common.TemplateUtil;
 import com.educaflow.common.buildtools.common.TextUtil;
+import com.educaflow.common.buildtools.files.tipoexpediente.State;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,6 +54,10 @@ public class InitialEventManagerFile {
         context.put("lowerCode", TextUtil.caseLowerFirstLetter(tipoExpedienteFile.getCode()));
         context.put("packageName", tipoExpedienteFile.getBasePackageName());
         context.put("initialEventManagerClassName", tipoExpedienteFile.getInitialEventManagerClassName());
+        // El esqueleto parte del primer estado declarado; si el tipo tiene otro, se cambia a mano.
+        State primerEstado = tipoExpedienteFile.getStates().get(0);
+        context.put("primerEstadoFase", primerEstado.getFase().getNameUpperCamelCase());
+        context.put("primerEstado", primerEstado.getName());
 
         String content = TemplateUtil.evaluateTemplate("initial-event-manager.template", context);
 

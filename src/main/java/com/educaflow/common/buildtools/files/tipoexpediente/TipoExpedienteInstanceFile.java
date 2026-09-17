@@ -172,17 +172,6 @@ public class TipoExpedienteInstanceFile {
         return statesFormatoAntiguo;
     }
 
-    /** El estado inicial del tipo de expediente. El finder garantiza que hay exactamente uno. */
-    public State getInitialState() {
-        for (State state : getStates()) {
-            if (state.isInitial()) {
-                return state;
-            }
-        }
-
-        return null;
-    }
-
     /**
      * @return the path
      */

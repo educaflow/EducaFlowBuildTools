@@ -47,7 +47,7 @@ Cada paquete bajo `com.educaflow.common.buildtools` es una herramienta con su `M
   `GenerateStatesTask` del `build.gradle`. Proyecta el `TipoExpedienteInstance.xml` de cada tipo en **una** clase
   `<basePackageName>.States`, que emite en `build/src-gen-states/main/java` (un `srcDir` propio, para no mezclarla
   con lo que genera Axelor). Es la **única** fuente de la máquina de estados en runtime: la clase lleva un enum
-  público por fase (sus constantes son los estados, con título, perfil, eventos, `initial` y `closed`), un alias
+  público por fase (sus constantes son los estados, con título, perfil, eventos y `closed`), un alias
   `Phase` por fase, `CODE`/`NAME` y un `INSTANCE` que implementa `TipoExpedienteStates`. **No se versiona ni se
   edita**: se reemite en cada build.
   - Antes de escribir nada **valida fail-fast**: `ProfilesDelDominio` comprueba que cada `profile` no vacío existe

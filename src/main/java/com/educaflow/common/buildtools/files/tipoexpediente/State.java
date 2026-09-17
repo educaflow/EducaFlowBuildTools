@@ -35,9 +35,6 @@ public class State {
     private String profile;
 
     @XmlAttribute
-    private boolean initial;
-
-    @XmlAttribute
     private boolean closed;
 
     @XmlAttribute
@@ -102,14 +99,6 @@ public class State {
 
     public void setProfile(String profile) {
         this.profile = profile;
-    }
-
-    public boolean isInitial() {
-        return initial;
-    }
-
-    public void setInitial(boolean initial) {
-        this.initial = initial;
     }
 
     public boolean isClosed() {

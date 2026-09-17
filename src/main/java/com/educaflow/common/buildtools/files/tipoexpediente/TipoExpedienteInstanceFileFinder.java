@@ -92,7 +92,6 @@ public class TipoExpedienteInstanceFileFinder {
             checkFases(tipoExpediente);
             checkEventos(tipoExpediente);
             checkFormatoProfiles(tipoExpediente);
-            checkOnlyOneInitialState(tipoExpediente);
 
 
             List<TipoDocumentoPdf> tipoDocumentosPdfExpecificos=getDocumentosPdf(expedienteXmlFile.getParent());
@@ -154,26 +153,6 @@ public class TipoExpedienteInstanceFileFinder {
         if (messages.length()>0) {
             throw new RuntimeException("Hay tipos de expediente con el mismo code:\n"+messages.toString());
         }
-    }
-
-    private static void checkOnlyOneInitialState(TipoExpedienteInstanceFile tipoExpediente) {
-        List<String> initialStates=new ArrayList<>();
-
-        for(State state:tipoExpediente.getStates()) {
-            if (state.isInitial()==true) {
-                //El código de un estado solo es único dentro de su fase, así que para nombrarlo en
-                //un mensaje hace falta la pareja.
-                initialStates.add(state.getFase().getName()+"/"+state.getName());
-            }
-        }
-
-
-        if (initialStates.isEmpty()) {
-            throw new RuntimeException("No existe ningun estado inicial");
-        } else if (initialStates.size()>1) {
-            throw new RuntimeException("Existe más de un estado inicial:"+String.join(",", initialStates));
-        }
-
     }
 
     /**

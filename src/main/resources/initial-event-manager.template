@@ -13,6 +13,9 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
  * no hay estado del que partir. Por eso hay exactamente uno por tipo, aquí en la raíz de la
  * versión, y no uno por fase.
  *
+ * <p>MUST fijar el estado en el que nace el expediente con {@code eventContext.updateState(...)}:
+ * el estado inicial no se declara en el {@code TipoExpedienteInstance.xml}, lo decide esta clase.
+ *
  * <p>Qué campos hay que rellenar depende del tipo de expediente: {@code Tramitador} no impone
  * ninguno. Si los documentos de entrada de este tipo se firman, MUST dejar
  * {@code dniFirmaDocumentoEntrada} con un DNI válido.
@@ -22,7 +25,7 @@ public class {{initialEventManagerClassName}} implements InitialEventManager<{{ 
     @Override
     public void triggerInitialEvent({{ code }} {{ lowerCode }}, EventContext eventContext) throws BusinessException {
 
-
+        eventContext.updateState(States.{{ primerEstadoFase }}.{{ primerEstado }});
     }
 
 }
