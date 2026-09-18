@@ -46,8 +46,8 @@ public class TramiteInstanceFile {
     @XmlElement(name = "publico")
     private String publico;
 
-    @XmlElement(name = "privado")
-    private String privado;
+    @XmlElement(name = "permitidoPresentarEnRepresentacion")
+    private String permitidoPresentarEnRepresentacion;
 
     @XmlElement(name = "defaultTipoExpediente")
     private String defaultTipoExpediente;
@@ -117,15 +117,15 @@ public class TramiteInstanceFile {
     }
 
     /**
-     * El &lt;privado&gt; tal cual lo declara el XML, o null si no lo declara.
-     * Ver {@link #getPublico()}.
+     * El &lt;permitidoPresentarEnRepresentacion&gt; tal cual lo declara el XML,
+     * o null si no lo declara. Ver {@link #getPublico()}.
      */
-    public String getPrivado() {
-        return trimOrNull(privado);
+    public String getPermitidoPresentarEnRepresentacion() {
+        return trimOrNull(permitidoPresentarEnRepresentacion);
     }
 
-    public void setPrivado(String privado) {
-        this.privado = privado;
+    public void setPermitidoPresentarEnRepresentacion(String permitidoPresentarEnRepresentacion) {
+        this.permitidoPresentarEnRepresentacion = permitidoPresentarEnRepresentacion;
     }
 
     /**

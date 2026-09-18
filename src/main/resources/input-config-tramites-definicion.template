@@ -10,7 +10,7 @@
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
             <bind node="@publico" to="publico" />
-            <bind node="@privado" to="privado" />
+            <bind node="@permitidoPresentarEnRepresentacion" to="permitidoPresentarEnRepresentacion" />
             <bind node="@tipoTramite" to="tipoTramite" alias="tipoTramite" search="self.code = :tipoTramite"  create="false" update="true" />
             <bind node="text()" to="help" />
         </bind>
