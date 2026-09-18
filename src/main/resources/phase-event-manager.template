@@ -1,9 +1,9 @@
 package {{packageName}};
 
 import com.axelor.inject.Beans;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.{{ code }};
 import com.educaflow.subsystem.expedientes.db.repo.{{ code }}Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class {{phaseEventManagerClassName}} extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<{{ code }}> {
+public class {{phaseEventManagerClassName}} extends com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager<{{ code }}> {
 
     private final {{ code }}Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
