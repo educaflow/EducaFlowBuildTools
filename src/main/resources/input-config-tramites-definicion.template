@@ -17,4 +17,25 @@
 
     </input>
 
+    <!-- Perfiles que da el trámite (el <aces> de su TramiteInstance.xml). Van detrás del <input> del trámite porque los <input> de un input-config.xml se cargan en orden y lo referencian. La tabla se vacía en cada arranque (DataBaseStartup), así que quitar un <ace> del XML lo quita de la BD. -->
+    <input file="Aces.xml" root="datos">
+        <bind node="aces/ace[@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
+              search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario AND self.tramite.code = :tramite"
+              create="true" update="true">
+            <bind node="@perfil"      to="perfil"/>
+            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
+            <bind node="@tramite" to="tramite" search="self.code = :tramite" create="false" update="false"/>
+        </bind>
+    </input>
+
+    <input file="Aces.xml" root="datos">
+        <bind node="aces/ace[@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
+              search="self.perfil = :perfil AND self.cargo.code = :cargo AND self.tramite.code = :tramite"
+              create="true" update="true">
+            <bind node="@perfil"      to="perfil"/>
+            <bind node="@cargo"       to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
+            <bind node="@tramite" to="tramite" search="self.code = :tramite" create="false" update="false"/>
+        </bind>
+    </input>
+
 </xml-inputs>

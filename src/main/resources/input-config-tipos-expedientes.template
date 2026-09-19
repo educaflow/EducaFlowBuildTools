@@ -26,6 +26,27 @@
 
     </input>
 
+    <!-- Perfiles que da el tipo de expediente (el <aces> de su TipoExpedienteInstance.xml). Van detrás del <input> del tipo porque los <input> de un input-config.xml se cargan en orden y lo referencian. La tabla se vacía en cada arranque (DataBaseStartup), así que quitar un <ace> del XML lo quita de la BD. -->
+    <input file="{{tipoExpediente.code}}-aces.xml" root="datos">
+        <bind node="aces/ace[@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTipoExpediente"
+              search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario AND self.tipoExpediente.code = :tipoExpediente"
+              create="true" update="true">
+            <bind node="@perfil"      to="perfil"/>
+            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
+            <bind node="@tipoExpediente" to="tipoExpediente" search="self.code = :tipoExpediente" create="false" update="false"/>
+        </bind>
+    </input>
+
+    <input file="{{tipoExpediente.code}}-aces.xml" root="datos">
+        <bind node="aces/ace[@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTipoExpediente"
+              search="self.perfil = :perfil AND self.cargo.code = :cargo AND self.tipoExpediente.code = :tipoExpediente"
+              create="true" update="true">
+            <bind node="@perfil"      to="perfil"/>
+            <bind node="@cargo"       to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
+            <bind node="@tipoExpediente" to="tipoExpediente" search="self.code = :tipoExpediente" create="false" update="false"/>
+        </bind>
+    </input>
+
     <!-- Permisos del tipo de expediente. Van aquí, y no en el auth-expedientes.xml del subsistema,
          para que dar de alta un tipo de expediente no obligue a tocar a mano ningún fichero de
          permisos: se generan con su data-init. Los grupos "admins" y "users" ya existen cuando se

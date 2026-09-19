@@ -36,6 +36,7 @@ public class InitDataTipoExpedienteFiles {
             Path inputPath=dataInitPath.resolve("input");
             Files.createDirectories(inputPath);
             createTipoExpedienteDataFile(inputPath);
+            createAcesDataFile(inputPath);
             createAuthFile(inputPath);
 
         } catch(Exception ex) {
@@ -62,6 +63,19 @@ public class InitDataTipoExpedienteFiles {
         String content = TemplateUtil.evaluateTemplate("input-config-tipos-expedientes-input-data.template", context);
 
         TemplateUtil.createFileWithContent(path.resolve(tipoExpedienteInstanceFile.getCode()+ "-data.xml"), content);
+    }
+
+    /**
+     * Los perfiles del &lt;aces&gt; del tipo (AceProfileTipoExpediente).
+     */
+    private void createAcesDataFile(Path path) {
+        Map<String, Object> context = new HashMap<>();
+        context.put("tipoExpediente", tipoExpedienteInstanceFile);
+
+
+        String content = TemplateUtil.evaluateTemplate("input-config-tipos-expedientes-input-aces.template", context);
+
+        TemplateUtil.createFileWithContent(path.resolve(tipoExpedienteInstanceFile.getCode()+ "-aces.xml"), content);
     }
 
     /**

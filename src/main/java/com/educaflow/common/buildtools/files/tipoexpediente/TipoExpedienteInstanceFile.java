@@ -4,6 +4,7 @@
  */
 package com.educaflow.common.buildtools.files.tipoexpediente;
 
+import com.educaflow.common.buildtools.files.ace.Ace;
 import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFile;
 import com.educaflow.common.buildtools.files.tramite.TramiteInstanceFileFinder;
 import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
@@ -59,6 +60,10 @@ public class TipoExpedienteInstanceFile {
     @XmlElementWrapper(name = "fases")
     @XmlElement(name = "fase")
     private List<Fase> fases;
+
+    @XmlElementWrapper(name = "aces")
+    @XmlElement(name = "ace")
+    private List<Ace> aces;
 
     /**
      * Solo para detectar el formato antiguo. Un {@code <states>} en la raíz ya no es válido: los
@@ -139,6 +144,14 @@ public class TipoExpedienteInstanceFile {
 
     public void setFases(List<Fase> fases) {
         this.fases = fases;
+    }
+
+    /**
+     * Los perfiles que da el tipo de expediente (AceProfileTipoExpediente),
+     * validados. Ver {@link Ace#check(List, Path)}.
+     */
+    public List<Ace> getAces() {
+        return Ace.check(aces, path);
     }
 
     /** La fase que se llama así, o null si no existe. */

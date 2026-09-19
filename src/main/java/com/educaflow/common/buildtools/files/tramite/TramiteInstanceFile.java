@@ -1,9 +1,11 @@
 package com.educaflow.common.buildtools.files.tramite;
 
+import com.educaflow.common.buildtools.files.ace.Ace;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.nio.file.Files;
@@ -55,6 +57,10 @@ public class TramiteInstanceFile {
     @XmlElement(name = "help")
     private String help;
 
+    @XmlElementWrapper(name = "aces")
+    @XmlElement(name = "ace")
+    private List<Ace> aces;
+
     @XmlTransient
     private Path path;
 
@@ -76,6 +82,7 @@ public class TramiteInstanceFile {
         getName();
         getTipoTramite();
         getHelp();
+        getAces();
     }
 
     public String getCode() {
@@ -147,6 +154,14 @@ public class TramiteInstanceFile {
 
     public void setHelp(String help) {
         this.help = help;
+    }
+
+    /**
+     * Los perfiles que da el trámite (AceProfileTramite), validados. Ver
+     * {@link Ace#check(List, Path)}.
+     */
+    public List<Ace> getAces() {
+        return Ace.check(aces, path);
     }
 
     public void setDefaultTipoExpediente(String defaultTipoExpediente) {

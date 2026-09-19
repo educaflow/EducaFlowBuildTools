@@ -10,7 +10,8 @@ import java.util.Map;
 /**
  * Los ficheros de data-init de un trámite:
  * <ul>
- * <li>&lt;code&gt;/definicion/data-init (priority="1"): el propio trámite.</li>
+ * <li>&lt;code&gt;/definicion/data-init (priority="1"): el propio trámite y
+ * los perfiles de su &lt;aces&gt; (AceProfileTramite).</li>
  * <li>&lt;code&gt;/tipo_expediente_activo/data-init (priority="-1"): su tipo de
  * expediente activo, solo si el trámite lo declara.</li>
  * </ul>
@@ -37,6 +38,7 @@ public class InitDataTramiteFiles {
             Path inputPath=dataInitPath.resolve("input");
             Files.createDirectories(inputPath);
             createFile(inputPath.resolve("Tramite.xml"),"input-config-tramites-definicion-input-data.template");
+            createFile(inputPath.resolve("Aces.xml"),"input-config-tramites-definicion-input-aces.template");
 
             if (tramiteInstanceFile.getDefaultTipoExpedienteCode()!=null) {
                 Path dataInitActivoPath=rootPath.resolve(tramiteInstanceFile.getCode()).resolve("tipo_expediente_activo").resolve("data-init");
