@@ -1,9 +1,9 @@
 package {{ packageName }};
 
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.Phase;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.Phase;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.TipoExpedienteStates;
 
 import java.util.ArrayList;
 import java.util.Arrays;

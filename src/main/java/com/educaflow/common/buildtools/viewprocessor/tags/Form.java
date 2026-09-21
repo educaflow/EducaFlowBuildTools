@@ -89,10 +89,12 @@ public class Form {
      * estados de perfil {@code CREADOR}. Validar contra {@code state.getProfile()} sería demasiado
      * estricto y rechazaría vistas correctas.
      *
-     * <p>La unión de perfiles del tipo es exactamente el conjunto que admite el runtime en
-     * {@code ExpedienteController.checkProfileDelTipoExpediente}, y es subconjunto del enum global
-     * {@code Profile} porque {@code checkProfiles} ya lo garantiza. Un perfil fuera de ella produce
-     * una vista que nunca se pinta.
+     * <p>El runtime no enumera los perfiles del tipo en ningún sitio: el perfil llega en la petición,
+     * {@code TramitadorService.validateGetVistaExpediente} lo valida contra los perfiles que el
+     * usuario tiene sobre ese expediente, y {@code PhaseEventManager.getViewName} compone con él el
+     * nombre de vista y revienta si no existe ninguna. La unión de perfiles del tipo es subconjunto
+     * del enum global {@code Profile} porque {@code checkProfiles} ya lo garantiza. Un perfil fuera
+     * de ella produce una vista que nunca se pinta.
      *
      * <p>El valor en blanco se salta: los forms de fallback (sin perfil) no llevan el atributo.
      */
