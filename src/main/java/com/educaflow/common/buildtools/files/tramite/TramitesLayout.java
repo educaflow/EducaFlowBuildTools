@@ -115,7 +115,7 @@ public class TramitesLayout {
      * La subida por las carpetas padre <b>sin tope</b>, hasta "/".
      *
      * Es el único punto de entrada para quien no tiene layout: el
-     * {@code Xml2Pdf.main} autónomo, donde a mano no se sabe cuál es la raíz de
+     * {@code DocumentoXmlResolver.main} autónomo, donde a mano no se sabe cuál es la raíz de
      * fuentes. No la usa ninguna tarea del build: todas van por
      * {@link #findTramiteInstanceAncestro(Path)}, que sí tiene tope.
      */

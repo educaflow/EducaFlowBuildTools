@@ -2,9 +2,10 @@
 <!-- Esquema del XML de definición de los documentos PDF de los trámites de la
      secretaría virtual: los documentos (raíz <documento>) y los fragmentos
      reutilizables _*.xml (raíz <fragmento>) que aquellos incluyen con
-     <include href="..."/>. Xml2Pdf valida cada fichero contra este esquema al
-     cargarlo, y también el documento resultante de expandir los includes.
-     El formato está documentado en el skill k-documentos de secretaria-virtual. -->
+     <include href="..."/>. DocumentoXmlResolver valida cada fichero contra este
+     esquema al cargarlo, y también el documento resultante de expandir los
+     includes. El formato está documentado en el fichero documentos.md del skill
+     k-tipo-expediente de secretaria-virtual. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
     <!-- colspan: número de columnas de la rejilla de 12; positivo, admite decimales. -->
@@ -28,6 +29,26 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <!-- siOculto: qué se hace con un elemento cuyo visible evalúa a false.
+         colapsar (por omisión): desaparece y lo que va detrás se desplaza; una
+         sección colapsada no consume letra. reservar: conserva su sitio y su
+         alto, dibujando solo los bordes. Solo tiene sentido junto a visible:
+         DocumentoXmlResolver aborta si va sin él. -->
+    <xs:simpleType name="siOcultoType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="colapsar"/>
+            <xs:enumeration value="reservar"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Visibilidad condicional. visible es una expresión Groovy que se
+         evalúa en runtime con el mismo contexto que nombreCampo (self, now) y
+         MUST devolver Boolean; omitido, el elemento siempre se dibuja. -->
+    <xs:attributeGroup name="visibilidad">
+        <xs:attribute name="visible" type="nombreCampoType"/>
+        <xs:attribute name="siOculto" type="siOcultoType"/>
+    </xs:attributeGroup>
+
     <!-- Textos bilingües como elementos hijos. Admiten campos inline
          ${nombre;n}. Un <castellano> omitido o vacío omite el castellano. Un
          <valenciano> OMITIDO se calcula traduciendo el <castellano> con el
@@ -45,12 +66,14 @@
         <xs:attribute name="nombreCampo" type="nombreCampoType" use="required"/>
         <xs:attribute name="colspan" type="colspanType" use="required"/>
         <xs:attribute name="rowSpan" type="rowSpanType"/>
+        <xs:attributeGroup ref="visibilidad"/>
     </xs:complexType>
 
     <xs:complexType name="textoType">
         <xs:group ref="textosBilingues"/>
         <xs:attribute name="colspan" type="colspanType" use="required"/>
         <xs:attribute name="rowSpan" type="rowSpanType"/>
+        <xs:attributeGroup ref="visibilidad"/>
     </xs:complexType>
 
     <!-- href de un <include>: ruta relativa a un fragmento cuyo nombre de
@@ -88,9 +111,11 @@
                                     <xs:element name="check" type="campoType"/>
                                     <xs:element name="texto" type="textoType"/>
                                 </xs:choice>
+                                <xs:attributeGroup ref="visibilidad"/>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
+                    <xs:attributeGroup ref="visibilidad"/>
                 </xs:complexType>
             </xs:element>
 
@@ -107,7 +132,7 @@
 
     <xs:element name="documento" type="contenidoDocumentoType"/>
 
-    <!-- Raíz de los fragmentos _*.xml. Xml2Pdf sustituye cada <include> por
+    <!-- Raíz de los fragmentos _*.xml. DocumentoXmlResolver sustituye cada <include> por
          los hijos de esta raíz, recursivamente si el fragmento tiene a su vez
          otros <include>. -->
     <xs:element name="fragmento" type="contenidoDocumentoType"/>

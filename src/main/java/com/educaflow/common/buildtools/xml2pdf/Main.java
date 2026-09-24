@@ -17,15 +17,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * Genera los PDF de los documentos de los trámites en tiempo de compilación.
+ * Resuelve en tiempo de compilación los XML de los documentos PDF de los
+ * trámites. El PDF en sí NO se genera aquí: lo dibuja la aplicación en runtime
+ * (paquete com.educaflow.base.infrastructure.pdfgenerator), porque la
+ * visibilidad de los elementos (visible/siOculto) depende de los datos del
+ * expediente.
  *
  * Busca bajo el paquete raíz de los trámites de &lt;ruta_origen&gt; los XML que
  * están en una carpeta llamada "documentospdf" o "documentos", cuyo nombre no
  * empieza por "_" (convención tipo SASS: los _*.xml son fragmentos incluidos
- * desde otros documentos) y cuyo elemento raíz es &lt;documento&gt;, y genera
- * con Xml2Pdf el PDF de cada uno en &lt;ruta_destino&gt; replicando la ruta
- * relativa a &lt;ruta_origen&gt;, de forma que el PDF queda en el classpath con
- * la misma ruta de paquete que el XML.
+ * desde otros documentos) y cuyo elemento raíz es &lt;documento&gt;, y escribe
+ * con DocumentoXmlResolver el XML resuelto de cada uno (includes expandidos,
+ * título del trámite, valenciano traducido, estructura validada) en
+ * &lt;ruta_destino&gt; replicando la ruta relativa a &lt;ruta_origen&gt;, de
+ * forma que queda en el classpath con la misma ruta de paquete que el XML.
  *
  * El tercer argumento (opcional) es el ejecutable del proceso traductor con el
  * que se calcula el &lt;valenciano&gt; de los textos que solo llevan
@@ -43,7 +48,7 @@ public class Main {
 
         Path sourceRoot = Paths.get(args[0]);
         Path targetBaseDir = Paths.get(args[1]);
-        String procesoTraductor = args.length >= 3 ? args[2] : Xml2Pdf.TRADUCTOR_POR_DEFECTO;
+        String procesoTraductor = args.length >= 3 ? args[2] : DocumentoXmlResolver.TRADUCTOR_POR_DEFECTO;
         String paqueteRaizTramites = TramitesLayout.paqueteRaizFromArgs(args, 3);
 
         TramitesLayout tramitesLayout = new TramitesLayout(sourceRoot, paqueteRaizTramites);
@@ -66,16 +71,16 @@ public class Main {
                         + " (con raíz <documento>): no se sabría si usar el " + pdfName
                         + " existente o el que generaría el XML. Borra uno de los dos.");
             }
-            Path pdf = targetBaseDir.resolve(relativePath).resolveSibling(pdfName);
+            Path resuelto = targetBaseDir.resolve(relativePath);
             try {
-                if (Files.exists(pdf)
-                        && Files.getLastModifiedTime(pdf).compareTo(latestModifiedConTramite(xml, tramitesLayout)) >= 0) {
+                if (Files.exists(resuelto)
+                        && Files.getLastModifiedTime(resuelto).compareTo(latestModifiedConTramite(xml, tramitesLayout)) >= 0) {
                     continue;
                 }
-                Files.createDirectories(pdf.getParent());
-                new Xml2Pdf(procesoTraductor, tramitesLayout).run(xml.toString(), pdf.toString());
+                Files.createDirectories(resuelto.getParent());
+                new DocumentoXmlResolver(procesoTraductor, tramitesLayout).run(xml.toString(), resuelto.toString());
             } catch (Exception ex) {
-                throw new RuntimeException("Fallo al generar el PDF de: " + xml, ex);
+                throw new RuntimeException("Fallo al resolver el documento: " + xml, ex);
             }
         }
     }
@@ -101,7 +106,7 @@ public class Main {
 
     /** Última modificación del XML, de sus fragmentos o del TramiteInstance.xml
      * de su trámite: su <name> es el título de los documentos que no llevan
-     * <titulo>, así que cambiarlo también debe regenerar el PDF. */
+     * <titulo>, así que cambiarlo también debe volver a resolver el XML. */
     static FileTime latestModifiedConTramite(Path xml, TramitesLayout tramitesLayout) throws IOException {
         FileTime latest = latestModified(xml, new HashSet<>());
         Path tramiteInstance = tramitesLayout.findTramiteInstanceAncestro(xml);
@@ -115,9 +120,9 @@ public class Main {
     }
 
     /** Última modificación del XML o del más reciente de sus fragmentos
-     * incluidos (transitivamente): un cambio en un _*.xml debe regenerar los
-     * PDF de los documentos que lo incluyen. Un fragmento inexistente fuerza
-     * la regeneración para que Xml2Pdf dé su error con la ruta. */
+     * incluidos (transitivamente): un cambio en un _*.xml debe volver a
+     * resolver los documentos que lo incluyen. Un fragmento inexistente fuerza
+     * la resolución para que DocumentoXmlResolver dé su error con la ruta. */
     static FileTime latestModified(Path xml, Set<Path> visitados) throws IOException {
         xml = xml.toAbsolutePath().normalize();
         if (!visitados.add(xml)) {

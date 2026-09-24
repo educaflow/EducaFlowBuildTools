@@ -368,9 +368,11 @@ public class TipoExpedienteInstanceFileFinder {
                 }
             }
 
-            // 4. Buscar los .xml de definición de documentos: su .pdf se genera en
-            // tiempo de compilación (tarea generatePdfDocuments) y puede no estar
-            // versionado, pero el TipoDocumentoPdf debe existir igualmente.
+            // 4. Buscar los .xml de definición de documentos: el build los deja
+            // resueltos (tarea resolvePdfDocuments) en el classpath con esta misma
+            // ruta y extensión .xml, y la aplicación dibuja el PDF en runtime. La
+            // constante del enum lleva por eso la ruta del .xml, y el runtime
+            // despacha por la extensión (.pdf = PDF versionado que se rellena).
             // Cuentan los que tienen raíz <documento> y no empiezan por "_"
             // (los _*.xml son fragmentos incluidos desde otros documentos).
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(directorioDocumentosPdf, "*.xml")) {
@@ -395,7 +397,7 @@ public class TipoExpedienteInstanceFileFinder {
 
                     String packageDocumentosPdf=TextUtil.getSubstringBetween(directorioDocumentosPdf.toString(),"java","documentospdf");
 
-                    String filePathName="" + packageDocumentosPdf + "documentospdf/" + nombreBase + ".pdf";
+                    String filePathName="" + packageDocumentosPdf + "documentospdf/" + nombreBase + ".xml";
 
                     TipoDocumentoPdf tipoDocumentoPdf=new TipoDocumentoPdf(toUpperSnakeCase(nombreBase),filePathName);
 

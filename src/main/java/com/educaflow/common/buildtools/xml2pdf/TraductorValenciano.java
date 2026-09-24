@@ -29,7 +29,7 @@ class TraductorValenciano {
 
     /** Lo que se traduce tal cual: campos inline ${expresion;n} y URL. */
     static final Pattern NO_TRADUCIBLE = Pattern.compile(
-            Xml2Pdf.INLINE.pattern() + "|[a-zA-Z][a-zA-Z0-9+.-]*://[^\\s]+");
+            DocumentoXmlResolver.INLINE.pattern() + "|[a-zA-Z][a-zA-Z0-9+.-]*://[^\\s]+");
 
     /** Prefijo del marcador con el que se protege lo no traducible; se le añade
      * el sufijo de Traductor para que el traductor no lo dé por erróneo aunque
@@ -57,7 +57,7 @@ class TraductorValenciano {
     void completarValenciano(Element elemento) {
         Element castellano = null;
         boolean hayValenciano = false;
-        for (Element hijo : Xml2Pdf.children(elemento)) {
+        for (Element hijo : DocumentoXmlResolver.children(elemento)) {
             if (hijo.getTagName().equals("castellano")) {
                 castellano = hijo;
             } else if (hijo.getTagName().equals("valenciano")) {
@@ -85,7 +85,7 @@ class TraductorValenciano {
      * los fragmentos _*.xml compartidos, el fichero del documento que se está
      * generando no es el fichero que hay que arreglar. */
     private String traducir(String castellano, Element origen) {
-        String donde = Xml2Pdf.ubicacionO(origen, descripcion);
+        String donde = DocumentoXmlResolver.ubicacionO(origen, descripcion);
         String cacheado = traducciones.get(castellano);
         if (cacheado != null) {
             return cacheado;
