@@ -45,6 +45,12 @@ public class TramiteInstanceFile {
     @XmlElement(name = "tipoTramite")
     private String tipoTramite;
 
+    @XmlElement(name = "tipoUsuario")
+    private String tipoUsuario;
+
+    @XmlElement(name = "unidadTramitadora")
+    private String unidadTramitadora;
+
     @XmlElement(name = "publico")
     private String publico;
 
@@ -81,6 +87,8 @@ public class TramiteInstanceFile {
         getCode();
         getName();
         getTipoTramite();
+        getTipoUsuario();
+        getUnidadTramitadora();
         getHelp();
         getAces();
     }
@@ -107,6 +115,30 @@ public class TramiteInstanceFile {
 
     public void setTipoTramite(String tipoTramite) {
         this.tipoTramite = tipoTramite;
+    }
+
+    /**
+     * El codigo del TipoUsuario al que va dirigido el trámite. Es obligatorio:
+     * la columna es NOT NULL en la base de datos.
+     */
+    public String getTipoUsuario() {
+        return getTagObligatorio(tipoUsuario, "tipoUsuario");
+    }
+
+    public void setTipoUsuario(String tipoUsuario) {
+        this.tipoUsuario = tipoUsuario;
+    }
+
+    /**
+     * El code de la UnidadTramitadora que tramita el trámite. Es obligatorio:
+     * la columna es NOT NULL en la base de datos.
+     */
+    public String getUnidadTramitadora() {
+        return getTagObligatorio(unidadTramitadora, "unidadTramitadora");
+    }
+
+    public void setUnidadTramitadora(String unidadTramitadora) {
+        this.unidadTramitadora = unidadTramitadora;
     }
 
     /**

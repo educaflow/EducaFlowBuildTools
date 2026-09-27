@@ -12,6 +12,8 @@
             <bind node="@publico" to="publico" />
             <bind node="@permitidoPresentarEnRepresentacion" to="permitidoPresentarEnRepresentacion" />
             <bind node="@tipoTramite" to="tipoTramite" alias="tipoTramite" search="self.code = :tipoTramite"  create="false" update="true" />
+            <bind node="@tipoUsuario" to="tipoUsuario" alias="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false" />
+            <bind node="@unidadTramitadora" to="unidadTramitadora" alias="unidadTramitadora" search="self.code = :unidadTramitadora" create="false" update="false" />
             <bind node="text()" to="help" />
         </bind>
 

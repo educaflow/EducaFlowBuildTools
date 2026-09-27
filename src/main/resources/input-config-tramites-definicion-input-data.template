@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <datos>
     <tramites>
-        <tramite code="{{ escapeXml(input=tramite.code) }}" name="{{ escapeXml(input=tramite.name) }}" {% if tramite.publico is not null %}publico="{{ escapeXml(input=tramite.publico) }}" {% endif %}{% if tramite.permitidoPresentarEnRepresentacion is not null %}permitidoPresentarEnRepresentacion="{{ escapeXml(input=tramite.permitidoPresentarEnRepresentacion) }}" {% endif %}tipoTramite="{{ escapeXml(input=tramite.tipoTramite) }}"><![CDATA[{{ tramite.help }}]]></tramite>
+        <tramite code="{{ escapeXml(input=tramite.code) }}" name="{{ escapeXml(input=tramite.name) }}" {% if tramite.publico is not null %}publico="{{ escapeXml(input=tramite.publico) }}" {% endif %}{% if tramite.permitidoPresentarEnRepresentacion is not null %}permitidoPresentarEnRepresentacion="{{ escapeXml(input=tramite.permitidoPresentarEnRepresentacion) }}" {% endif %}tipoTramite="{{ escapeXml(input=tramite.tipoTramite) }}" tipoUsuario="{{ escapeXml(input=tramite.tipoUsuario) }}" unidadTramitadora="{{ escapeXml(input=tramite.unidadTramitadora) }}"><![CDATA[{{ tramite.help }}]]></tramite>
     </tramites>
 </datos>
