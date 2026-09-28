@@ -6,6 +6,7 @@ import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 import com.educaflow.common.buildtools.viewprocessor.tags.Footer;
 import com.educaflow.common.buildtools.viewprocessor.tags.Form;
 import com.educaflow.common.buildtools.viewprocessor.tags.IncludePanels;
+import com.educaflow.common.buildtools.viewprocessor.tags.MenuItem;
 import java.nio.file.Path;
 import java.util.List;
 import org.w3c.dom.Document;
@@ -24,6 +25,12 @@ public class ViewFilePreprocesor {
      */
     public static Document process(Document document, Path filePath, List<Element> templateForms, TramitesLayout tramitesLayout) {
         Document newDocument = XMLUtil.cloneDocument(document);
+
+        //Va antes del return anticipado: los ficheros de menús no tienen nada de un tipo de expediente.
+        List<Element> menuItems = XMLUtil.getElementsFromEvaluateXPath(".//menuitem", newDocument.getDocumentElement());
+        for (Element menuItem : menuItems) {
+            MenuItem.doMenuItem(menuItem);
+        }
 
         List<Element> formElements = TipoExpedienteViewsContext.getFormElementsWithStateAttribute(newDocument.getDocumentElement());
         Element formTipoExpedienteTemplate = TipoExpedienteViewsContext.findTemplateFormEnDocumento(newDocument, filePath);
