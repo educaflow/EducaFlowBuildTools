@@ -34,11 +34,12 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Resuelve el XML de definición de un documento PDF de un trámite: lo valida
- * contra {@code documento.xsd}, expande sus {@code <include>}, le pone el
- * {@code <titulo>} del trámite si no trae ninguno, completa con el traductor
- * los {@code <valenciano>} que falten, comprueba la estructura de la rejilla
- * (12 columnas) y escribe el XML resultante, autocontenido, para que la
- * aplicación dibuje el PDF en tiempo de ejecución (paquete
+ * contra el esquema de su {@link TipoDocumento}, expande sus {@code <include>},
+ * le pone el {@code <titulo>} del trámite si es un formulario y no trae
+ * ninguno, completa con el traductor los
+ * {@code <valenciano>} que falten, comprueba la estructura propia de su tipo y
+ * escribe el XML resultante, autocontenido, para que la aplicación dibuje el
+ * PDF en tiempo de ejecución (paquete
  * {@code com.educaflow.base.infrastructure.pdfgenerator} de secretaria-virtual).
  *
  * <p>Aquí NO se dibuja nada: el PDF se genera en runtime porque los atributos
@@ -48,7 +49,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class DocumentoXmlResolver {
 
     static final int FULL = 1200;
-    static final Pattern INLINE = Pattern.compile("\\$\\{([^;{}]+);([0-9]+(?:\\.[0-9]+)?)\\}");
+    static final Pattern INLINE = Pattern.compile("\\$\\{([^{}]+)\\}");
     static final String TRADUCTOR_POR_DEFECTO = "apertium";
 
     /** Proceso traductor externo con el que se calcula el &lt;valenciano&gt; de
@@ -82,25 +83,29 @@ public class DocumentoXmlResolver {
     }
 
     void run(String in, String out) throws Exception {
-        Element root = loadDocumento(new File(in));
-        validarEstructura(root);
+        File entrada = new File(in);
+        TipoDocumento tipo = TipoDocumento.delFichero(entrada.toPath());
+        Element root = loadDocumento(entrada, tipo);
+        validarEstructura(tipo, root);
         quitarSufijoNoTraducir(root);
         quitarEspaciosEntreElementos(root);
         escribir(root, new File(out));
         System.out.println("Resuelto " + out);
     }
 
-    /** Carga el XML de un documento: valida el fichero contra el esquema,
-     * expande recursivamente sus <include href="_x.xml"/>, valida también el
-     * documento resultante de la expansión (p.ej. un segundo <titulo>
-     * aportado por un fragmento), le pone el <titulo> del trámite si no trae
+    /** Carga el XML de un documento: valida el fichero contra el esquema de su
+     * tipo, expande recursivamente sus <include href="_x.xml"/>, valida también el documento
+     * resultante de la expansión (p.ej. un segundo <titulo> aportado por un
+     * fragmento), le pone al formulario el <titulo> del trámite si no trae
      * ninguno y completa con el traductor los <valenciano> que falten. */
-    Element loadDocumento(File in) {
-        Document dom = parseValidated(in, "documento");
+    Element loadDocumento(File in, TipoDocumento tipo) {
+        Document dom = parseValidated(in, tipo.getRaiz(), tipo);
         expandIncludes(dom.getDocumentElement(),
-                in.getAbsoluteFile().toPath().normalize(), new ArrayList<>());
-        validate(new DOMSource(dom), in + " (expandido con sus includes)");
-        addTituloDelTramiteIfNotExists(dom.getDocumentElement(), in);
+                in.getAbsoluteFile().toPath().normalize(), new ArrayList<>(), tipo);
+        validate(new DOMSource(dom), in + " (expandido con sus includes)", tipo);
+        if (tipo == TipoDocumento.FORMULARIO) {
+            addTituloDelTramiteIfNotExists(dom.getDocumentElement(), in);
+        }
         new TraductorValenciano(procesoTraductor, in.toString())
                 .completarValenciano(dom.getDocumentElement());
         return dom.getDocumentElement();
@@ -136,11 +141,22 @@ public class DocumentoXmlResolver {
 
     // ------------------------------------------------------- estructura
 
-    /** Comprueba lo que el XSD no puede expresar: que cada <fila> encaje en la
-     * rejilla de 12 columnas y que siOculto solo acompañe a visible. Se hace
-     * sobre el documento COMPLETO, ignorando la visibilidad: la que se aplica
-     * en runtime al colapsar puede dejar líneas incompletas, y eso es lícito. */
-    static void validarEstructura(Element raiz) {
+    /** Comprueba lo que el XSD no puede expresar, que es distinto en cada tipo
+     * de documento. Se hace sobre el documento COMPLETO, ignorando la
+     * visibilidad: la que se aplica en runtime al colapsar puede dejar la
+     * estructura incompleta, y eso es lícito. */
+    static void validarEstructura(TipoDocumento tipo, Element raiz) {
+        switch (tipo) {
+            case FORMULARIO ->
+                validarEstructuraFormulario(raiz);
+            case TEXTO ->
+                validarEstructuraTexto(raiz);
+        }
+    }
+
+    /** Cada <fila> encaja en la rejilla de 12 columnas y siOculto solo
+     * acompaña a visible. */
+    static void validarEstructuraFormulario(Element raiz) {
         for (Element e : children(raiz)) {
             switch (e.getTagName()) {
                 case "titulo":
@@ -162,7 +178,33 @@ public class DocumentoXmlResolver {
                     break;
                 default:
                     throw new RuntimeException("ERROR: <" + e.getTagName()
-                            + "> desconocido dentro de <documento>" + ubicacion(e));
+                            + "> desconocido dentro de <" + TipoDocumento.FORMULARIO.getRaiz()
+                            + ">" + ubicacion(e));
+            }
+        }
+    }
+
+    /** Cada <fila> de una <tabla> lleva exactamente un hijo por columna y
+     * siOculto solo acompaña a visible. */
+    static void validarEstructuraTexto(Element e) {
+        validarSiOcultoConVisible(e);
+        if (e.getTagName().equals("tabla")) {
+            validarTabla(e);
+        }
+        for (Element hijo : children(e)) {
+            validarEstructuraTexto(hijo);
+        }
+    }
+
+    static void validarTabla(Element tabla) {
+        int columnas = Integer.parseInt(tabla.getAttribute("columnas"));
+        for (Element fila : children(tabla)) {
+            int hijos = children(fila).size();
+            if (hijos != columnas) {
+                throw new RuntimeException("ERROR: una <fila> de una <tabla> de " + columnas
+                        + " columnas tiene " + hijos + " hijos" + ubicacion(fila)
+                        + ": cada fila debe llevar exactamente un hijo por columna:\n"
+                        + toXml(fila));
             }
         }
     }
@@ -263,11 +305,11 @@ public class DocumentoXmlResolver {
 
     // ------------------------------------------------------------ parseo
 
-    /** Valida el fichero contra documento.xsd y lo parsea comprobando el
-     * elemento raíz: "documento" para los documentos, "fragmento" para los
-     * fragmentos _*.xml incluibles. */
-    static Document parseValidated(File xml, String raiz) {
-        validate(new StreamSource(xml), xml.toString());
+    /** Valida el fichero contra el esquema del tipo de documento y lo parsea
+     * comprobando el elemento raíz: la del tipo para los documentos,
+     * "fragmento" para los fragmentos _*.xml incluibles. */
+    static Document parseValidated(File xml, String raiz, TipoDocumento tipo) {
+        validate(new StreamSource(xml), xml.toString(), tipo);
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
@@ -375,11 +417,11 @@ public class DocumentoXmlResolver {
         }
     }
 
-    /** Sustituye cada <include href="..."/> (hijo directo de <documento> o de
-     * <fragmento>) por los hijos de la raíz <fragmento> del fichero incluido,
-     * recursivamente si el fragmento tiene a su vez otros <include>. El href
-     * se resuelve relativo al fichero que lo incluye. */
-    static void expandIncludes(Element raiz, Path fichero, List<Path> cadena) {
+    /** Sustituye cada <include href="..."/> (hijo directo de la raíz del
+     * documento o de un <fragmento>) por los hijos de la raíz <fragmento> del
+     * fichero incluido, recursivamente si el fragmento tiene a su vez otros
+     * <include>. El href se resuelve relativo al fichero que lo incluye. */
+    void expandIncludes(Element raiz, Path fichero, List<Path> cadena, TipoDocumento tipo) {
         cadena.add(fichero);
         for (Element e : children(raiz)) {
             if (!e.getTagName().equals("include")) {
@@ -394,8 +436,8 @@ public class DocumentoXmlResolver {
                 throw new RuntimeException("ERROR: " + fichero
                         + " incluye un fragmento que no existe" + ubicacion(e) + ": " + fragmento);
             }
-            Document dom = parseValidated(fragmento.toFile(), "fragmento");
-            expandIncludes(dom.getDocumentElement(), fragmento, cadena);
+            Document dom = parseValidated(fragmento.toFile(), "fragmento", tipo);
+            expandIncludes(dom.getDocumentElement(), fragmento, cadena, tipo);
             for (Element hijo : children(dom.getDocumentElement())) {
                 Element importado = (Element) raiz.getOwnerDocument().importNode(hijo, true);
                 copiarUbicaciones(hijo, importado);
@@ -406,19 +448,20 @@ public class DocumentoXmlResolver {
         cadena.remove(cadena.size() - 1);
     }
 
-    /** Valida contra el esquema documento.xsd incluido en el jar (el
+
+    /** Valida contra el esquema del tipo de documento incluido en el jar (el
      * xsi:noNamespaceSchemaLocation del documento no se usa: la validación es
      * siempre contra el esquema local, sin acceso a red). */
-    static void validate(Source xml, String descripcion) {
-        try (InputStream xsd = DocumentoXmlResolver.class.getResourceAsStream("documento.xsd")) {
+    static void validate(Source xml, String descripcion, TipoDocumento tipo) {
+        try (InputStream xsd = DocumentoXmlResolver.class.getResourceAsStream(tipo.getXsd())) {
             if (xsd == null) {
-                throw new RuntimeException("ERROR: falta el recurso documento.xsd en el jar");
+                throw new RuntimeException("ERROR: falta el recurso " + tipo.getXsd() + " en el jar");
             }
             SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
                     .newSchema(new StreamSource(xsd))
                     .newValidator().validate(xml);
         } catch (Exception ex) {
-            throw new RuntimeException("ERROR: el XML no valida contra documento.xsd: "
+            throw new RuntimeException("ERROR: el XML no valida contra " + tipo.getXsd() + ": "
                     + descripcion + lineaYColumna(ex) + ": " + ex.getMessage(), ex);
         }
     }

@@ -19,7 +19,7 @@ import org.w3c.dom.Element;
  * &lt;valenciano/&gt; vacío es la forma de decir "este texto no lleva
  * valenciano", y se respeta.
  *
- * Los campos inline ${expresion;n} y las URL no se traducen (apertium
+ * Los campos inline ${expresion} y las URL no se traducen (apertium
  * traduciría las palabras de la URL): antes de traducir se sustituyen por un
  * marcador que el traductor deja intacto, y después se restauran. Para que no
  * se traduzca ninguna otra cosa (siglas, nombres propios…) hay que marcarla en
@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
  */
 class TraductorValenciano {
 
-    /** Lo que se traduce tal cual: campos inline ${expresion;n} y URL. */
+    /** Lo que se traduce tal cual: campos inline ${expresion} y URL. */
     static final Pattern NO_TRADUCIBLE = Pattern.compile(
             DocumentoXmlResolver.INLINE.pattern() + "|[a-zA-Z][a-zA-Z0-9+.-]*://[^\\s]+");
 

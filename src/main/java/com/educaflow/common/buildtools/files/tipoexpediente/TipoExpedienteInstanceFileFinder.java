@@ -7,6 +7,7 @@ package com.educaflow.common.buildtools.files.tipoexpediente;
 import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.createstates.ProfilesDelDominio;
 import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
+import com.educaflow.common.buildtools.xml2pdf.TipoDocumento;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
@@ -21,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.Locale;
 
 /**
@@ -373,8 +373,8 @@ public class TipoExpedienteInstanceFileFinder {
             // ruta y extensión .xml, y la aplicación dibuja el PDF en runtime. La
             // constante del enum lleva por eso la ruta del .xml, y el runtime
             // despacha por la extensión (.pdf = PDF versionado que se rellena).
-            // Cuentan los que tienen raíz <documento> y no empiezan por "_"
-            // (los _*.xml son fragmentos incluidos desde otros documentos).
+            // Cuentan los que tienen la raíz de algún TipoDocumento y no empiezan por
+            // "_" (los _*.xml son fragmentos incluidos desde otros documentos).
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(directorioDocumentosPdf, "*.xml")) {
                 for (Path entry : stream) {
                     if (!Files.isRegularFile(entry)) {
@@ -385,12 +385,12 @@ public class TipoExpedienteInstanceFileFinder {
                         continue;
                     }
                     String nombreBase = nombre.substring(0, nombre.length() - 4);
-                    if (!isDocumento(entry)) {
+                    if (!TipoDocumento.esDocumento(entry)) {
                         continue;
                     }
                     if (nombresBase.contains(nombreBase)) {
                         throw new RuntimeException("Existen a la vez " + nombreBase + ".pdf y "
-                                + nombre + " (con raíz <documento>) en " + directorioDocumentosPdf
+                                + nombre + " (con raíz de documento) en " + directorioDocumentosPdf
                                 + ": no se sabría si usar el " + nombreBase + ".pdf existente o el que"
                                 + " generaría el " + nombre + ". Borra uno de los dos.");
                     }
@@ -413,15 +413,6 @@ public class TipoExpedienteInstanceFileFinder {
         }
     }
     
-    private static boolean isDocumento(Path xml) {
-        try {
-            return DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                    .parse(xml.toFile()).getDocumentElement().getTagName().equals("documento");
-        } catch (Exception ex) {
-            throw new RuntimeException("Fallo al parsear el XML: " + xml, ex);
-        }
-    }
-
     public static String toUpperSnakeCase(String s) {
         String withUnderscores = s.replaceAll("(?<!^)(?=[A-Z])", "_");
 

@@ -26,7 +26,7 @@ import org.w3c.dom.NodeList;
  * Busca bajo el paquete raíz de los trámites de &lt;ruta_origen&gt; los XML que
  * están en una carpeta llamada "documentospdf" o "documentos", cuyo nombre no
  * empieza por "_" (convención tipo SASS: los _*.xml son fragmentos incluidos
- * desde otros documentos) y cuyo elemento raíz es &lt;documento&gt;, y escribe
+ * desde otros documentos) y cuya raíz es la de algún {@link TipoDocumento}, y escribe
  * con DocumentoXmlResolver el XML resuelto de cada uno (includes expandidos,
  * título del trámite, valenciano traducido, estructura validada) en
  * &lt;ruta_destino&gt; replicando la ruta relativa a &lt;ruta_origen&gt;, de
@@ -68,7 +68,7 @@ public class Main {
             Path pdfEnFuentes = xml.resolveSibling(pdfName);
             if (Files.exists(pdfEnFuentes)) {
                 throw new RuntimeException("Existen a la vez " + pdfEnFuentes + " y " + xml
-                        + " (con raíz <documento>): no se sabría si usar el " + pdfName
+                        + " (con raíz de documento): no se sabría si usar el " + pdfName
                         + " existente o el que generaría el XML. Borra uno de los dos.");
             }
             Path resuelto = targetBaseDir.resolve(relativePath);
@@ -94,14 +94,10 @@ public class Main {
                         String parent = p.getParent().getFileName().toString();
                         return parent.equals("documentospdf") || parent.equals("documentos");
                     })
-                    .filter(Main::isDocumento)
+                    .filter(TipoDocumento::esDocumento)
                     .sorted()
                     .collect(Collectors.toList());
         }
-    }
-
-    static boolean isDocumento(Path xml) {
-        return parse(xml).getDocumentElement().getTagName().equals("documento");
     }
 
     /** Última modificación del XML, de sus fragmentos o del TramiteInstance.xml

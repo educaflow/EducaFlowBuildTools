@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Esquema del XML de definición de los documentos PDF de los trámites de la
-     secretaría virtual: los documentos (raíz <documento>) y los fragmentos
+     secretaría virtual: los documentos de tipo formulario (raíz <documentoFormulario>) y los fragmentos
      reutilizables _*.xml (raíz <fragmento>) que aquellos incluyen con
      <include href="..."/>. DocumentoXmlResolver valida cada fichero contra este
      esquema al cargarlo, y también el documento resultante de expandir los
@@ -50,7 +50,7 @@
     </xs:attributeGroup>
 
     <!-- Textos bilingües como elementos hijos. Admiten campos inline
-         ${nombre;n}. Un <castellano> omitido o vacío omite el castellano. Un
+         ${nombre}. Un <castellano> omitido o vacío omite el castellano. Un
          <valenciano> OMITIDO se calcula traduciendo el <castellano> con el
          traductor externo (apertium); para que un texto no lleve valenciano
          hay que poner el <valenciano> vacío. -->
@@ -84,7 +84,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Contenido común de <documento> y <fragmento>: como máximo un <titulo>
+    <!-- Contenido común de <documentoFormulario> y <fragmento>: como máximo un <titulo>
          (siempre primero) seguido de secciones e includes de fragmentos en
          cualquier orden. Los <include> solo pueden aparecer a este nivel,
          nunca dentro de una <seccion>. Como el documento expandido también se
@@ -130,7 +130,7 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:element name="documento" type="contenidoDocumentoType"/>
+    <xs:element name="documentoFormulario" type="contenidoDocumentoType"/>
 
     <!-- Raíz de los fragmentos _*.xml. DocumentoXmlResolver sustituye cada <include> por
          los hijos de esta raíz, recursivamente si el fragmento tiene a su vez

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Esquema del XML de definición de los documentos PDF de prosa de los trámites
+     de la secretaría virtual: los documentos (raíz <documentoTexto>) y los
+     fragmentos reutilizables _*.xml (raíz <fragmento>) que aquellos incluyen con
+     <include href="..."/>. DocumentoXmlResolver valida cada fichero contra este
+     esquema al cargarlo, y también el documento resultante de expandir los
+     includes; el <fragmento> se declara aquí con el cuerpo de este tipo de
+     documento, de forma que incluir en un documento de texto un fragmento de
+     formulario no valida. El otro tipo de documento, la tabla sobre la rejilla
+     de 12 columnas, está en documentoFormulario.xsd. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- siOculto: qué se hace con un elemento cuyo visible evalúa a false.
+         colapsar (por omisión): desaparece y lo que va detrás se desplaza.
+         reservar: conserva su sitio y su alto. Solo tiene sentido junto a
+         visible: DocumentoXmlResolver aborta si va sin él. -->
+    <xs:simpleType name="siOcultoType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="colapsar"/>
+            <xs:enumeration value="reservar"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="expresionType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Visibilidad condicional. visible es una expresión Groovy que se evalúa
+         en runtime con el mismo contexto que los campos inline (self, now) y
+         MUST devolver Boolean; omitido, el elemento siempre se dibuja. -->
+    <xs:attributeGroup name="visibilidad">
+        <xs:attribute name="visible" type="expresionType"/>
+        <xs:attribute name="siOculto" type="siOcultoType"/>
+    </xs:attributeGroup>
+
+    <!-- Atributo de sí/no. Enumeración en vez de xs:boolean, que admitiría
+         además 1 y 0: el generador solo entiende true y false. -->
+    <xs:simpleType name="booleanoType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="true"/>
+            <xs:enumeration value="false"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="alineamientoType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="izquierda"/>
+            <xs:enumeration value="centrado"/>
+            <xs:enumeration value="derecha"/>
+            <xs:enumeration value="justificado"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Textos bilingües como elementos hijos. Admiten campos inline
+         ${nombre}. Un <castellano> omitido o vacío omite el castellano. Un
+         <valenciano> OMITIDO se calcula traduciendo el <castellano> con el
+         traductor externo (apertium); para que un texto no lleve valenciano
+         hay que poner el <valenciano> vacío. -->
+    <xs:group name="textosBilingues">
+        <xs:sequence>
+            <xs:element name="valenciano" type="xs:string" minOccurs="0"/>
+            <xs:element name="castellano" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- negrita: estampa el texto en seminegrita en vez de en redonda.
+         mayusculas: lo estampa en mayúsculas, incluido el valor de sus
+         ${expresion} inline (que en cambio nunca heredan la negrita). Un
+         encabezado de un documento en prosa es un <parrafo> con los dos. -->
+    <xs:complexType name="textoType">
+        <xs:group ref="textosBilingues"/>
+        <xs:attribute name="alineamiento" type="alineamientoType"/>
+        <xs:attribute name="negrita" type="booleanoType"/>
+        <xs:attribute name="mayusculas" type="booleanoType"/>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <xs:complexType name="itemType">
+        <xs:group ref="textosBilingues"/>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <xs:complexType name="listaType">
+        <xs:sequence>
+            <xs:element name="item" type="itemType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <!-- alto: puntos de espacio en blanco; positivo, admite decimales. -->
+    <xs:simpleType name="altoType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="espacioType">
+        <xs:attribute name="alto" type="altoType" use="required"/>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <xs:simpleType name="columnasType">
+        <xs:restriction base="xs:positiveInteger"/>
+    </xs:simpleType>
+
+    <!-- Cada <fila> lleva exactamente un hijo por columna; eso no lo expresa el
+         esquema y lo comprueba DocumentoXmlResolver. -->
+    <xs:complexType name="filaType">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="parrafo" type="textoType"/>
+            <xs:element name="espacio" type="espacioType"/>
+        </xs:choice>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <xs:complexType name="tablaType">
+        <xs:sequence>
+            <xs:element name="fila" type="filaType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="columnas" type="columnasType" use="required"/>
+        <xs:attributeGroup ref="visibilidad"/>
+    </xs:complexType>
+
+    <!-- href de un <include>: ruta relativa a un fragmento cuyo nombre de
+         fichero empieza por "_" (convención de fragmentos). -->
+    <xs:simpleType name="hrefFragmentoType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([^/]+/)*_[^/]+\.xml"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- El título del documento. Se estampa en la cabecera de su PRIMERA
+         página, centrado a la derecha del logo de la GVA, en seminegrita y en
+         mayúsculas; no lleva atributos porque no hay nada que elegir. Es
+         OBLIGATORIO: a diferencia del formulario, a un documento en prosa el
+         build no le pone el <name> del trámite cuando no trae título. No es un
+         encabezado de sección dentro del texto: eso es un <parrafo> con
+         negrita y mayusculas. -->
+    <xs:complexType name="tituloType">
+        <xs:group ref="textosBilingues"/>
+    </xs:complexType>
+
+    <!-- El cuerpo en prosa, común a <documentoTexto> y a <fragmento>. Los
+         <include> solo pueden aparecer a este nivel. -->
+    <xs:group name="cuerpoDocumentoTexto">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="include">
+                    <xs:complexType>
+                        <xs:attribute name="href" type="hrefFragmentoType" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="parrafo" type="textoType"/>
+                <xs:element name="lista" type="listaType"/>
+                <xs:element name="espacio" type="espacioType"/>
+                <xs:element name="tabla" type="tablaType"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- El documento: su <titulo> y detrás el cuerpo. -->
+    <xs:element name="documentoTexto">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="titulo" type="tituloType"/>
+                <xs:group ref="cuerpoDocumentoTexto"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Raíz de los fragmentos _*.xml. DocumentoXmlResolver sustituye cada
+         <include> por los hijos de esta raíz, recursivamente si el fragmento
+         tiene a su vez otros <include>. Un fragmento es solo cuerpo: el
+         <titulo> es del documento, así que un fragmento que lo traiga no
+         valida. -->
+    <xs:element name="fragmento">
+        <xs:complexType>
+            <xs:group ref="cuerpoDocumentoTexto"/>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
