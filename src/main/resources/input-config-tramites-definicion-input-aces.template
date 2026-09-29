@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <datos>
-    <aces>
-{% for ace in tramite.aces %}        <ace perfil="{{ escapeXml(input=ace.perfil) }}" {% if ace.tipoUsuario is not null %}tipoUsuario="{{ escapeXml(input=ace.tipoUsuario) }}" {% endif %}{% if ace.cargo is not null %}cargo="{{ escapeXml(input=ace.cargo) }}" {% endif %}tramite="{{ escapeXml(input=tramite.code) }}"/>
-{% endfor %}    </aces>
+    <acl>
+{% for ace in tramite.aces %}        <ace perfil="{{ escapeXml(input=ace.perfil) }}">
+            <usuario {% if ace.tipoUsuario is not null %}tipoUsuario="{{ escapeXml(input=ace.tipoUsuario) }}"{% endif %}{% if ace.cargo is not null %}cargo="{{ escapeXml(input=ace.cargo) }}"{% endif %}/>
+            <tramite code="{{ escapeXml(input=tramite.code) }}"/>
+        </ace>
+{% endfor %}    </acl>
 </datos>

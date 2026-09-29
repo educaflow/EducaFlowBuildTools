@@ -66,7 +66,7 @@ public class InitDataTipoExpedienteFiles {
     }
 
     /**
-     * Los perfiles del &lt;aces&gt; del tipo (AceProfileTipoExpediente).
+     * Los perfiles del &lt;acl&gt; del tipo (AceProfileTipoExpediente).
      */
     private void createAcesDataFile(Path path) {
         Map<String, Object> context = new HashMap<>();

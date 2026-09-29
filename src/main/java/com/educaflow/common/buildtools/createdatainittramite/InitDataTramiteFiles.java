@@ -11,7 +11,7 @@ import java.util.Map;
  * Los ficheros de data-init de un trámite:
  * <ul>
  * <li>&lt;code&gt;/definicion/data-init (priority="1"): el propio trámite y
- * los perfiles de su &lt;aces&gt; (AceProfileTramite).</li>
+ * los perfiles de su &lt;acl&gt; (AceProfileTramite).</li>
  * <li>&lt;code&gt;/tipo_expediente_activo/data-init (priority="-1"): su tipo de
  * expediente activo, solo si el trámite lo declara.</li>
  * </ul>

@@ -11,7 +11,6 @@
             <bind node="@name" to="name" />
             <bind node="@publico" to="publico" />
             <bind node="@permitidoPresentarEnRepresentacion" to="permitidoPresentarEnRepresentacion" />
-            <bind node="@tipoTramite" to="tipoTramite" alias="tipoTramite" search="self.code = :tipoTramite"  create="false" update="true" />
             <bind node="@tipoUsuario" to="tipoUsuario" alias="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false" />
             <bind node="@unidadTramitadora" to="unidadTramitadora" alias="unidadTramitadora" search="self.code = :unidadTramitadora" create="false" update="false" />
             <bind node="text()" to="help" />
@@ -19,24 +18,24 @@
 
     </input>
 
-    <!-- Perfiles que da el trámite (el <aces> de su TramiteInstance.xml). Van detrás del <input> del trámite porque los <input> de un input-config.xml se cargan en orden y lo referencian. La tabla se vacía en cada arranque (DataBaseStartup), así que quitar un <ace> del XML lo quita de la BD. -->
+    <!-- Perfiles que da el trámite (el <acl> de su TramiteInstance.xml). Van detrás del <input> del trámite porque los <input> de un input-config.xml se cargan en orden y lo referencian. La tabla se vacía en cada arranque (DataBaseStartup), así que quitar un <ace> del XML lo quita de la BD. -->
     <input file="Aces.xml" root="datos">
-        <bind node="aces/ace[@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
+        <bind node="acl/ace[usuario/@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
               search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario AND self.tramite.code = :tramite"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
-            <bind node="@tramite" to="tramite" search="self.code = :tramite" create="false" update="false"/>
+            <bind node="usuario/@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
+            <bind node="tramite/@code" to="tramite" search="self.code = :tramite" create="false" update="false"/>
         </bind>
     </input>
 
     <input file="Aces.xml" root="datos">
-        <bind node="aces/ace[@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
+        <bind node="acl/ace[usuario/@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTramite"
               search="self.perfil = :perfil AND self.cargo.code = :cargo AND self.tramite.code = :tramite"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@cargo"       to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
-            <bind node="@tramite" to="tramite" search="self.code = :tramite" create="false" update="false"/>
+            <bind node="usuario/@cargo" to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
+            <bind node="tramite/@code" to="tramite" search="self.code = :tramite" create="false" update="false"/>
         </bind>
     </input>
 

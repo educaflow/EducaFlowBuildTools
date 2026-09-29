@@ -42,9 +42,6 @@ public class TramiteInstanceFile {
     @XmlElement(name = "name")
     private String name;
 
-    @XmlElement(name = "tipoTramite")
-    private String tipoTramite;
-
     @XmlElement(name = "tipoUsuario")
     private String tipoUsuario;
 
@@ -63,7 +60,7 @@ public class TramiteInstanceFile {
     @XmlElement(name = "help")
     private String help;
 
-    @XmlElementWrapper(name = "aces")
+    @XmlElementWrapper(name = "acl")
     @XmlElement(name = "ace")
     private List<Ace> aces;
 
@@ -86,7 +83,6 @@ public class TramiteInstanceFile {
     public void check() {
         getCode();
         getName();
-        getTipoTramite();
         getTipoUsuario();
         getUnidadTramitadora();
         getHelp();
@@ -107,14 +103,6 @@ public class TramiteInstanceFile {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getTipoTramite() {
-        return getTagObligatorio(tipoTramite, "tipoTramite");
-    }
-
-    public void setTipoTramite(String tipoTramite) {
-        this.tipoTramite = tipoTramite;
     }
 
     /**

@@ -61,7 +61,7 @@ public class TipoExpedienteInstanceFile {
     @XmlElement(name = "fase")
     private List<Fase> fases;
 
-    @XmlElementWrapper(name = "aces")
+    @XmlElementWrapper(name = "acl")
     @XmlElement(name = "ace")
     private List<Ace> aces;
 
