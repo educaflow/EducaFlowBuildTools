@@ -41,6 +41,19 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <!-- campoFirma: nombre del campo de firma VACÍO que el generador deja en el
+         PDF, en el sitio en que ha quedado el elemento que lo lleva. Quien firma
+         el documento indica ese nombre en vez de unas coordenadas, así que la
+         firma cae en su hueco aunque el contenido de delante lo haya desplazado
+         o cambiado de página. Es un identificador: empieza por letra y solo
+         lleva letras sin acento, dígitos y "_". No se puede repetir dentro del
+         documento ya expandido (xs:unique en la raíz). -->
+    <xs:simpleType name="campoFirmaType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Za-z][A-Za-z0-9_]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <!-- Visibilidad condicional. visible es una expresión Groovy que se
          evalúa en runtime con el mismo contexto que nombreCampo (self, now) y
          MUST devolver Boolean; omitido, el elemento siempre se dibuja. -->
@@ -69,10 +82,14 @@
         <xs:attributeGroup ref="visibilidad"/>
     </xs:complexType>
 
+    <!-- Un <texto> con campoFirma deja el campo de firma en el hueco que queda
+         en su celda por debajo de sus textos, así que necesita rowSpan: sin
+         hueco, el generador aborta. -->
     <xs:complexType name="textoType">
         <xs:group ref="textosBilingues"/>
         <xs:attribute name="colspan" type="colspanType" use="required"/>
         <xs:attribute name="rowSpan" type="rowSpanType"/>
+        <xs:attribute name="campoFirma" type="campoFirmaType"/>
         <xs:attributeGroup ref="visibilidad"/>
     </xs:complexType>
 
@@ -130,7 +147,12 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:element name="documentoFormulario" type="contenidoDocumentoType"/>
+    <xs:element name="documentoFormulario" type="contenidoDocumentoType">
+        <xs:unique name="campoFirmaUnico">
+            <xs:selector xpath=".//texto"/>
+            <xs:field xpath="@campoFirma"/>
+        </xs:unique>
+    </xs:element>
 
     <!-- Raíz de los fragmentos _*.xml. DocumentoXmlResolver sustituye cada <include> por
          los hijos de esta raíz, recursivamente si el fragmento tiene a su vez
