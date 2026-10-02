@@ -228,6 +228,8 @@ public class TipoExpedienteInstanceFileFinder {
      *
      * <p>10: un evento repetido en el mismo estado lo deduplicaría en silencio el LinkedHashSet de
      * la clase generada, y el build es el único sitio donde el mensaje puede señalar el fichero.
+     * Cuenta también el que está a la vez en {@code events} y en {@code systemEvents}: un evento o
+     * lleva botón o no lo lleva.
      */
     private static void checkEventos(TipoExpedienteInstanceFile tipoExpediente) {
         for (Fase fase : tipoExpediente.getFases()) {
@@ -237,9 +239,9 @@ public class TipoExpedienteInstanceFileFinder {
                     checkNombreIdentificador(evento, "evento");
 
                     if (vistos.add(evento) == false) {
-                        throw new RuntimeException("El evento '" + evento + "' está repetido en el"
-                                + " atributo events del estado '" + state.getName() + "' de la fase '"
-                                + fase.getName() + "'.");
+                        throw new RuntimeException("El evento '" + evento + "' está repetido en los"
+                                + " atributos events y systemEvents del estado '" + state.getName()
+                                + "' de la fase '" + fase.getName() + "'.");
                     }
                 }
             }

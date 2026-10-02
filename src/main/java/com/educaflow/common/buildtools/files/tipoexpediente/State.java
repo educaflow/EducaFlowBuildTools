@@ -41,6 +41,15 @@ public class State {
     @XmlJavaTypeAdapter(CommaSeparatedAdapter.class)
     private List<String> events;
 
+    /**
+     * Los eventos del estado que no dispara un botón sino el propio servidor (por ejemplo, el aviso de
+     * que alguien ha firmado en la bandeja de firmas). Para el motor son eventos como los demás: lo
+     * único que cambia es que ningún form los ofrece.
+     */
+    @XmlAttribute
+    @XmlJavaTypeAdapter(CommaSeparatedAdapter.class)
+    private List<String> systemEvents;
+
     /** La fase a la que pertenece el estado. La enlaza el finder tras deserializar. */
     @XmlTransient
     private Fase fase;
@@ -110,8 +119,14 @@ public class State {
     }
 
     /**
-     * Los eventos disparables desde el estado, o una lista <b>vacía</b> si el atributo {@code events}
-     * no está en el XML.
+     * <b>Todos</b> los eventos disparables desde el estado: los de {@code events}, que dispara el
+     * usuario con un botón, seguidos de los de {@code systemEvents}, que dispara el servidor. Es una
+     * lista <b>vacía</b> si ninguno de los dos atributos está en el XML.
+     *
+     * <p>Van juntos porque para todo lo que se genera —la clase {@code States}, los
+     * {@code trigger<Evento>} y las reglas de validación— un evento de sistema es un evento más. Solo
+     * los botones de las vistas distinguen unos de otros, con {@link #getUserEvents()} y
+     * {@link #getSystemEvents()}.
      *
      * <p>Un estado sin eventos es legítimo —un estado final lo es—, así que omitir el atributo
      * equivale a {@code events=""} y no es un error de fail-fast. Se normaliza <b>aquí, en el origen</b>,
@@ -124,7 +139,20 @@ public class State {
      * mensajes nombran el fichero.
      */
     public List<String> getEvents() {
+        List<String> todos = new ArrayList<>(getUserEvents());
+        todos.addAll(getSystemEvents());
+
+        return todos;
+    }
+
+    /** Los eventos que dispara el usuario con un botón: los del atributo {@code events}. */
+    public List<String> getUserEvents() {
         return (events != null) ? events : Collections.emptyList();
+    }
+
+    /** Los eventos que dispara el servidor y no llevan botón: los del atributo {@code systemEvents}. */
+    public List<String> getSystemEvents() {
+        return (systemEvents != null) ? systemEvents : Collections.emptyList();
     }
 
     public List<String> getEventsUpperCamelCase() {
@@ -137,6 +165,10 @@ public class State {
     
     public void setEvents(List<String> events) {
         this.events = events;
+    }
+
+    public void setSystemEvents(List<String> systemEvents) {
+        this.systemEvents = systemEvents;
     }
     
     

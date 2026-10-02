@@ -67,8 +67,23 @@ public class Footer {
         
         Node parent = footer.getParentNode();
         parent.insertBefore(footerPanel,footer);
+        if (isFooterDeFormDeEstado(footer)) {
+            Element notasPanel = panelFinder.findAndImport("subsysExpedientes-template-notas-panel",ownerDocument);
+            parent.insertBefore(notasPanel,footer);
+        }
         parent.removeChild(footer);
-        
+
+    }
+
+    /**
+     * El panel de notas es del expediente, así que solo va tras el footer de un {@code <form state=...>}.
+     * Un {@code <footer>} de cualquier otro form (el de una entidad hija) no lo lleva: su modelo no es
+     * un expediente.
+     */
+    private static boolean isFooterDeFormDeEstado(Element footer) {
+        Node parent = footer.getParentNode();
+
+        return (parent instanceof Element) && ((Element) parent).hasAttribute("state");
     }
     
     
