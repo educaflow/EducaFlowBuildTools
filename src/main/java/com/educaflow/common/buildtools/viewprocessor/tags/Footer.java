@@ -39,19 +39,26 @@ public class Footer {
 
         
         int itemSpan = XMLUtil.getIntegerAttribute(footerPanel,"itemSpan", 1);
-        int sumColSpam = sumVisibleColSpan(childButtonsLeftElements, itemSpan) + sumVisibleColSpan(childButtonsRightElements, itemSpan);
+        List<Element> slotsLeft = groupAlternatives(childButtonsLeftElements, footerPanel, itemSpan);
+        List<Element> slotsRight = groupAlternatives(childButtonsRightElements, footerPanel, itemSpan);
+
+        // El colOffset del primer botón de la derecha se sobrescribe, así que no cuenta.
+        if (slotsRight.size() > 0) {
+            slotsRight.get(0).removeAttribute("colOffset");
+        }
+        int sumColSpam = sumColumns(slotsLeft, itemSpan) + sumColumns(slotsRight, itemSpan);
 
         int colOffset = 12 - sumColSpam;
 
-        if (childButtonsRightElements.size() > 0) {
-            childButtonsRightElements.get(0).setAttribute("colOffset", colOffset + "");
+        if (slotsRight.size() > 0) {
+            slotsRight.get(0).setAttribute("colOffset", colOffset + "");
         }
         
-        for (Element childElement : childButtonsLeftElements) {
-            footerPanel.appendChild(childElement);
+        for (Element slot : slotsLeft) {
+            footerPanel.appendChild(slot);
         }
-        for (Element childElement : childButtonsRightElements) {
-            footerPanel.appendChild(childElement);
+        for (Element slot : slotsRight) {
+            footerPanel.appendChild(slot);
         }
         
         
@@ -66,26 +73,63 @@ public class Footer {
     }
 
     /**
-     * Suma el colSpan de los botones que pueden verse a la vez. Dos botones cuyas condiciones de
+     * Agrupa los botones en los huecos que ocupan en el footer. Dos botones cuyas condiciones de
      * visibilidad son una la negación de la otra (p.ej. {@code showIf="x"} y {@code showIf="!x"}) nunca
-     * se ven juntos, así que de esa pareja solo cuenta el de mayor colSpan.
+     * se ven juntos, así que van a un mismo hueco: un panel sin marco del ancho del mayor, con los dos
+     * dentro a todo lo ancho.
+     *
+     * <p>No basta con contarlos una sola vez al calcular el colOffset: el layout de Axelor calcula la
+     * columna de cada elemento sumando la de <b>todos</b> los anteriores, también la de los ocultos
+     * ({@code computeLayout} de {@code axelor-front/src/views/form/builder/form-layouts.tsx}), así que un
+     * botón oculto suelto empuja a los siguientes y el último salta de fila.
      */
-    private static int sumVisibleColSpan(List<Element> buttons, int itemSpan) {
-        int sum = 0;
+    private static List<Element> groupAlternatives(List<Element> buttons, Element footerPanel, int itemSpan) {
+        List<Element> slots = new ArrayList<>();
         List<Element> paired = new ArrayList<>();
 
         for (Element button : buttons) {
             if (paired.contains(button)) {
                 continue;
             }
-            int colSpan = XMLUtil.getIntegerAttribute(button, "colSpan", itemSpan);
 
             Element alternative = findAlternative(button, buttons, paired);
-            if (alternative != null) {
+            if (alternative == null) {
+                slots.add(button);
+            } else {
                 paired.add(alternative);
-                colSpan = Math.max(colSpan, XMLUtil.getIntegerAttribute(alternative, "colSpan", itemSpan));
+                slots.add(createAlternativesPanel(button, alternative, footerPanel, itemSpan));
             }
-            sum = sum + colSpan;
+        }
+
+        return slots;
+    }
+
+    private static Element createAlternativesPanel(Element button, Element alternative, Element footerPanel, int itemSpan) {
+        int colSpan = Math.max(XMLUtil.getIntegerAttribute(button, "colSpan", itemSpan), XMLUtil.getIntegerAttribute(alternative, "colSpan", itemSpan));
+
+        Document document = footerPanel.getOwnerDocument();
+        String namespace = footerPanel.getNamespaceURI();
+        Element panel = (namespace == null) ? document.createElement("panel") : document.createElementNS(namespace, "panel");
+        panel.setAttribute("colSpan", colSpan + "");
+        panel.setAttribute("showFrame", "false");
+        if (button.hasAttribute("colOffset")) {
+            panel.setAttribute("colOffset", button.getAttribute("colOffset"));
+        }
+
+        for (Element element : List.of(button, alternative)) {
+            element.removeAttribute("colOffset");
+            element.setAttribute("colSpan", "12");
+            panel.appendChild(element);
+        }
+
+        return panel;
+    }
+
+    /** Las columnas que ocupan los huecos: su colSpan más su colOffset. */
+    private static int sumColumns(List<Element> slots, int itemSpan) {
+        int sum = 0;
+        for (Element slot : slots) {
+            sum = sum + XMLUtil.getIntegerAttribute(slot, "colSpan", itemSpan) + XMLUtil.getIntegerAttribute(slot, "colOffset", 0);
         }
 
         return sum;

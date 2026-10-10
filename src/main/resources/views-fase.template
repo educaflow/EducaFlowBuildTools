@@ -26,7 +26,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="" colSpan="2" title="" onClick="subsysExpedientes-event-action" />
+                <button name="" colSpan="3" title="" onClick="subsysExpedientes-event-action" />
             </buttons-right>
         </footer>
 
@@ -40,7 +40,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="" colSpan="2" title="" onClick="subsysExpedientes-event-action" />
+                <button name="" colSpan="3" title="" onClick="subsysExpedientes-event-action" />
             </buttons-right>
         </footer>
     </form>
