@@ -17,6 +17,9 @@ import org.w3c.dom.Node;
  * @author logongas
  */
 public class Footer {
+
+    private static final int BUTTONS_PANEL_COLS = 6;
+    private static final int BUTTONS_PANEL_ITEM_SPAN = 3;
     
     public static void doFooter(Element footer, PanelFinder panelFinder) {
         Document ownerDocument=footer.getOwnerDocument();
@@ -38,30 +41,22 @@ public class Footer {
         Element footerPanel = panelFinder.findAndImport("subsysExpedientes-template-footer-panel",ownerDocument);
 
         
-        int itemSpan = XMLUtil.getIntegerAttribute(footerPanel,"itemSpan", 1);
-        List<Element> slotsLeft = groupAlternatives(childButtonsLeftElements, footerPanel, itemSpan);
-        List<Element> slotsRight = groupAlternatives(childButtonsRightElements, footerPanel, itemSpan);
+        Element panelLeft = createButtonsPanel(footerPanel);
+        Element panelRight = createButtonsPanel(footerPanel);
 
-        // El colOffset del primer botón de la derecha se sobrescribe, así que no cuenta.
-        if (slotsRight.size() > 0) {
-            slotsRight.get(0).removeAttribute("colOffset");
+        for (Element button : childButtonsLeftElements) {
+            panelLeft.appendChild(button);
         }
-        int sumColSpam = sumColumns(slotsLeft, itemSpan) + sumColumns(slotsRight, itemSpan);
+        for (Element button : childButtonsRightElements) {
+            int colSpan = XMLUtil.getIntegerAttribute(button, "colSpan", BUTTONS_PANEL_ITEM_SPAN);
+            button.setAttribute("colOffset", (BUTTONS_PANEL_COLS - colSpan) + "");
+            panelRight.appendChild(button);
+        }
 
-        int colOffset = 12 - sumColSpam;
+        footerPanel.appendChild(panelLeft);
+        footerPanel.appendChild(panelRight);
 
-        if (slotsRight.size() > 0) {
-            slotsRight.get(0).setAttribute("colOffset", colOffset + "");
-        }
-        
-        for (Element slot : slotsLeft) {
-            footerPanel.appendChild(slot);
-        }
-        for (Element slot : slotsRight) {
-            footerPanel.appendChild(slot);
-        }
-        
-        
+
         Node parent = footer.getParentNode();
         parent.insertBefore(footerPanel,footer);
         if (isFooterDeFormDeEstado(footer)) {
@@ -73,171 +68,23 @@ public class Footer {
     }
 
     /**
-     * Agrupa los botones en los huecos que ocupan en el footer. Dos botones cuyas condiciones de
-     * visibilidad son una la negación de la otra (p.ej. {@code showIf="x"} y {@code showIf="!x"}) nunca
-     * se ven juntos, así que van a un mismo hueco: un panel sin marco del ancho del mayor, con los dos
-     * dentro a todo lo ancho.
-     *
-     * <p>No basta con contarlos una sola vez al calcular el colOffset: el layout de Axelor calcula la
-     * columna de cada elemento sumando la de <b>todos</b> los anteriores, también la de los ocultos
-     * ({@code computeLayout} de {@code axelor-front/src/views/form/builder/form-layouts.tsx}), así que un
-     * botón oculto suelto empuja a los siguientes y el último salta de fila.
+     * Cada lado del footer va en su propio panel sin marco de media anchura, así que lo de un lado no desplaza
+     * al otro y no hace falta saber qué botones se ven (eso depende de los {@code showIf}, que solo se sabe en
+     * runtime). Tiene {@value #BUTTONS_PANEL_COLS} columnas para que el {@code colSpan} de un botón mida lo mismo
+     * que si estuviera directamente en el form. Como en cada lado solo se ve un botón a la vez, a los de la
+     * derecha les basta un {@code colOffset} fijo para quedar pegados al margen derecho; un botón oculto no
+     * ocupa sitio porque Axelor oculta su celda vacía y el siguiente sube a esa fila.
      */
-    private static List<Element> groupAlternatives(List<Element> buttons, Element footerPanel, int itemSpan) {
-        List<Element> slots = new ArrayList<>();
-        List<Element> paired = new ArrayList<>();
-
-        for (Element button : buttons) {
-            if (paired.contains(button)) {
-                continue;
-            }
-
-            Element alternative = findAlternative(button, buttons, paired);
-            if (alternative == null) {
-                slots.add(button);
-            } else {
-                paired.add(alternative);
-                slots.add(createAlternativesPanel(button, alternative, footerPanel, itemSpan));
-            }
-        }
-
-        return slots;
-    }
-
-    private static Element createAlternativesPanel(Element button, Element alternative, Element footerPanel, int itemSpan) {
-        int colSpan = Math.max(XMLUtil.getIntegerAttribute(button, "colSpan", itemSpan), XMLUtil.getIntegerAttribute(alternative, "colSpan", itemSpan));
-
+    private static Element createButtonsPanel(Element footerPanel) {
         Document document = footerPanel.getOwnerDocument();
         String namespace = footerPanel.getNamespaceURI();
         Element panel = (namespace == null) ? document.createElement("panel") : document.createElementNS(namespace, "panel");
-        panel.setAttribute("colSpan", colSpan + "");
+        panel.setAttribute("colSpan", BUTTONS_PANEL_COLS + "");
+        panel.setAttribute("cols", BUTTONS_PANEL_COLS + "");
+        panel.setAttribute("itemSpan", BUTTONS_PANEL_ITEM_SPAN + "");
         panel.setAttribute("showFrame", "false");
-        if (button.hasAttribute("colOffset")) {
-            panel.setAttribute("colOffset", button.getAttribute("colOffset"));
-        }
-
-        for (Element element : List.of(button, alternative)) {
-            element.removeAttribute("colOffset");
-            element.setAttribute("colSpan", "12");
-            panel.appendChild(element);
-        }
 
         return panel;
-    }
-
-    /** Las columnas que ocupan los huecos: su colSpan más su colOffset. */
-    private static int sumColumns(List<Element> slots, int itemSpan) {
-        int sum = 0;
-        for (Element slot : slots) {
-            sum = sum + XMLUtil.getIntegerAttribute(slot, "colSpan", itemSpan) + XMLUtil.getIntegerAttribute(slot, "colOffset", 0);
-        }
-
-        return sum;
-    }
-
-    private static Element findAlternative(Element button, List<Element> buttons, List<Element> paired) {
-        String condition = getVisibleCondition(button);
-        if (condition == null) {
-            return null;
-        }
-
-        for (Element other : buttons) {
-            if ((other != button) && (paired.contains(other) == false)) {
-                String otherCondition = getVisibleCondition(other);
-                if ((otherCondition != null) && negate(condition).equals(otherCondition)) {
-                    return other;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * La condición en la que el botón es visible, normalizada sin espacios, o {@code null} si no tiene.
-     */
-    private static String getVisibleCondition(Element button) {
-        String showIf = button.getAttribute("showIf").replaceAll("\\s", "");
-        String hideIf = button.getAttribute("hideIf").replaceAll("\\s", "");
-
-        if (showIf.isEmpty() == false) {
-            return removeDoubleNegation(showIf);
-        } else if (hideIf.isEmpty() == false) {
-            return negate(hideIf);
-        } else {
-            return null;
-        }
-    }
-
-    private static String negate(String condition) {
-        if (isNegation(condition)) {
-            return removeDoubleNegation(unwrap(condition.substring(1)));
-        } else {
-            return "!" + wrap(unwrap(condition));
-        }
-    }
-
-    private static String removeDoubleNegation(String condition) {
-        String unwrapped = unwrap(condition);
-        if (isNegation(unwrapped)) {
-            String negated = unwrap(unwrapped.substring(1));
-            if (isNegation(negated)) {
-                return removeDoubleNegation(negated.substring(1));
-            } else {
-                return "!" + wrap(negated);
-            }
-        } else {
-            return unwrapped;
-        }
-    }
-
-    /**
-     * Si la condición entera es la negación de algo ({@code !x} o {@code !(...)}), no de solo su primer término
-     * como en {@code !a || b}.
-     */
-    private static boolean isNegation(String condition) {
-        if (condition.startsWith("!") == false) {
-            return false;
-        }
-        String operand = condition.substring(1);
-
-        return operand.matches("!*[\\w.$]+") || (operand.startsWith("(") && operand.endsWith(")") && isOuterParenthesis(operand));
-    }
-
-    /**
-     * Pone entre paréntesis la condición salvo que sea un identificador simple (p.ej. {@code presentadoEnPapel}),
-     * para que {@code !x} y {@code !(x)} se normalicen igual.
-     */
-    private static String wrap(String condition) {
-        if (condition.matches("[\\w.$]+")) {
-            return condition;
-        } else {
-            return "(" + condition + ")";
-        }
-    }
-
-    private static String unwrap(String condition) {
-        if (condition.startsWith("(") && condition.endsWith(")") && isOuterParenthesis(condition)) {
-            return unwrap(condition.substring(1, condition.length() - 1));
-        } else {
-            return condition;
-        }
-    }
-
-    private static boolean isOuterParenthesis(String condition) {
-        int depth = 0;
-        for (int i = 0; i < condition.length(); i++) {
-            char c = condition.charAt(i);
-            if (c == '(') {
-                depth++;
-            } else if (c == ')') {
-                depth--;
-                if ((depth == 0) && (i < condition.length() - 1)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     /**
