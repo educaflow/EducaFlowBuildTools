@@ -38,18 +38,8 @@ public class Footer {
         Element footerPanel = panelFinder.findAndImport("subsysExpedientes-template-footer-panel",ownerDocument);
 
         
-        int sumColSpam = 0;
-        {
-            int itemSpan = XMLUtil.getIntegerAttribute(footerPanel,"itemSpan", 1);
-
-
-            for (Element childElement : childButtonsLeftElements) {
-                sumColSpam = sumColSpam + XMLUtil.getIntegerAttribute(childElement,"colSpan", itemSpan);
-            }
-            for (Element childElement : childButtonsRightElements) {
-                sumColSpam = sumColSpam + XMLUtil.getIntegerAttribute(childElement,"colSpan", itemSpan);
-            }
-        }
+        int itemSpan = XMLUtil.getIntegerAttribute(footerPanel,"itemSpan", 1);
+        int sumColSpam = sumVisibleColSpan(childButtonsLeftElements, itemSpan) + sumVisibleColSpan(childButtonsRightElements, itemSpan);
 
         int colOffset = 12 - sumColSpam;
 
@@ -73,6 +63,137 @@ public class Footer {
         }
         parent.removeChild(footer);
 
+    }
+
+    /**
+     * Suma el colSpan de los botones que pueden verse a la vez. Dos botones cuyas condiciones de
+     * visibilidad son una la negación de la otra (p.ej. {@code showIf="x"} y {@code showIf="!x"}) nunca
+     * se ven juntos, así que de esa pareja solo cuenta el de mayor colSpan.
+     */
+    private static int sumVisibleColSpan(List<Element> buttons, int itemSpan) {
+        int sum = 0;
+        List<Element> paired = new ArrayList<>();
+
+        for (Element button : buttons) {
+            if (paired.contains(button)) {
+                continue;
+            }
+            int colSpan = XMLUtil.getIntegerAttribute(button, "colSpan", itemSpan);
+
+            Element alternative = findAlternative(button, buttons, paired);
+            if (alternative != null) {
+                paired.add(alternative);
+                colSpan = Math.max(colSpan, XMLUtil.getIntegerAttribute(alternative, "colSpan", itemSpan));
+            }
+            sum = sum + colSpan;
+        }
+
+        return sum;
+    }
+
+    private static Element findAlternative(Element button, List<Element> buttons, List<Element> paired) {
+        String condition = getVisibleCondition(button);
+        if (condition == null) {
+            return null;
+        }
+
+        for (Element other : buttons) {
+            if ((other != button) && (paired.contains(other) == false)) {
+                String otherCondition = getVisibleCondition(other);
+                if ((otherCondition != null) && negate(condition).equals(otherCondition)) {
+                    return other;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * La condición en la que el botón es visible, normalizada sin espacios, o {@code null} si no tiene.
+     */
+    private static String getVisibleCondition(Element button) {
+        String showIf = button.getAttribute("showIf").replaceAll("\\s", "");
+        String hideIf = button.getAttribute("hideIf").replaceAll("\\s", "");
+
+        if (showIf.isEmpty() == false) {
+            return removeDoubleNegation(showIf);
+        } else if (hideIf.isEmpty() == false) {
+            return negate(hideIf);
+        } else {
+            return null;
+        }
+    }
+
+    private static String negate(String condition) {
+        if (isNegation(condition)) {
+            return removeDoubleNegation(unwrap(condition.substring(1)));
+        } else {
+            return "!" + wrap(unwrap(condition));
+        }
+    }
+
+    private static String removeDoubleNegation(String condition) {
+        String unwrapped = unwrap(condition);
+        if (isNegation(unwrapped)) {
+            String negated = unwrap(unwrapped.substring(1));
+            if (isNegation(negated)) {
+                return removeDoubleNegation(negated.substring(1));
+            } else {
+                return "!" + wrap(negated);
+            }
+        } else {
+            return unwrapped;
+        }
+    }
+
+    /**
+     * Si la condición entera es la negación de algo ({@code !x} o {@code !(...)}), no de solo su primer término
+     * como en {@code !a || b}.
+     */
+    private static boolean isNegation(String condition) {
+        if (condition.startsWith("!") == false) {
+            return false;
+        }
+        String operand = condition.substring(1);
+
+        return operand.matches("!*[\\w.$]+") || (operand.startsWith("(") && operand.endsWith(")") && isOuterParenthesis(operand));
+    }
+
+    /**
+     * Pone entre paréntesis la condición salvo que sea un identificador simple (p.ej. {@code presentadoEnPapel}),
+     * para que {@code !x} y {@code !(x)} se normalicen igual.
+     */
+    private static String wrap(String condition) {
+        if (condition.matches("[\\w.$]+")) {
+            return condition;
+        } else {
+            return "(" + condition + ")";
+        }
+    }
+
+    private static String unwrap(String condition) {
+        if (condition.startsWith("(") && condition.endsWith(")") && isOuterParenthesis(condition)) {
+            return unwrap(condition.substring(1, condition.length() - 1));
+        } else {
+            return condition;
+        }
+    }
+
+    private static boolean isOuterParenthesis(String condition) {
+        int depth = 0;
+        for (int i = 0; i < condition.length(); i++) {
+            char c = condition.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')') {
+                depth--;
+                if ((depth == 0) && (i < condition.length() - 1)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
