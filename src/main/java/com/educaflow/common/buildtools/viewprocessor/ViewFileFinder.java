@@ -8,7 +8,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +15,10 @@ import java.util.stream.Stream;
 
 public class ViewFileFinder {
 
-    private final String templateViewFileName="template-views.xml";
-    private final String formTemplateName="subsysExpedientes-templates-form";
-    
+    private final String templateViewFileName="common-template-views.xml";
+    private final String formTemplateName="subsysExpedientes-common-templates-form";
+    private final String systemViewFileName="system-template-views.xml";
+    private final String systemFormTemplateName="subsysExpedientes-system-templates-form";
     private final DocumentBuilderFactory documentBuilderFactory;
 
     public ViewFileFinder() {
@@ -50,8 +50,19 @@ public class ViewFileFinder {
         return result;
     }
     
-    public List<Element> findTemplateViews(Path directoryPath) {
-        List<Element> templates = new ArrayList<>();
+    /**
+     * Los formularios plantilla de todos los {@code common-template-views.xml} que hay
+     * bajo la carpeta {@code shared} de los trámites, indexados por su carpeta.
+     *
+     * La clave del mapa es la ruta relativa de la carpeta que contiene al
+     * {@code common-template-views.xml} respecto de la carpeta que se pasa como
+     * parámetro: la cadena vacía para el de la propia raíz y, por ejemplo,
+     * {@code "bbb/ccc"} para el de {@code <shared>/bbb/ccc/common-template-views.xml}.
+     * Los paneles de un {@code <include-panels>} se referencian con esa misma
+     * ruta pero con puntos en lugar de barras.
+     */
+    public Map<String, Element> findTemplateViews(Path directoryPath) {
+        Map<String, Element> templates = new LinkedHashMap<>();
 
         if (!Files.isDirectory(directoryPath)) {
             throw new RuntimeException("La ruta proporcionada no es un directorio válido: " + directoryPath);
@@ -68,19 +79,48 @@ public class ViewFileFinder {
                             throw new RuntimeException("No existe el form '" + formTemplateName + "' en "+path);
                         }
                         
-                        templates.add(formTemplate);
+                        String relativeDirectoryPath = directoryPath.relativize(path.getParent()).toString().replace('\\', '/');
+                        templates.put(relativeDirectoryPath, formTemplate);
                     }
                 });
         } catch (Exception ex) {
             throw new RuntimeException("Error al recorrer el directorio " + directoryPath + ": " + ex.getMessage(), ex);
         }
         
-        if (templates.size()==0) {
+        if (templates.isEmpty()) {
             throw new RuntimeException("No existe el " + templateViewFileName + " en:"+directoryPath);
         } 
         
 
         return templates;
+    }
+
+    /**
+     * El form plantilla del {@code system-template-views.xml} de la raíz de la carpeta
+     * {@code shared} de los trámites.
+     *
+     * Es el que contiene los paneles del subsistema de expedientes (los cuyo
+     * nombre empieza por {@code subsysExpedientes}); el resto de paneles de un
+     * {@code <include-panels>} viven en los {@code common-template-views.xml}.
+     */
+    public Element findSystemTemplateViews(Path sharedPath) {
+        Path systemViewPath = sharedPath.resolve(systemViewFileName);
+
+        if (!Files.isRegularFile(systemViewPath)) {
+            throw new RuntimeException("No existe el " + systemViewFileName + " en:" + sharedPath);
+        }
+
+        Document systemViewDocument = parseAndValidateXml(systemViewPath);
+        if (systemViewDocument == null) {
+            throw new RuntimeException("El " + systemViewFileName + " de:" + sharedPath + " no es un fichero de vistas (raiz 'object-views')");
+        }
+
+        Element systemFormTemplate = XMLUtil.getChildFilterByTagNameAndAttributeName(systemViewDocument.getDocumentElement(), systemFormTemplateName, "form");
+        if (systemFormTemplate == null) {
+            throw new RuntimeException("No existe el form '" + systemFormTemplateName + "' en " + systemViewPath);
+        }
+
+        return systemFormTemplate;
     }
 
     private Document parseAndValidateXml(Path filePath ) {

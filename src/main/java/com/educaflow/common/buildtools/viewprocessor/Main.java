@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.w3c.dom.Document;
@@ -41,7 +40,8 @@ public class Main {
         TramitesLayout tramitesLayout = new TramitesLayout(pathToSearch, paqueteRaizTramites);
 
         ViewFileFinder finder = new ViewFileFinder();
-        List<Element> templateForms=finder.findTemplateViews(pathToSearch);
+        Map<String, Element> templateForms=finder.findTemplateViews(tramitesLayout.getSharedPath());
+        Element formSystemTemplate=finder.findSystemTemplateViews(tramitesLayout.getSharedPath());
         Map<Document, Path> views = finder.findViews(pathToSearch);
         
         Files.createDirectories(targetBaseDir);
@@ -54,7 +54,7 @@ public class Main {
                 Path newFilePathInTarget = targetBaseDir.resolve(relativePath);
                 Files.createDirectories(newFilePathInTarget.getParent());                
                 
-                Document newDocument = ViewFilePreprocesor.process(document, filePath, templateForms, tramitesLayout);
+                Document newDocument = ViewFilePreprocesor.process(document, filePath, templateForms, formSystemTemplate, tramitesLayout);
                 guardarXML(newDocument, newFilePathInTarget);
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al prerocesar el fichero: " + filePath,ex);

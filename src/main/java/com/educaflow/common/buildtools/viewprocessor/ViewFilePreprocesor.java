@@ -8,6 +8,7 @@ import com.educaflow.common.buildtools.viewprocessor.tags.Form;
 import com.educaflow.common.buildtools.viewprocessor.tags.IncludePanels;
 import com.educaflow.common.buildtools.viewprocessor.tags.MenuItem;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,7 +24,7 @@ public class ViewFilePreprocesor {
      *        {@code views.xml} de una fase no es autosuficiente: su fase y sus paneles se resuelven
      *        a partir de dónde está (ver {@link TipoExpedienteViewsContext}).
      */
-    public static Document process(Document document, Path filePath, List<Element> templateForms, TramitesLayout tramitesLayout) {
+    public static Document process(Document document, Path filePath, Map<String, Element> templateForms, Element formSystemTemplate, TramitesLayout tramitesLayout) {
         Document newDocument = XMLUtil.cloneDocument(document);
 
         //Va antes del return anticipado: los ficheros de menús no tienen nada de un tipo de expediente.
@@ -53,7 +54,7 @@ public class ViewFilePreprocesor {
             }
         }
 
-        PanelFinder panelFinder = new PanelFinder(formTipoExpedienteTemplate, templateForms);
+        PanelFinder panelFinder = new PanelFinder(formTipoExpedienteTemplate, templateForms, formSystemTemplate);
 
         List<Element> includePanelsList = XMLUtil.getElementsFromEvaluateXPath(".//include-panels", newDocument.getDocumentElement());
         for (Element element : includePanelsList) {
