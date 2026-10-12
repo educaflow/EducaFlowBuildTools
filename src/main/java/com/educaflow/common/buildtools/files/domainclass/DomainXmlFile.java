@@ -54,12 +54,13 @@ try {
     String newCdata = "        <![CDATA[\n" + newExtraCodeModel + "\n        ]]>";
     String newExtraCodeModelTag = "        <extra-code-model>\n" + newCdata + "\n        </extra-code-model>";
 
-    // Localizar la entity con extends="Expediente" tolerando espacios
+    // Localizar la entity del tipo de expediente por su nombre (el Code del tipo), tolerando espacios. No se mira de qué hereda: cualquier clase que herede de Expediente, directa o indirectamente, vale, y si no heredase el código inyectado no compilaría.
+    String entityName = tipoExpedienteFile.getCode();
     java.util.regex.Matcher extendsMatcher = java.util.regex.Pattern
-            .compile("extends\\s*=\\s*\"Expediente\"")
+            .compile("<\\s*entity\\s[^>]*\\bname\\s*=\\s*\"" + java.util.regex.Pattern.quote(entityName) + "\"")
             .matcher(content);
     if (!extendsMatcher.find()) {
-        throw new RuntimeException("No se ha encontrado la entity con extends=\"Expediente\" en: " + filePath);
+        throw new RuntimeException("No se ha encontrado la entity con name=\"" + entityName + "\" en: " + filePath);
     }
     int extendsPos = extendsMatcher.start();
 
@@ -68,7 +69,7 @@ try {
             .matcher(content);
     entityCloseMatcher.region(extendsPos, content.length());
     if (!entityCloseMatcher.find()) {
-        throw new RuntimeException("No se ha encontrado el cierre </entity> de la entity con extends=\"Expediente\" en: " + filePath);
+        throw new RuntimeException("No se ha encontrado el cierre </entity> de la entity del tipo de expediente en: " + filePath);
     }
     int entityClosePos = entityCloseMatcher.start();
 
